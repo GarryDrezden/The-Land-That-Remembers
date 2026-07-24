@@ -1,0 +1,11 @@
+{
+  "id": "oven_door",
+  "name": "Дверца печи",
+  "inputs": {
+    "scrap_metal": 1,
+    "wood": 1
+  },
+  "output": "oven_door",
+  "output_amount": 1,
+  "station": "workbench"
+}

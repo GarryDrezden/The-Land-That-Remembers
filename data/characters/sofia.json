@@ -1,0 +1,7 @@
+{
+  "id": "sofia",
+  "name": "Софья",
+  "age": 40,
+  "role": "пекарь",
+  "dialogue": "res://data/dialogues/sofia.json"
+}
