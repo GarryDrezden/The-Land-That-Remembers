@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/debug/yard_art_test_v2.gd" id="1_controller"]
+
+[node name="YardArtTestV2" type="Node2D"]
+texture_filter = 1
+script = ExtResource("1_controller")
+show_hint = true

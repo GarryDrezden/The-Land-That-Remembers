@@ -1,21 +1,28 @@
 # NEXT STEPS
 
-Обновлено: 2026-07-31 (после art test)
+Обновлено: 2026-07-31 (art test v2)
 
 ## Сделано
 
-Isolated Puny World `yard_art_test` — gate **не пройден** (атмосфера + нет персонажа/бревна + toy houses).
+- Isolated `yard_art_test_v2` на generated sheets (рядом со старым Puny `yard_art_test`).  
+- Документация аудита и статус **candidate** (не финал).
 
-## Заблокировано до подтверждения владельца
+## Сейчас стоп
 
-- GameRoot
-- основной двор / TileMap миграция
-- interior hotspot mode
-- удаление прототипа
-- подмешивание второго pack «для заполнения»
+Не переходить к GameRoot / основному двору без явного подтверждения.
 
-## Вопросы к владельцу
+## Ждёт решения владельца
 
-1. Ищем другой единый rural/farm pack (приглушённая палитра, дом, персонаж, clutter)?
-2. Или пробуем Puny World + официальный Puny Characters тем же автором как «одно семейство» (отдельный мини-тест)?
-3. Готовы ли к кастомному/заказному outdoor art раньше?
+1. Пригодность направления generated pack (да как mood, нет как raw production).  
+2. Нужна ли **перегенерация** с требованиями:
+   - настоящий alpha (без чёрного фона);
+   - согласованный pixel scale;
+   - left-facing или явный flip-ok;
+   - seamless / atlas terrain + water autotile;
+   - spruce того же порядка высоты, что oak/birch;
+   - объекты без baked dirt-islands (или с отдельным shadow layer).  
+3. Или выбрать другой production path (A/B/C из Pack 01).
+
+## После утверждения арта
+
+Палитра → terrain+water → props+trees → house+player → новый art gate → только потом GameRoot.

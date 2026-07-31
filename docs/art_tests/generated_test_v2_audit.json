@@ -1,0 +1,200 @@
+{
+  "status": "candidate generated outdoor pack — art test v2",
+  "source_issues": {
+    "all_sprite_sheets": "Opaque black (#000) background, zero native transparency. Soft dark fringe keyed out.",
+    "not_uniform_grid": "Vegetation/house/terrain not safe for blind hframes/vframes; CC + manual role picks.",
+    "player_grid": "Player usable via measured 4x5 content bands (not equal cell size, but separable).",
+    "composition_reference": "Mood reference only — not used as gameplay texture.",
+    "terrain_tileset": "No production-ready seamless grass/water 16px set; baked ground/pond for art test.",
+    "spruce_scale": "Spruce extraction much shorter than oak/birch on source sheet.",
+    "object_bases": "Trees/house include baked dirt islands under feet — may look like patches on ground."
+  },
+  "player": {
+    "frame_size": [
+      79,
+      142
+    ],
+    "frames": [
+      "assets/art/outdoor/generated_test/processed/player/frame_00.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_01.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_02.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_03.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_04.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_05.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_06.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_07.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_08.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_09.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_10.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_11.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_12.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_13.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_14.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_15.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_16.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_17.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_18.png",
+      "assets/art/outdoor/generated_test/processed/player/frame_19.png"
+    ],
+    "count": 20,
+    "opaque_counts": [
+      5389,
+      4996,
+      5035,
+      4746,
+      4830,
+      4226,
+      4346,
+      3993,
+      4092,
+      4207,
+      4165,
+      4281,
+      3943,
+      4091,
+      4319,
+      3685,
+      3670,
+      3645,
+      3652,
+      3634
+    ],
+    "anims": {
+      "idle_down": [
+        0
+      ],
+      "walk_down": [
+        0,
+        1
+      ],
+      "idle_up": [
+        2
+      ],
+      "walk_up": [
+        2,
+        3,
+        4
+      ],
+      "idle_right": [
+        5
+      ],
+      "walk_right": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "idle_left": [
+        5
+      ],
+      "walk_left": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "walk_right_alt_a": [
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "walk_right_alt_b": [
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    "row_bands": [
+      [
+        39,
+        182
+      ],
+      [
+        224,
+        354
+      ],
+      [
+        395,
+        524
+      ],
+      [
+        560,
+        672
+      ]
+    ],
+    "col_bands": [
+      [
+        227,
+        303
+      ],
+      [
+        374,
+        450
+      ],
+      [
+        545,
+        624
+      ],
+      [
+        705,
+        783
+      ],
+      [
+        860,
+        939
+      ]
+    ],
+    "note": "Left = horizontal flip of right. Extra right walk rows kept as alt cycles."
+  },
+  "vegetation": {
+    "named_trees": {
+      "oak": "assets/art/outdoor/generated_test/processed/vegetation/tree_oak.png",
+      "birch": "assets/art/outdoor/generated_test/processed/vegetation/tree_birch.png",
+      "spruce": "assets/art/outdoor/generated_test/processed/vegetation/tree_spruce.png"
+    },
+    "issue": "Spruce on source sheet is much shorter than oak/birch (~141px vs ~300px).",
+    "count": 22
+  },
+  "obstacles": {
+    "rocks": [],
+    "logs": [
+      "assets/art/outdoor/generated_test/processed/obstacles/log_00.png",
+      "assets/art/outdoor/generated_test/processed/obstacles/log_01.png",
+      "assets/art/outdoor/generated_test/processed/obstacles/log_02.png",
+      "assets/art/outdoor/generated_test/processed/obstacles/log_03.png",
+      "assets/art/outdoor/generated_test/processed/obstacles/log_04.png",
+      "assets/art/outdoor/generated_test/processed/obstacles/log_05.png"
+    ],
+    "stumps": [
+      "assets/art/outdoor/generated_test/processed/obstacles/stump_00.png",
+      "assets/art/outdoor/generated_test/processed/obstacles/stump_01.png",
+      "assets/art/outdoor/generated_test/processed/obstacles/stump_02.png"
+    ]
+  },
+  "house": {
+    "house": "assets/art/outdoor/generated_test/processed/buildings/house_main.png",
+    "props": [
+      "assets/art/outdoor/generated_test/processed/buildings/prop_00.png",
+      "assets/art/outdoor/generated_test/processed/buildings/prop_01.png",
+      "assets/art/outdoor/generated_test/processed/buildings/prop_02.png",
+      "assets/art/outdoor/generated_test/processed/buildings/prop_03.png",
+      "assets/art/outdoor/generated_test/processed/buildings/prop_04.png",
+      "assets/art/outdoor/generated_test/processed/buildings/prop_05.png",
+      "assets/art/outdoor/generated_test/processed/buildings/prop_06.png",
+      "assets/art/outdoor/generated_test/processed/buildings/prop_07.png"
+    ],
+    "count": 33
+  },
+  "terrain": {
+    "dirt_count": 34,
+    "grass_count": 18,
+    "water_count": 13,
+    "limitation": "No clean seamless 16x16 grass/water tileset on source sheet. Art test uses baked ground + pond assembled from extracted chunks (temporary; not production tilemap)."
+  }
+}

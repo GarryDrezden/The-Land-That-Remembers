@@ -2,7 +2,41 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
-## 2026-07-31 (g) — fix ColorRect→AnimatedSprite2D @implicit_ready
+## 2026-07-31 (j) — generated outdoor yard art test v2
+
+**Цель:** изолированная сцена на AI-generated листах (не Puny); честная проверка нарезки/масштаба/композиции.
+
+**Сделано:**
+- source: `assets/art/outdoor/generated_test/source/`;
+- processing: `tools/process_generated_outdoor_v2.py` → `processed/{terrain,player,vegetation,obstacles,buildings,water}/`;
+- сцена `yard_art_test_v2.tscn` + `scripts/debug/yard_art_test_v2.gd` (4-dir AnimatedSprite2D, Y-sort, pond bake, 3 clearables, F12 hint);
+- старая `yard_art_test.tscn` сохранена;
+- скрины `docs/art_tests/yard_art_test_v2_*.png`;
+- статус: **candidate generated outdoor pack — art test v2** (не финал в DECISIONS).
+
+**Проблемы source (не маскировали):** opaque black bg; sheets не grid-safe; нет seamless grass/water → temporary ground/pond bake; left=flip; spruce ниже oak/birch; dirt-islands; fringe.
+
+**Не делалось:** GameRoot, основной двор, WorldState/save.
+
+---
+
+## 2026-07-31 (i) — DEC-006 outdoor visual target + Pack 01 plan
+
+**Сделано:**
+- утверждены mood/scope референсы в `docs/art_direction/`;
+- DEC-006; план `docs/OUTDOOR_ASSET_PACK_01.md` (player, terrain, water, clearables, 3 trees, house);
+- Puny остаётся отклонённым; направление — detailed Stardew-like + rural childhood-home;
+- GameRoot не начат; стоп до утверждения плана Pack 01.
+
+**Файлы:** `DECISIONS.md`, `OUTDOOR_ASSET_PACK_01.md`, `PROJECT_STATUS.md`, `CHANGELOG_AI.md`, `NEXT_STEPS.md`, `art_direction/*.png`
+
+---
+
+**Сделано:** зафиксировано уточнение art direction — outdoor целится в detailed Stardew-like уровень + rural/Eastern European identity; Puny отклонён за недостаточную детализацию, не за «похожесть на Stardew». GameRoot не начинать; следующий шаг — выбрать production path (pack / свой tileset / pack+дорисовка).
+
+**Файлы:** `docs/DECISIONS.md`, `ART_DIRECTION.md`, `ART_ASSET_BRIEF.md`, `ASSET_INVENTORY.md`, `NEXT_STEPS.md`, `PROJECT_STATUS.md`, `VISION.md`, `AGENTS.md`, `CHANGELOG_AI.md`
+
+---
 
 **Красная ошибка:** `@implicit_ready: Trying to assign value of type 'ColorRect' to a variable of type 'AnimatedSprite2D'.`  
 **Строка:** `scripts/player/player.gd:8` `@onready var anim: AnimatedSprite2D = $Body`  
