@@ -1,0 +1,231 @@
+{
+  "status": "generated outdoor texture proof v1 — candidate",
+  "scale_locked": {
+    "viewport": [
+      384,
+      240
+    ],
+    "tile": 16,
+    "map_tiles": [
+      72,
+      45
+    ],
+    "player": [
+      24,
+      32
+    ],
+    "deciduous": [
+      64,
+      80
+    ],
+    "birch": [
+      48,
+      80
+    ],
+    "spruce": [
+      48,
+      96
+    ],
+    "bush": [
+      32,
+      24
+    ],
+    "rock_s": [
+      16,
+      16
+    ],
+    "rock_l": [
+      24,
+      24
+    ],
+    "log": [
+      32,
+      16
+    ],
+    "stump": [
+      24,
+      24
+    ],
+    "house": [
+      144,
+      112
+    ],
+    "pond": [
+      128,
+      96
+    ]
+  },
+  "player": {
+    "frame_size": [
+      24,
+      32
+    ],
+    "frames": [
+      "assets/art/outdoor/texture_proof_v1/player/frame_00.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_01.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_02.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_03.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_04.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_05.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_06.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_07.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_08.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_09.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_10.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_11.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_12.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_13.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_14.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_15.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_16.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_17.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_18.png",
+      "assets/art/outdoor/texture_proof_v1/player/frame_19.png"
+    ],
+    "anims": {
+      "idle_down": [
+        0
+      ],
+      "walk_down": [
+        0,
+        1,
+        0
+      ],
+      "idle_up": [
+        2
+      ],
+      "walk_up": [
+        2,
+        3,
+        4
+      ],
+      "idle_right": [
+        5
+      ],
+      "walk_right": [
+        5,
+        6,
+        7
+      ],
+      "idle_left": [
+        5
+      ],
+      "walk_left": [
+        5,
+        6,
+        7
+      ]
+    },
+    "left_is_prototype_flip": true,
+    "note": "Source frames ~79×142 downscaled NEAREST to 24×32 — pixel density will look soft vs native 16px art."
+  },
+  "props": {
+    "deciduous": {
+      "file": "assets/art/outdoor/texture_proof_v1/tree_deciduous.png",
+      "size": [
+        64,
+        80
+      ],
+      "opaque": 1774,
+      "source": "assets/art/outdoor/generated_test/processed/vegetation/tree_oak.png",
+      "target": [
+        64,
+        80
+      ]
+    },
+    "spruce": {
+      "file": "assets/art/outdoor/texture_proof_v1/tree_spruce.png",
+      "size": [
+        48,
+        96
+      ],
+      "opaque": 748,
+      "source": "assets/art/outdoor/generated_test/processed/vegetation/tree_spruce.png",
+      "target": [
+        48,
+        96
+      ]
+    },
+    "bush": {
+      "file": "assets/art/outdoor/texture_proof_v1/bush.png",
+      "size": [
+        32,
+        24
+      ],
+      "opaque": 213,
+      "source": "assets/art/outdoor/generated_test/processed/vegetation/bush_00.png",
+      "target": [
+        32,
+        24
+      ]
+    },
+    "rock": {
+      "file": "assets/art/outdoor/texture_proof_v1/rock.png",
+      "size": [
+        24,
+        24
+      ],
+      "opaque": 154,
+      "source": "assets/art/outdoor/generated_test/processed/obstacles/rock_03.png",
+      "target": [
+        24,
+        24
+      ]
+    },
+    "log": {
+      "file": "assets/art/outdoor/texture_proof_v1/log.png",
+      "size": [
+        32,
+        16
+      ],
+      "opaque": 185,
+      "source": "assets/art/outdoor/generated_test/processed/obstacles/log_00.png",
+      "target": [
+        32,
+        16
+      ]
+    },
+    "stump": {
+      "file": "assets/art/outdoor/texture_proof_v1/stump.png",
+      "size": [
+        24,
+        24
+      ],
+      "opaque": 155,
+      "source": "assets/art/outdoor/generated_test/processed/obstacles/stump_00.png",
+      "target": [
+        24,
+        24
+      ]
+    },
+    "house": {
+      "file": "assets/art/outdoor/texture_proof_v1/house.png",
+      "size": [
+        144,
+        112
+      ],
+      "opaque": 7745,
+      "source": "assets/art/outdoor/generated_test/processed/buildings/house_main.png",
+      "target": [
+        144,
+        112
+      ]
+    },
+    "pond": {
+      "file": "assets/art/outdoor/texture_proof_v1/pond.png",
+      "size": [
+        128,
+        96
+      ],
+      "opaque": 7842,
+      "note": "Temporary whole pond (~128×96); not production shoreline autotile."
+    }
+  },
+  "limitations": [
+    "Source art is larger / different pixel density than 16px grid — NEAREST downscale softens detail.",
+    "Dirt-island trim is heuristic; residual base fringe may remain.",
+    "Spruce source shorter than oak — vertical fit into 48×96 may look sparse.",
+    "Player left = horizontal flip of right (prototype flip).",
+    "Pond is temporary whole sprite, not shoreline tiles."
+  ]
+}

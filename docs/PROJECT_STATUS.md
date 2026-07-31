@@ -1,18 +1,18 @@
 # PROJECT STATUS
 
-Обновлено: 2026-07-31 (generated outdoor art test v2)
+Обновлено: 2026-07-31 (texture proof v1)
 
 ## Кратко
 
-- **Puny World** — отклонён как outdoor-база (v1 art test).  
-- **Утверждено направление:** original detailed Stardew-like + rural childhood-home ([DEC-005](DECISIONS.md), [DEC-006](DECISIONS.md)).  
-- **Новый isolated art test v2:** `scenes/locations/outdoor/childhood_home/yard_art_test_v2.tscn`  
-  на AI-generated sheets → `assets/art/outdoor/generated_test/`.  
-- Статус ассетов: **candidate generated outdoor pack — art test v2** (не финал; в DECISIONS не закреплять).  
-- Вердикт v2: стиль/направление promising, но листы **не production-ready** (opaque black bg, нет seamless terrain, bake пруда, fringe, spruce scale).  
-- **GameRoot / основной двор не начинать** без отдельного подтверждения.
+- Mood / направление outdoor — **approved** (DEC-005/006).  
+- Generated pack v2 как production — **rejected** (DEC-007); refs only.  
+- Greybox масштаб — **принят** (`yard_scale_test.tscn`): 384×240, tile 16, map 72×45, размеры объектов зафиксированы.  
+- Текущий этап: **texture proof v1** — `yard_texture_test_v1.tscn`  
+  статус: **generated outdoor texture proof v1 — candidate**.  
+- **GameRoot / полный террейн / основной двор — стоп.**
 
-## Следующее
+## Следующее после оценки texture proof
 
-1. Решить: перегенерация листов (alpha + grid + согласованный масштаб) vs другой production path.  
-2. Только после утверждения арта — GameRoot / основной двор.
+1. Вердикт по пикселю / перспективе / дому.  
+2. Затем — отдельный этап настоящего terrain/water/shore.  
+3. GameRoot — ещё позже.

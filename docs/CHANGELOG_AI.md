@@ -2,6 +2,32 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-07-31 (l) — outdoor texture proof v1 (candidate)
+
+**Сделано:**
+- greybox scale lock принят (без перестройки карты);
+- `tools/prep_texture_proof_v1.py` → `assets/art/outdoor/texture_proof_v1/` (точные canvas sizes, alpha, NEAREST);
+- сцена `yard_texture_test_v1.tscn` — копия greybox layout; текстуры только на player + 1 дерево + 1 ель + bush/rock/log/stump + house + pond; остальное силуэты;
+- коллизии/Y-sort как в greybox; left walk = prototype flip;
+- скрины `docs/art_tests/yard_texture_test_v1_*.png`;
+- статус: **generated outdoor texture proof v1 — candidate**.
+
+**Не делалось:** полный terrain/autotile, основной двор, GameRoot.
+
+---
+
+## 2026-07-31 (k) — DEC-007 reject generated pack v2 + yard_scale_test
+
+**Сделано:**
+- technical gate: generated outdoor pack v2 **rejected** как production; mood/направление остаются approved;
+- DEC-007; `yard_art_test_v2` оставлен как failed experiment;
+- isolated `yard_scale_test.tscn` — сетка 16×16, viewport 384×216, цветные заглушки точных размеров (player/weed/rock/bush/log/stump/trees/house), камера, WASD, Y-sort, коллизии, карта ≥72×48;
+- GameRoot не начат.
+
+**Файлы:** `DECISIONS.md`, `ASSET_INVENTORY.md`, `PROJECT_STATUS.md`, `CHANGELOG_AI.md`, `yard_scale_test.*`, `docs/art_tests/yard_scale_test.png`
+
+---
+
 ## 2026-07-31 (j) — generated outdoor yard art test v2
 
 **Цель:** изолированная сцена на AI-generated листах (не Puny); честная проверка нарезки/масштаба/композиции.
