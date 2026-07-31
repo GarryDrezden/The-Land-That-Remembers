@@ -1,23 +1,27 @@
 extends Node2D
 ## Isolated Puny World outdoor art test.
 ## Not wired into GameFlow. Open this scene and press F6.
-## Character sprites are intentionally absent (not in Overworld pack).
+## Player visual is AnimatedSprite2D (never ColorRect). Walker sheet is art-test-only scale probe.
 
 const MANIFEST_PATH := "res://assets/art/outdoor/puny_world/manifest.json"
+const WALKER_SHEET := "res://assets/art/outdoor/puny_world/props/art_test_walker.png"
 const SCALE := 3.0
-const PROMPT_HIDE_DEBUG := true
+const TILE := 16
+const MAP_W_PX := 320
+const MAP_H_PX := 224
 
-var _probe: CharacterBody2D
+var _player: CharacterBody2D
+var _anim: AnimatedSprite2D
 var _prompt: Label
 var _clearable: Node2D
 var _cleared := false
 var _shot_done := false
+var _facing: String = "down"
 
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	get_viewport().canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
-	# One-screen fragment: 20×14 tiles ×16 × integer zoom 3
 	DisplayServer.window_set_size(Vector2i(960, 672))
 
 	var manifest := _load_manifest()
@@ -26,7 +30,7 @@ func _ready() -> void:
 		return
 
 	_build_world(manifest)
-	_build_probe()
+	_build_player()
 	_build_ui()
 	_build_water_shimmer(manifest)
 
@@ -49,8 +53,7 @@ func _load_manifest() -> Dictionary:
 
 
 func _tex(path: String) -> Texture2D:
-	var t: Texture2D = load(path)
-	return t
+	return load(path) as Texture2D
 
 
 func _build_world(manifest: Dictionary) -> void:
@@ -100,38 +103,85 @@ func _build_world(manifest: Dictionary) -> void:
 			spr.add_child(area)
 
 
-func _build_probe() -> void:
-	# Movement probe WITHOUT a character sprite (pack has none).
-	_probe = CharacterBody2D.new()
-	_probe.name = "ProbeNoSprite"
-	_probe.position = Vector2(152, 108)
+func _build_player() -> void:
+	## CharacterBody2D
+	## └── Body: AnimatedSprite2D  ← must stay this type (not ColorRect)
+	## └── CollisionShape2D
+	## └── Camera2D
+	_player = CharacterBody2D.new()
+	_player.name = "Player"
+	_player.position = Vector2(152, 108)
+	_player.z_index = 10
+	_player.y_sort_enabled = true
+	_player.collision_layer = 1
+	_player.collision_mask = 1
+
+	_anim = AnimatedSprite2D.new()
+	_anim.name = "Body"
+	_anim.centered = true
+	_anim.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_anim.sprite_frames = _build_walker_frames()
+	_anim.position = Vector2(0, -8)
+	_anim.play("idle_down")
+	_player.add_child(_anim)
+
+	# Sanity: never allow Body to be replaced by a Control/ColorRect
+	assert(_anim is AnimatedSprite2D)
+	assert(_player.get_node("Body") is AnimatedSprite2D)
+
 	var cs := CollisionShape2D.new()
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(10, 14) # ~1×2 tile footprint at 16px
+	shape.size = Vector2(10, 8)
 	cs.shape = shape
-	cs.position = Vector2(5, 7)
-	_probe.add_child(cs)
+	cs.position = Vector2(0, 4)
+	_player.add_child(cs)
 
 	var cam := Camera2D.new()
 	cam.enabled = true
-	cam.zoom = Vector2(SCALE, SCALE) # integer only
+	cam.zoom = Vector2(SCALE, SCALE)
 	cam.position_smoothing_enabled = false
 	cam.limit_left = 0
 	cam.limit_top = 0
-	cam.limit_right = 320
-	cam.limit_bottom = 224
-	_probe.add_child(cam)
+	cam.limit_right = MAP_W_PX
+	cam.limit_bottom = MAP_H_PX
+	_player.add_child(cam)
 
-	# Tiny focus diamond from pack palette (not a character) — only if debug
-	if not PROMPT_HIDE_DEBUG:
-		var hint := Polygon2D.new()
-		hint.polygon = PackedVector2Array([
-			Vector2(5, 0), Vector2(10, 7), Vector2(5, 14), Vector2(0, 7)
-		])
-		hint.color = Color(0.95, 0.85, 0.4, 0.55)
-		_probe.add_child(hint)
+	add_child(_player)
 
-	add_child(_probe)
+
+func _build_walker_frames() -> SpriteFrames:
+	var sheet := _tex(WALKER_SHEET)
+	var frames := SpriteFrames.new()
+	if sheet == null:
+		push_error("yard_art_test: missing walker sheet %s" % WALKER_SHEET)
+		return frames
+
+	const CELL_W := 16
+	const CELL_H := 32
+	var dirs := ["down", "left", "right", "up"]
+	for ri in range(dirs.size()):
+		var facing: String = dirs[ri]
+		var idle_name := "idle_%s" % facing
+		var walk_name := "walk_%s" % facing
+		if frames.has_animation(idle_name):
+			frames.remove_animation(idle_name)
+		if frames.has_animation(walk_name):
+			frames.remove_animation(walk_name)
+		frames.add_animation(idle_name)
+		frames.add_animation(walk_name)
+		frames.set_animation_speed(idle_name, 1.0)
+		frames.set_animation_speed(walk_name, 6.0)
+		frames.set_animation_loop(idle_name, true)
+		frames.set_animation_loop(walk_name, true)
+		for fi in range(4):
+			var at := AtlasTexture.new()
+			at.atlas = sheet
+			at.region = Rect2(fi * CELL_W, ri * CELL_H, CELL_W, CELL_H)
+			at.filter_clip = true
+			if fi == 0:
+				frames.add_frame(idle_name, at)
+			frames.add_frame(walk_name, at)
+	return frames
 
 
 func _build_ui() -> void:
@@ -145,21 +195,23 @@ func _build_ui() -> void:
 	_prompt.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
 	_prompt.add_theme_constant_override("shadow_offset_x", 1)
 	_prompt.add_theme_constant_override("shadow_offset_y", 1)
-	_prompt.text = "ART TEST · Puny World · WASD · E расчистка · F12 скрин · нет спрайта героя в pack"
+	_prompt.text = "ART TEST · WASD · E расчистка · F12 скрин"
 	layer.add_child(_prompt)
 
 
 func _build_water_shimmer(manifest: Dictionary) -> void:
 	var props: Dictionary = manifest.get("props", {})
 	var meta: Dictionary = manifest.get("meta", {})
-	var pond: Array = meta.get("pond_origin", [13, 7])
-	if pond.size() < 2:
+	var pond: Variant = meta.get("pond_origin", [13, 7])
+	if typeof(pond) != TYPE_ARRAY or pond.size() < 2:
 		return
 	var frames: Array[Texture2D] = []
 	for key in ["water_0", "water_1", "water_2"]:
 		var rel := str(props.get(key, ""))
 		if rel != "" and ResourceLoader.exists("res://" + rel):
-			frames.append(_tex("res://" + rel))
+			var t := _tex("res://" + rel)
+			if t:
+				frames.append(t)
 	if frames.is_empty():
 		return
 	var anim := AnimatedSprite2D.new()
@@ -173,8 +225,7 @@ func _build_water_shimmer(manifest: Dictionary) -> void:
 	anim.sprite_frames = sf
 	anim.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	anim.centered = false
-	# Center cell of 3×3 pond
-	anim.position = Vector2((float(pond[0]) + 1.0) * 16.0, (float(pond[1]) + 1.0) * 16.0)
+	anim.position = Vector2((float(pond[0]) + 1.0) * float(TILE), (float(pond[1]) + 1.0) * float(TILE))
 	anim.modulate = Color(1, 1, 1, 0.55)
 	anim.z_index = 1
 	anim.play("shimmer")
@@ -182,7 +233,7 @@ func _build_water_shimmer(manifest: Dictionary) -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if _probe == null:
+	if _player == null or _anim == null:
 		return
 	var dir := Vector2.ZERO
 	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
@@ -194,28 +245,46 @@ func _physics_process(_delta: float) -> void:
 	if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
 		dir.y += 1.0
 	dir = dir.limit_length(1.0)
-	_probe.velocity = dir * 70.0
-	_probe.move_and_slide()
+	_player.velocity = dir * 70.0
+	_player.move_and_slide()
+	_update_walk_anim(dir)
 	_update_prompt()
+
+
+func _update_walk_anim(dir: Vector2) -> void:
+	if _anim.sprite_frames == null:
+		return
+	if dir.length() < 0.15:
+		var idle := "idle_%s" % _facing
+		if _anim.animation != idle:
+			_anim.play(idle)
+		return
+	if absf(dir.x) > absf(dir.y):
+		_facing = "right" if dir.x > 0.0 else "left"
+	else:
+		_facing = "down" if dir.y > 0.0 else "up"
+	var walk := "walk_%s" % _facing
+	if _anim.animation != walk or not _anim.is_playing():
+		_anim.play(walk)
 
 
 func _update_prompt() -> void:
 	if _prompt == null:
 		return
 	if _cleared:
-		_prompt.text = "сорняк убран · VFX ok · walk-loop персонажа: N/A (нет спрайта в pack)"
+		_prompt.text = "сорняк убран · VFX ok · walk AnimatedSprite2D"
 		return
 	if _clearable and is_instance_valid(_clearable) and _near_clearable():
 		_prompt.text = "E — срезать сорняк"
 	else:
-		_prompt.text = "ART TEST · Puny World · WASD · подойди к сорняку · F12 скрин"
+		_prompt.text = "ART TEST · WASD · подойди к сорняку · F12 скрин"
 
 
 func _near_clearable() -> bool:
-	if _clearable == null or _probe == null:
+	if _clearable == null or _player == null:
 		return false
 	var cpos := _clearable.position + Vector2(8, 8)
-	return _probe.position.distance_to(cpos) < 22.0
+	return _player.position.distance_to(cpos) < 22.0
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -239,7 +308,6 @@ func _try_clear() -> void:
 
 
 func _spawn_clear_vfx(at: Vector2) -> void:
-	# Simple dust from pack-adjacent earth tones (no external VFX sheet).
 	var parts := CPUParticles2D.new()
 	parts.position = at
 	parts.emitting = true

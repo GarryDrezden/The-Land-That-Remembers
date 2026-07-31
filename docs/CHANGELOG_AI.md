@@ -2,6 +2,23 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-07-31 (f) — fix art test AnimatedSprite2D player
+
+**Цель:** убрать ошибку назначения ColorRect → AnimatedSprite2D; персонаж art test должен быть AnimatedSprite2D.
+
+**Причина/строка-паттерн в проекте:** `scripts/player/player.gd:8` — `@onready var anim: AnimatedSprite2D = $Body` при `Body` типа ColorRect (как в legacy `main_slice`). Art test этот путь не использует; probe без спрайта заменён на явный `AnimatedSprite2D`.
+
+**Сделано:**
+- `scripts/debug/yard_art_test.gd` — `Player/Body` создаётся как `AnimatedSprite2D.new()`, walk/idle 4 направления;
+- `assets/art/outdoor/puny_world/props/art_test_walker.png` — scale-probe sheet (не маскирует отсутствие персонажа в Puny Overworld для art gate);
+- проверка запуска сцены без красных ошибок.
+
+**Не менялось:** outdoor_square, GameRoot, save, interiors, player.gd / main_slice (вне scope art test).
+
+**Проверки:** Godot 4.7.1 F6/CLI `yard_art_test.tscn` — без ERROR/ColorRect assign.
+
+---
+
 ## 2026-07-31 (e) — isolated Puny World art test
 
 **Цель:** проверить Puny World Overworld как временную outdoor-основу без перестройки прототипа.
