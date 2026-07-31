@@ -1,0 +1,4 @@
+Ground/water tiles derived from Puny World Overworld Tileset (CC0)
+https://opengameart.org/content/16x16-puny-world-tileset
+Kenney Tiny Farm (CC0) kept for reference: kenney.nl
+Character/object props: project-generated pixel art.

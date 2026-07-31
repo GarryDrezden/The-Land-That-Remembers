@@ -1,0 +1,161 @@
+{
+  "source_sheet": "assets/external/punyworld_overworld.png",
+  "license": "CC0 (Shade / OpenGameArt)",
+  "scale": 3,
+  "tile": 16,
+  "ground": "assets/art/outdoor/puny_world/yard_art_test_ground.png",
+  "props": {
+    "rock": "assets/art/outdoor/puny_world/props/rock.png",
+    "pebbles": "assets/art/outdoor/puny_world/props/pebbles.png",
+    "tree": "assets/art/outdoor/puny_world/props/tree.png",
+    "tree_fruit": "assets/art/outdoor/puny_world/props/tree_fruit.png",
+    "tree_b": "assets/art/outdoor/puny_world/props/tree_b.png",
+    "bush": "assets/art/outdoor/puny_world/props/bush.png",
+    "weed_a": "assets/art/outdoor/puny_world/props/weed_a.png",
+    "weed_b": "assets/art/outdoor/puny_world/props/weed_b.png",
+    "weed_c": "assets/art/outdoor/puny_world/props/weed_c.png",
+    "weed_d": "assets/art/outdoor/puny_world/props/weed_d.png",
+    "pine": "assets/art/outdoor/puny_world/props/pine.png",
+    "stump": "assets/art/outdoor/puny_world/props/stump.png",
+    "house": "assets/art/outdoor/puny_world/props/house.png",
+    "house_alt": "assets/art/outdoor/puny_world/props/house_alt.png",
+    "fence": "assets/art/outdoor/puny_world/props/fence.png",
+    "well": "assets/art/outdoor/puny_world/props/well.png",
+    "water_0": "assets/art/outdoor/puny_world/props/water_0.png",
+    "water_1": "assets/art/outdoor/puny_world/props/water_1.png",
+    "water_2": "assets/art/outdoor/puny_world/props/water_2.png"
+  },
+  "layout": [
+    {
+      "id": "house",
+      "sprite": "house",
+      "x": 40,
+      "y": 24
+    },
+    {
+      "id": "fence_1",
+      "sprite": "fence",
+      "x": 24,
+      "y": 56
+    },
+    {
+      "id": "well",
+      "sprite": "well",
+      "x": 88,
+      "y": 40
+    },
+    {
+      "id": "tree_1",
+      "sprite": "tree",
+      "x": 8,
+      "y": 48
+    },
+    {
+      "id": "tree_2",
+      "sprite": "tree_fruit",
+      "x": 168,
+      "y": 40
+    },
+    {
+      "id": "tree_3",
+      "sprite": "tree_b",
+      "x": 248,
+      "y": 88
+    },
+    {
+      "id": "pine_corner",
+      "sprite": "pine",
+      "x": 280,
+      "y": 24
+    },
+    {
+      "id": "bush_1",
+      "sprite": "bush",
+      "x": 112,
+      "y": 72
+    },
+    {
+      "id": "bush_2",
+      "sprite": "bush",
+      "x": 176,
+      "y": 128
+    },
+    {
+      "id": "bush_3",
+      "sprite": "bush",
+      "x": 48,
+      "y": 128
+    },
+    {
+      "id": "weed_1",
+      "sprite": "weed_a",
+      "x": 64,
+      "y": 80
+    },
+    {
+      "id": "weed_2",
+      "sprite": "weed_c",
+      "x": 96,
+      "y": 96
+    },
+    {
+      "id": "weed_3",
+      "sprite": "weed_d",
+      "x": 128,
+      "y": 84
+    },
+    {
+      "id": "weed_4",
+      "sprite": "weed_a",
+      "x": 152,
+      "y": 112
+    },
+    {
+      "id": "weed_5",
+      "sprite": "weed_c",
+      "x": 56,
+      "y": 112
+    },
+    {
+      "id": "rock_1",
+      "sprite": "rock",
+      "x": 112,
+      "y": 120
+    },
+    {
+      "id": "pebbles_1",
+      "sprite": "pebbles",
+      "x": 136,
+      "y": 108
+    },
+    {
+      "id": "stump_1",
+      "sprite": "stump",
+      "x": 160,
+      "y": 72
+    },
+    {
+      "id": "clear_weed",
+      "sprite": "weed_b",
+      "x": 80,
+      "y": 92,
+      "clearable": true
+    }
+  ],
+  "gaps": {
+    "character": "Puny World Overworld sheet has no player/NPC walk frames. Companion pack 'Puny Characters' exists but was NOT added (single-pack rule).",
+    "log": "No fallen-log / timber prop found in overworld sheet resource nodes.",
+    "weathered_house": "Only bright fantasy cottages / thatch / stone castle pieces — no weathered Soviet shed / childhood-home vernacular.",
+    "messy_weeds": "Plants are tidy tufts/flowers/crops, not unkempt overgrowth piles."
+  },
+  "preview": "docs/art_tests/yard_art_test_puny_world.png",
+  "meta": {
+    "map_w": 20,
+    "map_h": 14,
+    "tile": 16,
+    "pond_origin": [
+      13,
+      7
+    ]
+  }
+}
