@@ -21,9 +21,9 @@ func _ready() -> void:
 	_add_help()
 
 
-func _rect(parent: Node, name: String, pos: Vector2, size: Vector2, color: Color, z: int = 0) -> ColorRect:
+func _rect(parent: Node, node_name: String, pos: Vector2, size: Vector2, color: Color, z: int = 0) -> ColorRect:
 	var r := ColorRect.new()
-	r.name = name
+	r.name = node_name
 	r.position = pos
 	r.size = size
 	r.color = color
@@ -125,35 +125,9 @@ func _build_bakery() -> void:
 
 
 func _spawn_player() -> void:
-	var player := CharacterBody2D.new()
-	player.name = "Player"
-	player.position = Vector2(150, 200)
-	player.set_script(load("res://scripts/player/player.gd"))
-	var body := ColorRect.new()
-	body.name = "Body"
-	body.size = Vector2(28, 28)
-	body.color = Color("D8C4A0")
-	body.position = Vector2(-14, -14)
-	player.add_child(body)
-	var collision := CollisionShape2D.new()
-	var shape := RectangleShape2D.new()
-	shape.size = Vector2(24, 24)
-	collision.shape = shape
-	player.add_child(collision)
-	var prompt := Label.new()
-	prompt.name = "Prompt"
-	prompt.position = Vector2(-40, -40)
-	prompt.visible = false
-	player.add_child(prompt)
-	var tag := Label.new()
-	tag.name = "NameTag"
-	tag.position = Vector2(-18, 16)
-	player.add_child(tag)
-	var cam := Camera2D.new()
-	cam.enabled = true
-	cam.position_smoothing_enabled = true
-	player.add_child(cam)
-	add_child(player)
+	# Body must be AnimatedSprite2D — player.gd types $Body as AnimatedSprite2D.
+	const SceneArt = preload("res://scripts/world/scene_art.gd")
+	add_child(SceneArt.make_player(GameFlow.spawn_position()))
 
 
 func _add_hud() -> void:
@@ -183,9 +157,14 @@ func _add_hud() -> void:
 func _add_help() -> void:
 	var tip := Label.new()
 	tip.text = "WASD / стрелки — ходить · E — взаимодействие · Esc — закрыть диалог"
-	tip.position = Vector2(16, 700)
+	tip.position = Vector2(16, 680)
 	tip.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
 	add_child(tip)
+
+	# Quiet autosave when entering playable slice
+	WorldState.set_meta_value("spawn_point", GameFlow.spawn_point)
+	PlayerProfile.save_to_world()
+	WorldState.save_state()
 
 
 func _make_static(parent: Node, pos: Vector2, size: Vector2) -> void:
@@ -208,8 +187,8 @@ func _script_node(path: String) -> Area2D:
 	return load(path).new() as Area2D
 
 
-func _make_interactable(node: Area2D, name: String, pos: Vector2, size: Vector2, color: Color, prompt: String) -> Area2D:
-	node.name = name
+func _make_interactable(node: Area2D, node_name: String, pos: Vector2, size: Vector2, color: Color, prompt: String) -> Area2D:
+	node.name = node_name
 	node.position = pos
 	node.prompt_text = prompt
 	var vis := ColorRect.new()
@@ -236,9 +215,9 @@ func _make_interactable(node: Area2D, name: String, pos: Vector2, size: Vector2,
 	return node
 
 
-func _make_npc(name: String, pos: Vector2, color: Color, title: String, dialogue: String) -> Area2D:
+func _make_npc(node_name: String, pos: Vector2, color: Color, title: String, dialogue: String) -> Area2D:
 	var npc: Area2D = _script_node("res://scripts/world/interactable.gd")
-	npc.name = name
+	npc.name = node_name
 	npc.position = pos
 	npc.prompt_text = "поговорить: %s" % title
 	npc.dialogue_path = dialogue

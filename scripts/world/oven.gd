@@ -21,7 +21,7 @@ func _refresh_prompt() -> void:
 		prompt_text = "сломанная печь"
 
 
-func interact(actor: Node) -> void:
+func interact(_actor: Node) -> void:
 	if WorldState.has_flag("oven_repaired"):
 		DialogueUI.start("res://data/dialogues/oven.json", "fixed")
 		return

@@ -7,7 +7,7 @@ func _ready() -> void:
 	prompt_text = "лечь спать"
 
 
-func interact(actor: Node) -> void:
+func interact(_actor: Node) -> void:
 	WorldState.advance_day()
 	if WorldState.has_flag("oven_repaired"):
 		WorldState.set_flag("bakery_open", true)

@@ -48,8 +48,10 @@ func _load_manifest() -> Dictionary:
 	if not FileAccess.file_exists(MANIFEST_PATH):
 		return {}
 	var f := FileAccess.open(MANIFEST_PATH, FileAccess.READ)
-	var data = JSON.parse_string(f.get_as_text())
-	return data if typeof(data) == TYPE_DICTIONARY else {}
+	var data: Variant = JSON.parse_string(f.get_as_text())
+	if typeof(data) == TYPE_DICTIONARY:
+		return data
+	return {}
 
 
 func _tex(path: String) -> Texture2D:
@@ -95,7 +97,9 @@ func _build_world(manifest: Dictionary) -> void:
 			var cs := CollisionShape2D.new()
 			var shape := RectangleShape2D.new()
 			var tex := spr.texture
-			var sz := tex.get_size() if tex else Vector2(16, 16)
+			var sz := Vector2(16, 16)
+			if tex:
+				sz = Vector2(tex.get_size())
 			shape.size = sz
 			cs.shape = shape
 			cs.position = sz * 0.5

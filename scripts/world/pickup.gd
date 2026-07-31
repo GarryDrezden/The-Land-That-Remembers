@@ -23,12 +23,24 @@ func _refresh() -> void:
 	if once_flag != "" and WorldState.has_flag(once_flag):
 		visible = false
 		monitoring = false
+		var blocker := get_node_or_null("Blocker") as StaticBody2D
+		if blocker:
+			blocker.collision_layer = 0
+			for child in blocker.get_children():
+				if child is CollisionShape2D:
+					(child as CollisionShape2D).disabled = true
 	else:
 		visible = true
 		monitoring = true
+		var blocker2 := get_node_or_null("Blocker") as StaticBody2D
+		if blocker2:
+			blocker2.collision_layer = 1
+			for child in blocker2.get_children():
+				if child is CollisionShape2D:
+					(child as CollisionShape2D).disabled = false
 
 
-func interact(actor: Node) -> void:
+func interact(_actor: Node) -> void:
 	if once_flag != "" and WorldState.has_flag(once_flag):
 		return
 	Inventory.add_item(item_id, amount)

@@ -2,7 +2,20 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
-## 2026-07-31 (f) — fix art test AnimatedSprite2D player
+## 2026-07-31 (g) — fix ColorRect→AnimatedSprite2D @implicit_ready
+
+**Красная ошибка:** `@implicit_ready: Trying to assign value of type 'ColorRect' to a variable of type 'AnimatedSprite2D'.`  
+**Строка:** `scripts/player/player.gd:8` `@onready var anim: AnimatedSprite2D = $Body`  
+**Причина:** `main_slice.gd` создавал `Body` как `ColorRect` при `player.gd`.
+
+**Сделано:**
+- `main_slice._spawn_player` → `SceneArt.make_player` (Body = AnimatedSprite2D);
+- убран ColorRect-fallback у персонажа в `scene_art.gd`;
+- warnings: ternary bool/int в `world_state`, Vector2i/Vector2 в art test, shadowing `name` в main_slice, unused `actor` → `_actor`.
+
+**Проверки:** yard_art_test + valley_slice CLI без ERROR/WARNING по этим темам.
+
+---
 
 **Цель:** убрать ошибку назначения ColorRect → AnimatedSprite2D; персонаж art test должен быть AnimatedSprite2D.
 
