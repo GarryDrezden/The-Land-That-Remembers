@@ -2,6 +2,23 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-07-31 (m) — texture proof v1 integration cleanup
+
+**Причина:** v1 rejected — полупрозрачный герой, ломалась диагональная анимация, кривые baseline/offset.
+
+**Исправлено:**
+- binary alpha + hole-fill на player frames; `modulate.a=1`; pivot ног (`offset=(-12,-32)`, centered=false);
+- диагональ: анимация по dominant axis (на 45° — last facing); left = prototype flip;
+- сцена урезана до минимального фрагмента: grass + dirt patch + 1 tree + 1 bush + 1 rock + 3 weeds + player;
+- единый feet baseline для спрайтов; убраны дом/пруд/ель/прочие силуэты;
+- коллизии: ствол / основание props / ноги героя.
+
+**Скрины:** `docs/art_tests/yard_texture_test_v1_{idle,walk,near_tree,behind_tree,debug}.png`
+
+**Не делалось:** новые ассеты, полный terrain, GameRoot.
+
+---
+
 ## 2026-07-31 (l) — outdoor texture proof v1 (candidate)
 
 **Сделано:**
