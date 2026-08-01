@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "generated": "2026-08-01",
   "tile": 16,
   "map_tiles": [
@@ -11,10 +11,10 @@
     512
   ],
   "notes": [
-    "VS01 yard candidate around approved PixelLab hero scale.",
-    "House is a temporary old Russian wooden izba placeholder — not final art.",
-    "Oversized fairy props (giant mushrooms etc.) intentionally omitted.",
-    "upload/ originals were copied/resized with Nearest; not modified in place."
+    "VS01 yard around approved PixelLab hero scale.",
+    "Approved exterior: upload/houses/main_house_v1.png → main_house_v1.png.",
+    "Oversized fairy props intentionally omitted.",
+    "upload/ originals are never modified in place."
   ],
   "props": {
     "rock_sm.png": {
@@ -81,6 +81,30 @@
       ]
     }
   },
-  "house": "house_izba_placeholder.png",
+  "house": {
+    "source": "upload/houses/main_house_v1.png",
+    "runtime": "assets/art/outdoor/yard_vs01/main_house_v1.png",
+    "source_crop": "assets/art/outdoor/yard_vs01/main_house_v1_source_crop.png",
+    "pixel_div": 4,
+    "crop_size": [
+      1115,
+      585
+    ],
+    "display_size": [
+      278,
+      146
+    ],
+    "door_rect_display": {
+      "x0": 107,
+      "y0": 84,
+      "x1": 119,
+      "y1": 117
+    },
+    "notes": [
+      "main_house_v1.png is the approved base exterior for the childhood home.",
+      "Original stays permanently in upload/houses/.",
+      "Runtime uses keyed crop + integer nearest downsample only (no blur)."
+    ]
+  },
   "ground": "ground.png"
 }

@@ -15,7 +15,10 @@
 | Playable scene | `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` |
 | Layout twin | `…/yard_vs01_layout_test.tscn` |
 | Builder script | `scripts/locations/outdoor/childhood_home/yard_vs01.gd` |
+| Door hotspot | `yard_vs01_door.gd` → `GameFlow.go_location("workshop")` (stub) |
 | Runtime art | `assets/art/outdoor/yard_vs01/` |
+| Approved house source | `upload/houses/main_house_v1.png` |
+| House runtime | `…/yard_vs01/main_house_v1.png` (Node `MainHouse`) |
 | Asset bake | `tools/build_yard_vs01_assets.py` |
 | Player | `player_pixellab_test.tscn` (scale unchanged) |
 

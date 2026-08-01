@@ -11,11 +11,14 @@
 | Scene | `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` |
 | Runtime pack | `assets/art/outdoor/yard_vs01/` |
 | Bake tool | `tools/build_yard_vs01_assets.py` |
-| House | `house_izba_placeholder.png` (**temporary** old Russian wooden house) |
+| **Approved house original** | `upload/houses/main_house_v1.png` (**permanent inbox**) |
+| **House in scene** | `assets/art/outdoor/yard_vs01/main_house_v1.png` (keyed crop, nearest ÷4) |
+| House meta / door rect | `assets/art/outdoor/yard_vs01/main_house_v1.json` |
+| Scene node | `YSortWorld/MainHouse` (Sprite2D + HouseCollision + DoorHotspot) |
 | Props source | selected copies from `upload/trees|rocks|bushes-pixel-art/` + drawn fence/well/log/stump |
 | Terrain | baked from `texture_proof_v1` grass/dirt 16×16 |
 
-Not used as VS01 anchors: CraftPix fairy cottage, oversized mushrooms.
+Not used as VS01 anchors: CraftPix fairy cottage, oversized mushrooms. Placeholder `house_izba_placeholder.png` kept only as reference.
 
 ## PixelLab hero v1 (under evaluation)
 

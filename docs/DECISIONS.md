@@ -5,6 +5,19 @@
 
 ---
 
+## DEC-012: main_house_v1 approved as childhood-home exterior
+
+**Решение:**
+- `upload/houses/main_house_v1.png` is the **approved base exterior** for the starting childhood home;
+- runtime display: keyed crop + **integer nearest ÷4** → `assets/art/outdoor/yard_vs01/main_house_v1.png`;
+- used in scene as separate node `MainHouse` inside `yard_vs01.tscn` (not baked into ground);
+- door hotspot enters indoor stub (`workshop`) until a real house interior exists;
+- original file stays permanently in `upload/houses/`.
+
+**Статус:** принято · 2026-08-01
+
+---
+
 ## DEC-011: VS01 outdoor yard rebuilt around hero scale + Russian izba direction
 
 **Решение:**

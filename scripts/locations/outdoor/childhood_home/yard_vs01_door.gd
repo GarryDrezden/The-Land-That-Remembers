@@ -1,9 +1,14 @@
 extends Area2D
-## Door hotspot for VS01 yard — interior not opened yet.
+## Door hotspot — enter childhood-home interior (stub: workshop indoor scene).
+
+@export var target_location: String = "workshop"
+@export var target_spawn: String = "workshop"
 
 
 func _ready() -> void:
 	monitoring = true
+	collision_layer = 0
+	collision_mask = 1
 	if not body_entered.is_connected(_on_body_entered):
 		body_entered.connect(_on_body_entered)
 	if not body_exited.is_connected(_on_body_exited):
@@ -11,12 +16,12 @@ func _ready() -> void:
 
 
 func get_prompt() -> String:
-	return "дверь — пока закрыта"
+	return "войти в дом"
 
 
 func interact(_actor: Node) -> void:
-	# Vertical slice: outdoor only; house interior comes later.
-	pass
+	WorldState.set_flag("entered_house", true)
+	GameFlow.go_location(target_location, target_spawn)
 
 
 func _on_body_entered(body: Node) -> void:

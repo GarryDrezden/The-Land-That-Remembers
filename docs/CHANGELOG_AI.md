@@ -2,6 +2,18 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (o) — integrate approved main_house_v1 into VS01 yard
+
+**Сделано:**
+- `upload/houses/main_house_v1.png` принят как базовый exterior стартового дома;
+- runtime: keyed crop + nearest ÷4 → `assets/art/outdoor/yard_vs01/main_house_v1.png` (278×146);
+- сцена `yard_vs01`: отдельный узел `MainHouse` (sprite + collision + DoorHotspot);
+- дверь → stub interior `workshop`; герой ~71% высоты двери; скрины обновлены.
+
+**Не делалось:** настоящий interior дома детства, axe/pickaxe, farming/NPC.
+
+---
+
 ## 2026-08-01 (n) — first proper VS01 yard around hero scale
 
 **Сделано:**

@@ -1,10 +1,11 @@
 extends Node2D
-## VS01 outdoor yard candidate — childhood home, overgrown, clearable path.
-## Uses PixelLab hero (unchanged scale). Temporary Russian izba placeholder.
-## ART_TEST_SHOT=1 for verification screenshots.
+## VS01 outdoor yard — childhood home with approved main_house_v1 + overgrown yard.
+## PixelLab hero scale unchanged. ART_TEST_SHOT=1 for verification screenshots.
 
 const HotspotUtil = preload("res://scripts/world/hotspot_util.gd")
 const ASSET_ROOT := "res://assets/art/outdoor/yard_vs01/"
+const HOUSE_TEX := ASSET_ROOT + "main_house_v1.png"
+const HOUSE_META := ASSET_ROOT + "main_house_v1.json"
 const PLAYER_SCENE := "res://scenes/actors/player/player_pixellab_test.tscn"
 const TILE := 16
 const MAP_W := 40
@@ -12,6 +13,8 @@ const MAP_H := 32
 const VIEW_W := 384
 const VIEW_H := 240
 const WINDOW_SCALE := 3
+## Approved display: integer ÷4 from keyed crop → door ~32px, hero ~23px (~71% door).
+const HOUSE_PIXEL_DIV := 4
 
 var _ysort: Node2D
 var _player: CharacterBody2D
@@ -19,6 +22,8 @@ var _hint: Label
 var _prompt: Label
 var _shot_cam: Camera2D
 var _blockers: StaticBody2D
+var _house: Node2D
+var _door_hotspot: Area2D
 
 
 func _ready() -> void:
@@ -27,7 +32,7 @@ func _ready() -> void:
 	get_viewport().canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
 	DisplayServer.window_set_size(Vector2i(VIEW_W * WINDOW_SCALE, VIEW_H * WINDOW_SCALE))
 
-	if not FileAccess.file_exists(ASSET_ROOT + "ground.png"):
+	if not FileAccess.file_exists(ASSET_ROOT + "ground.png") or not FileAccess.file_exists(HOUSE_TEX):
 		_show_missing("Missing yard_vs01 assets.\nRun: python tools/build_yard_vs01_assets.py")
 		return
 
@@ -155,55 +160,103 @@ func _fence_segment(pos: Vector2, post_path: String, rail_path: String, horizont
 
 
 func _build_house() -> void:
-	var house_pos := Vector2(20 * TILE, 10.5 * TILE)
-	var house := _add_sprite(
-		_ysort,
-		ASSET_ROOT + "house_izba_placeholder.png",
-		house_pos,
-		true,
-		Vector2(0, -48)
-	)
-	house.name = "HouseIzba"
-	# Solid footprint under walls / porch (not full roof)
-	_add_blocker_rect(house_pos + Vector2(0, -8), Vector2(100, 36))
-	# Door marker interaction zone (visual goal; interior later)
-	var door_script := load("res://scripts/locations/outdoor/childhood_home/yard_vs01_door.gd")
-	var door: Area2D = door_script.new()
-	door.name = "DoorHotspot"
-	door.monitoring = true
-	door.monitorable = true
-	door.collision_layer = 0
-	door.collision_mask = 1
-	door.position = house_pos + Vector2(0, 8)
+	## Separate house object: sprite + footprint collision + door hotspot.
+	## Feet/Y-sort origin at foundation bottom; door offset from main_house_v1.json.
+	var tex := _load_tex(HOUSE_TEX)
+	if tex == null:
+		push_error("Missing approved house texture: %s" % HOUSE_TEX)
+		return
+
+	var hw := tex.get_width()
+	var hh := tex.get_height()
+	var door_rect := Rect2(107, 84, 12, 33)  # fallback display-space door
+	if FileAccess.file_exists(ProjectSettings.globalize_path(HOUSE_META)):
+		var f := FileAccess.open(HOUSE_META, FileAccess.READ)
+		var data = JSON.parse_string(f.get_as_text())
+		if typeof(data) == TYPE_DICTIONARY and data.has("door_rect_display"):
+			var d: Dictionary = data["door_rect_display"]
+			door_rect = Rect2(
+				float(d.x0), float(d.y0),
+				float(d.x1) - float(d.x0),
+				float(d.y1) - float(d.y0)
+			)
+
+	# Foundation bottom near top fence; roof stays inside yard plate.
+	var house_pos := Vector2(20.5 * TILE, 15.4 * TILE)
+
+	_house = Node2D.new()
+	_house.name = "MainHouse"
+	_house.position = house_pos
+	_house.z_as_relative = true
+	_ysort.add_child(_house)
+
+	var spr := Sprite2D.new()
+	spr.name = "Sprite"
+	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	spr.centered = true
+	spr.texture = tex
+	# Bottom of texture sits on node origin (Y-sort / feet line).
+	spr.offset = Vector2(0, 1.0 - float(hh) * 0.5)
+	spr.scale = Vector2.ONE
+	_house.add_child(spr)
+
+	# Solid footprint: stone foundation / walls — not full roof canopy.
+	var body := StaticBody2D.new()
+	body.name = "HouseCollision"
+	body.collision_layer = 1
+	body.collision_mask = 0
 	var col := CollisionShape2D.new()
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(22, 16)
+	shape.size = Vector2(hw * 0.72, 34)
 	col.shape = shape
-	door.add_child(col)
-	_ysort.add_child(door)
+	col.position = Vector2(-6, -14)
+	body.add_child(col)
+	_house.add_child(body)
+
+	# Door local: texture point → node space with centered + offset.
+	var door_cx := door_rect.position.x + door_rect.size.x * 0.5
+	var door_bottom := door_rect.position.y + door_rect.size.y
+	var door_local := Vector2(
+		door_cx - float(hw) * 0.5,
+		spr.offset.y + (door_bottom - float(hh) * 0.5)
+	)
+	# Interaction south of steps — in front of the house sprite, not under it.
+	var door_script := load("res://scripts/locations/outdoor/childhood_home/yard_vs01_door.gd")
+	_door_hotspot = door_script.new() as Area2D
+	_door_hotspot.name = "DoorHotspot"
+	_door_hotspot.position = Vector2(door_local.x, 8)
+	var dcol := CollisionShape2D.new()
+	var dshape := RectangleShape2D.new()
+	dshape.size = Vector2(maxf(20.0, door_rect.size.x + 10.0), 18)
+	dcol.shape = dshape
+	_door_hotspot.add_child(dcol)
+	_house.add_child(_door_hotspot)
+
+	print("yard_vs01 house display %dx%d (div=%d) door_local=%s" % [hw, hh, HOUSE_PIXEL_DIV, door_local])
 
 
 func _build_secondary_props() -> void:
-	# Well — east of path
-	var well := _add_sprite(_ysort, ASSET_ROOT + "well.png", Vector2(27 * TILE, 16 * TILE), true, Vector2(0, -10))
+	# Well — east of path / house
+	var well := _add_sprite(_ysort, ASSET_ROOT + "well.png", Vector2(28 * TILE, 18 * TILE), true, Vector2(0, -10))
 	well.name = "Well"
-	_add_blocker_rect(Vector2(27 * TILE, 16.4 * TILE), Vector2(22, 12))
-	# Woodpile near house west
-	var wood := _add_sprite(_ysort, ASSET_ROOT + "woodpile.png", Vector2(13 * TILE, 12.5 * TILE), true, Vector2(0, -4))
+	_add_blocker_rect(Vector2(28 * TILE, 18.4 * TILE), Vector2(22, 12))
+	# Woodpile west of house
+	var wood := _add_sprite(_ysort, ASSET_ROOT + "woodpile.png", Vector2(11.5 * TILE, 15.5 * TILE), true, Vector2(0, -4))
 	wood.name = "Woodpile"
-	_add_blocker_rect(Vector2(13 * TILE, 12.8 * TILE), Vector2(28, 10))
+	_add_blocker_rect(Vector2(11.5 * TILE, 15.8 * TILE), Vector2(28, 10))
 	# Shed corner — west edge
-	var shed := _add_sprite(_ysort, ASSET_ROOT + "shed_corner.png", Vector2(10.5 * TILE, 14 * TILE), true, Vector2(0, -12))
+	var shed := _add_sprite(_ysort, ASSET_ROOT + "shed_corner.png", Vector2(10.2 * TILE, 19 * TILE), true, Vector2(0, -12))
 	shed.name = "ShedCorner"
-	_add_blocker_rect(Vector2(10.5 * TILE, 14.5 * TILE), Vector2(36, 16))
+	_add_blocker_rect(Vector2(10.2 * TILE, 19.5 * TILE), Vector2(36, 16))
 
 
 func _build_trees() -> void:
+	## Keep trees at yard edges — not oversized fairy props, not covering the house.
 	var trees := [
-		[ASSET_ROOT + "props/tree_a.png", Vector2(11 * TILE, 9 * TILE)],
-		[ASSET_ROOT + "props/tree_b.png", Vector2(29 * TILE, 10 * TILE)],
-		[ASSET_ROOT + "props/tree_c.png", Vector2(8.5 * TILE, 20 * TILE)],
-		[ASSET_ROOT + "props/tree_a.png", Vector2(30.5 * TILE, 22 * TILE)],
+		[ASSET_ROOT + "props/tree_a.png", Vector2(10 * TILE, 11.5 * TILE)],
+		[ASSET_ROOT + "props/tree_b.png", Vector2(30 * TILE, 12.5 * TILE)],
+		[ASSET_ROOT + "props/tree_c.png", Vector2(8.5 * TILE, 22 * TILE)],
+		[ASSET_ROOT + "props/tree_a.png", Vector2(30.5 * TILE, 24 * TILE)],
 	]
 	for t in trees:
 		var spr := _add_sprite(_ysort, str(t[0]), t[1], true, Vector2(0, -28))
@@ -254,11 +307,12 @@ func _spawn_clearable(cfg: Dictionary) -> void:
 
 func _build_clearables() -> void:
 	## Path blockers (must clear for first approach) + optional side clutter.
+	# Path toward door (slightly left of map center because of ¾ house facing).
 	var required := [
 		{
 			"id": "vs01_stump_path",
 			"kind": "stump",
-			"pos": Vector2(20.2 * TILE, 22.5 * TILE),
+			"pos": Vector2(19.8 * TILE, 24.0 * TILE),
 			"spr": ASSET_ROOT + "stump.png",
 			"prompt": "убрать пень",
 			"item": "wood",
@@ -268,7 +322,7 @@ func _build_clearables() -> void:
 		{
 			"id": "vs01_log_path",
 			"kind": "log",
-			"pos": Vector2(19.5 * TILE, 18.8 * TILE),
+			"pos": Vector2(19.2 * TILE, 21.0 * TILE),
 			"spr": ASSET_ROOT + "log.png",
 			"prompt": "убрать бревно",
 			"item": "wood",
@@ -278,7 +332,7 @@ func _build_clearables() -> void:
 		{
 			"id": "vs01_rock_path",
 			"kind": "stone",
-			"pos": Vector2(20.8 * TILE, 15.5 * TILE),
+			"pos": Vector2(19.0 * TILE, 18.2 * TILE),
 			"spr": ASSET_ROOT + "props/rock_md.png",
 			"prompt": "сдвинуть камень",
 			"item": "stone",
@@ -289,7 +343,7 @@ func _build_clearables() -> void:
 		{
 			"id": "vs01_bush_path",
 			"kind": "bush",
-			"pos": Vector2(18.8 * TILE, 13.2 * TILE),
+			"pos": Vector2(18.2 * TILE, 16.4 * TILE),
 			"spr": ASSET_ROOT + "props/bush_overgrown.png",
 			"prompt": "прорубить куст",
 			"item": "grass",
@@ -412,11 +466,14 @@ func _shot_sequence() -> void:
 	await get_tree().create_timer(0.2).timeout
 	await _take("yard_vs01_gate")
 
-	# Door (after path — place near door for scale shot; blockers may overlap — use cleared visual pos south of door)
-	_player.position = Vector2(20 * TILE, 12.6 * TILE)
+	# Door — stand clearly in front of steps for scale + composition
+	if _door_hotspot:
+		_player.position = _door_hotspot.global_position + Vector2(0, 12)
+	else:
+		_player.position = Vector2(18.8 * TILE, 16.8 * TILE)
 	if _player.get_node_or_null("AnimatedSprite2D"):
 		(_player.get_node("AnimatedSprite2D") as AnimatedSprite2D).play("idle_north")
-	_shot_cam.position = Vector2(20 * TILE, 11.5 * TILE)
+	_shot_cam.position = Vector2(20 * TILE, 14.2 * TILE)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.2).timeout
 	await _take("yard_vs01_door")

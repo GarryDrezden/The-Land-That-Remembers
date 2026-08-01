@@ -3,7 +3,7 @@
 Bake VS01 yard runtime assets for childhood-home outdoor candidate.
 
 - Does not modify upload/ originals (copies selected props).
-- Draws a temporary old Russian wooden house (izba) placeholder.
+- Prepares approved main_house_v1 (key black BG, crop, integer nearest ÷4).
 - Bakes a cohesive grass + dirt-path ground plate.
 - Keeps props near the hero scale bible (16px tile, ~23px hero display).
 """
@@ -31,6 +31,11 @@ GRASS_A = ROOT / "assets/art/outdoor/texture_proof_v1/terrain/grass_16.png"
 GRASS_B = ROOT / "assets/art/outdoor/texture_proof_v1/terrain/grass_16_b.png"
 DIRT_A = ROOT / "assets/art/outdoor/texture_proof_v1/terrain/dirt_16.png"
 DIRT_B = ROOT / "assets/art/outdoor/texture_proof_v1/terrain/dirt_16_b.png"
+HOUSE_SRC = UPLOAD / "houses" / "main_house_v1.png"
+## Integer nearest downsample after crop; door ~32px vs hero ~23px (~71%).
+HOUSE_PIXEL_DIV = 4
+# Manual door rect on keyed crop (x0,y0,x1,y1) — verified visually.
+HOUSE_DOOR_CROP = (430, 338, 478, 468)
 
 PROP_COPY = {
     "rock_sm.png": UPLOAD
@@ -258,22 +263,19 @@ def bake_ground() -> Image.Image:
             tile = grass_tiles[(tx * 3 + ty * 5) % 2]
             ground.paste(tile, (tx * TILE, ty * TILE))
 
-    # Path mask: gate (bottom) → door (under house)
-    # Gate around (20, 29), door around (20, 11)
+    # Path mask: gate (bottom) → door (¾ house door is slightly left of center).
+    # Gate ~(20,29), door approach ~(18–20, 15–16)
     path_cells: set[tuple[int, int]] = set()
-    # vertical corridor
-    for y in range(11, 30):
+    for y in range(15, 30):
         for dx in (-1, 0, 1):
-            path_cells.add((20 + dx, y))
-    # widen near gate and mid yard
+            path_cells.add((19 + dx, y))
     for y in range(24, 30):
         for dx in (-2, 2):
-            path_cells.add((20 + dx, y))
-    for y in range(14, 20):
+            path_cells.add((19 + dx, y))
+    for y in range(15, 21):
         for dx in (-2, -1, 0, 1, 2):
-            path_cells.add((20 + dx, y))
-    # worn patch left of path
-    for y in range(16, 22):
+            path_cells.add((19 + dx, y))
+    for y in range(17, 23):
         for x in range(14, 18):
             if (x + y) % 3 != 0:
                 path_cells.add((x, y))
@@ -292,6 +294,85 @@ def bake_ground() -> Image.Image:
     od.rectangle((0, 0, GROUND_W, 6 * TILE), fill=(18, 30, 14, 22))
     ground = Image.alpha_composite(ground, overlay)
     return ground
+
+
+def prepare_main_house() -> dict:
+    """Key black BG from upload house, crop, integer nearest downsample for VS01."""
+    from collections import deque
+
+    if not HOUSE_SRC.exists():
+        raise SystemExit(f"Missing approved house: {HOUSE_SRC}")
+
+    im = load_rgba(HOUSE_SRC)
+    w, h = im.size
+    px = im.load()
+    visited = [[False] * w for _ in range(h)]
+    q: deque[tuple[int, int]] = deque()
+
+    def is_bg(x: int, y: int) -> bool:
+        r, g, b, a = px[x, y]
+        return a < 8 or (r <= 20 and g <= 20 and b <= 20)
+
+    def try_enq(x: int, y: int) -> None:
+        if x < 0 or y < 0 or x >= w or y >= h or visited[y][x]:
+            return
+        if not is_bg(x, y):
+            return
+        visited[y][x] = True
+        q.append((x, y))
+
+    for x in range(w):
+        try_enq(x, 0)
+        try_enq(x, h - 1)
+    for y in range(h):
+        try_enq(0, y)
+        try_enq(w - 1, y)
+    while q:
+        x, y = q.popleft()
+        px[x, y] = (0, 0, 0, 0)
+        try_enq(x + 1, y)
+        try_enq(x - 1, y)
+        try_enq(x, y + 1)
+        try_enq(x, y - 1)
+
+    bb = im.getbbox()
+    if bb is None:
+        raise SystemExit("House became fully transparent after keying")
+    pad = 2
+    crop = im.crop(
+        (
+            max(0, bb[0] - pad),
+            max(0, bb[1] - pad),
+            min(w, bb[2] + pad),
+            min(h, bb[3] + pad),
+        )
+    )
+    crop.save(OUT / "main_house_v1_source_crop.png")
+    disp = crop.resize(
+        (crop.width // HOUSE_PIXEL_DIV, crop.height // HOUSE_PIXEL_DIV),
+        Image.NEAREST,
+    )
+    disp.save(OUT / "main_house_v1.png")
+    dx0, dy0, dx1, dy1 = [c // HOUSE_PIXEL_DIV for c in HOUSE_DOOR_CROP]
+    meta = {
+        "source": "upload/houses/main_house_v1.png",
+        "runtime": "assets/art/outdoor/yard_vs01/main_house_v1.png",
+        "source_crop": "assets/art/outdoor/yard_vs01/main_house_v1_source_crop.png",
+        "pixel_div": HOUSE_PIXEL_DIV,
+        "crop_size": list(crop.size),
+        "display_size": list(disp.size),
+        "door_rect_display": {"x0": dx0, "y0": dy0, "x1": dx1, "y1": dy1},
+        "notes": [
+            "main_house_v1.png is the approved base exterior for the childhood home.",
+            "Original stays permanently in upload/houses/.",
+            "Runtime uses keyed crop + integer nearest downsample only (no blur).",
+        ],
+    }
+    (OUT / "main_house_v1.json").write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    print("House runtime", disp.size, "door", meta["door_rect_display"])
+    return meta
 
 
 def copy_props() -> dict:
@@ -341,23 +422,26 @@ def process() -> None:
     draw_log().save(OUT / "log.png")
     draw_weed(0).save(OUT / "weed_a.png")
     draw_weed(2).save(OUT / "weed_b.png")
+    # Keep old placeholder for reference, but approved house is main_house_v1.
+    draw_izba().save(OUT / "house_izba_placeholder.png")
 
     prop_meta = copy_props()
+    house_meta = prepare_main_house()
 
     manifest = {
-        "version": 1,
+        "version": 2,
         "generated": date.today().isoformat(),
         "tile": TILE,
         "map_tiles": [MAP_W, MAP_H],
         "map_px": [GROUND_W, GROUND_H],
         "notes": [
-            "VS01 yard candidate around approved PixelLab hero scale.",
-            "House is a temporary old Russian wooden izba placeholder — not final art.",
-            "Oversized fairy props (giant mushrooms etc.) intentionally omitted.",
-            "upload/ originals were copied/resized with Nearest; not modified in place.",
+            "VS01 yard around approved PixelLab hero scale.",
+            "Approved exterior: upload/houses/main_house_v1.png → main_house_v1.png.",
+            "Oversized fairy props intentionally omitted.",
+            "upload/ originals are never modified in place.",
         ],
         "props": prop_meta,
-        "house": "house_izba_placeholder.png",
+        "house": house_meta,
         "ground": "ground.png",
     }
     (OUT / "manifest.json").write_text(
