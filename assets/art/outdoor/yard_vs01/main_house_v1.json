@@ -21,6 +21,6 @@
   "notes": [
     "main_house_v1.png is the approved base exterior for the childhood home.",
     "Original stays permanently in upload/houses/.",
-    "Runtime: key black BG, fill under-eave gaps, nearest ÷4, then ~10% nearest shrink."
+    "Runtime: key black BG, eave seal + binary alpha, nearest ÷4, then ~12% nearest shrink."
   ]
 }

@@ -12,10 +12,10 @@
 | Runtime pack | `assets/art/outdoor/yard_vs01/` |
 | Bake tool | `tools/build_yard_vs01_assets.py` |
 | **Approved house original** | `upload/houses/main_house_v1.png` (**permanent inbox**, never modified) |
-| **House in scene** | `assets/art/outdoor/yard_vs01/main_house_v1.png` — keyed crop, eave fill, nearest ÷4 × **0.88** → 245×128 |
+| **House in scene** | `assets/art/outdoor/yard_vs01/main_house_v1.png` — keyed crop, eave seal + binary alpha, nearest ÷4 × **0.88** → 245×128 |
 | House meta / door rect | `assets/art/outdoor/yard_vs01/main_house_v1.json` (`display_scale`, door ~29px) |
 | Scene node | `YSortWorld/MainHouse` (Sprite2D + HouseCollision + DoorHotspot) |
-| Start framing | spawn front yard; camera zoom 2.2 + offset up — see `docs/art_tests/yard_vs01_start.png` |
+| Start framing | spawn front yard; camera zoom **1.4** + offset `(0,-40)` — see `docs/art_tests/yard_vs01_start.png` |
 | Props source | selected copies from `upload/trees|rocks|bushes-pixel-art/` + drawn fence/well/log/stump |
 | Terrain | baked from `texture_proof_v1` grass/dirt 16×16 |
 

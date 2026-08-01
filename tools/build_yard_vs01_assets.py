@@ -297,8 +297,91 @@ def bake_ground() -> Image.Image:
     return ground
 
 
+def _is_usable_house_sample(r: int, g: int, b: int) -> bool:
+    """Reject crushed-black / key leftovers and bright/grass-like neighbors."""
+    s = r + g + b
+    # Too dark reads as a black slab over grass once nearest-scaled.
+    if s < 72 or max(r, g, b) < 26:
+        return False
+    # Bright grass / highlight — don't pull into eave underside.
+    if g > r + 28 and g > b + 18 and s > 180:
+        return False
+    if s > 520:
+        return False
+    return True
+
+
+def _lift_crushed_blacks(im: Image.Image) -> Image.Image:
+    """Raise crushed near-black opaque pixels to readable dark wood."""
+    arr = list(im.getdata())
+    w, h = im.size
+    lifted = 0
+    for y in range(h):
+        for x in range(w):
+            i = y * w + x
+            r, g, b, a = arr[i]
+            if a < 200:
+                continue
+            if r + g + b >= 72 and max(r, g, b) >= 26:
+                continue
+            arr[i] = _sample_eave_fill(arr, w, h, x, y)
+            lifted += 1
+    out = Image.new("RGBA", (w, h))
+    out.putdata(arr)
+    print(f"House crushed-black lift: {lifted} pixels")
+    return out
+
+
+def _sample_eave_fill(
+    arr: list[tuple[int, int, int, int]], w: int, h: int, x: int, y: int
+) -> tuple[int, int, int, int]:
+    """Sample nearby roof/wood; prefer upward (eave underside), never near-black."""
+    best = None
+    best_score = 10**9
+    for radius in range(1, 16):
+        for dy in range(-radius, radius + 1):
+            for dx in range(-radius, radius + 1):
+                if abs(dx) != radius and abs(dy) != radius:
+                    continue
+                nx, ny = x + dx, y + dy
+                if nx < 0 or ny < 0 or nx >= w or ny >= h:
+                    continue
+                pr, pg, pb, pa = arr[ny * w + nx]
+                if pa < 220 or not _is_usable_house_sample(pr, pg, pb):
+                    continue
+                # Prefer roof above the gap (negative dy).
+                score = dx * dx + dy * dy + (0 if dy < 0 else 8) + (pr + pg + pb) * 0.002
+                if score < best_score:
+                    best_score = score
+                    best = (pr, pg, pb, 255)
+        if best is not None:
+            break
+    # Warm dark wood / eave shadow — readable, not pure black.
+    return best if best is not None else (52, 38, 28, 255)
+
+
+def _seal_roof_thickness(
+    arr: list[tuple[int, int, int, int]], w: int, h: int, depth: int, y_max: int
+) -> int:
+    """Grow roof underside by a few pixels so eave lips aren't 1px lace over grass."""
+    filled = 0
+    for _ in range(depth):
+        pending: list[tuple[int, int]] = []
+        for y in range(1, y_max):
+            for x in range(w):
+                i = y * w + x
+                if arr[i][3] >= 200:
+                    continue
+                if arr[(y - 1) * w + x][3] >= 200:
+                    pending.append((x, y))
+        for x, y in pending:
+            arr[y * w + x] = _sample_eave_fill(arr, w, h, x, y)
+            filled += 1
+    return filled
+
+
 def _fill_under_eave_gaps(im: Image.Image) -> Image.Image:
-    """Close small under-roof silhouette notches only (no ground fill under house).
+    """Close thin under-roof silhouette notches only (no black slabs, no yard fill).
 
     Restricts edits to the upper roof/wall band so the open yard under the
     foundation stays transparent. Original upload file is never modified.
@@ -307,17 +390,38 @@ def _fill_under_eave_gaps(im: Image.Image) -> Image.Image:
 
     arr = list(im.getdata())
     w, h = im.size
-    # Upper ~70%: roof + under-eave line. Keep lower foundation/yard open.
-    roof_band_y1 = int(h * 0.72)
+    # Upper ~68%: roof + under-eave line. Keep lower foundation/yard open.
+    roof_band_y1 = int(h * 0.68)
+    # Thin gaps only — prevents large black under-eave slabs.
+    max_gap_h = max(2, min(4, h // 40))
 
     def idx(x: int, y: int) -> int:
         return y * w + x
 
-    def alpha_at(x: int, y: int) -> int:
-        return arr[idx(x, y)][3]
-
     def is_opaque(x: int, y: int, thr: int = 200) -> bool:
-        return 0 <= x < w and 0 <= y < h and alpha_at(x, y) >= thr
+        return 0 <= x < w and 0 <= y < h and arr[idx(x, y)][3] >= thr
+
+    # Strip only edge-adjacent keyed-black fringe (keep interior dark wood/shadow).
+    stripped = 0
+    for y in range(h):
+        for x in range(w):
+            i = idx(x, y)
+            r, g, b, a = arr[i]
+            if a < 8 or not (r <= 14 and g <= 14 and b <= 14):
+                continue
+            edge = False
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    if dx == 0 and dy == 0:
+                        continue
+                    nx, ny = x + dx, y + dy
+                    if nx < 0 or ny < 0 or nx >= w or ny >= h or arr[idx(nx, ny)][3] < 8:
+                        edge = True
+            if edge:
+                arr[i] = (0, 0, 0, 0)
+                stripped += 1
+    if stripped:
+        print(f"House key fringe stripped: {stripped} edge near-black pixels")
 
     exterior = [False] * (w * h)
     q: deque[tuple[int, int]] = deque()
@@ -344,29 +448,6 @@ def _fill_under_eave_gaps(im: Image.Image) -> Image.Image:
         try_ext(x, y + 1)
         try_ext(x, y - 1)
 
-    def nearest_fill(x: int, y: int) -> tuple[int, int, int, int]:
-        best = None
-        best_d = 10**9
-        for r in range(1, 14):
-            for dy in range(-r, r + 1):
-                for dx in range(-r, r + 1):
-                    if abs(dx) != r and abs(dy) != r:
-                        continue
-                    nx, ny = x + dx, y + dy
-                    if not is_opaque(nx, ny, 220):
-                        continue
-                    pr, pg, pb, _pa = arr[idx(nx, ny)]
-                    if pr + pg + pb > 400:
-                        continue
-                    d = dx * dx + dy * dy
-                    score = d + (pr + pg + pb) * 0.01
-                    if score < best_d:
-                        best_d = score
-                        best = (pr, pg, pb, 255)
-            if best is not None:
-                break
-        return best if best is not None else (42, 30, 22, 255)
-
     def has_opaque_band(x0: int, x1: int, y0: int, y1: int) -> bool:
         for yy in range(max(0, y0), min(h, y1)):
             for xx in range(max(0, x0), min(w, x1)):
@@ -374,7 +455,31 @@ def _fill_under_eave_gaps(im: Image.Image) -> Image.Image:
                     return True
         return False
 
-    # Component size for enclosed holes — only fill tiny pockets.
+    def thin_column_gap(x: int, y: int) -> bool:
+        """True only for short transparent runs between roof above and wall below."""
+        if arr[idx(x, y)][3] >= 200:
+            return False
+        above_y = None
+        for dy in range(1, 20):
+            if y - dy < 0:
+                break
+            if is_opaque(x, y - dy, 200):
+                above_y = y - dy
+                break
+        if above_y is None:
+            return False
+        below_y = None
+        for dy in range(1, 20):
+            if y + dy >= h:
+                break
+            if is_opaque(x, y + dy, 200):
+                below_y = y + dy
+                break
+        if below_y is None:
+            return False
+        return (below_y - above_y - 1) <= max_gap_h
+
+    # Enclosed holes only (tiny interior pockets in silhouette).
     hole_label = [-1] * (w * h)
     comp_size: list[int] = []
     for y in range(h):
@@ -401,20 +506,22 @@ def _fill_under_eave_gaps(im: Image.Image) -> Image.Image:
             comp_size.append(size)
 
     filled = 0
-    max_hole = max(48, (w * h) // 800)
+    max_hole = max(32, (w * h) // 1200)
     for y in range(roof_band_y1):
         for x in range(w):
             i = idx(x, y)
-            a = arr[i][3]
-            if a < 200 and not exterior[i]:
+            if arr[i][3] < 200 and not exterior[i]:
                 cid = hole_label[i]
                 if cid >= 0 and comp_size[cid] <= max_hole:
-                    arr[i] = nearest_fill(x, y)
+                    arr[i] = _sample_eave_fill(arr, w, h, x, y)
                     filled += 1
 
-    # Morphological close on roof band: fill exterior pixels tightly surrounded
-    # by house (under-eave jags) without painting open sky/yard.
-    for _pass in range(3):
+    # Roof lip thickness — kills dotted green under eaves without a black slab.
+    thick = max(3, min(8, h // 60))
+    filled += _seal_roof_thickness(arr, w, h, depth=thick, y_max=int(h * 0.62))
+
+    # Morphological close: only pixels tightly surrounded (thin jags).
+    for _pass in range(2):
         pending: list[tuple[int, int]] = []
         for y in range(1, roof_band_y1):
             for x in range(1, w - 1):
@@ -431,56 +538,85 @@ def _fill_under_eave_gaps(im: Image.Image) -> Image.Image:
                 if opaque_n >= 5 or (col_gap and opaque_n >= 3):
                     pending.append((x, y))
         for x, y in pending:
-            arr[idx(x, y)] = nearest_fill(x, y)
+            arr[idx(x, y)] = _sample_eave_fill(arr, w, h, x, y)
             filled += 1
             exterior[idx(x, y)] = False
 
-    # Fill ¾-view under-eave pockets: roof above + wall on one side.
-    # These stay exterior-connected (open sideways) but read as holes over grass.
-    for y in range(2, roof_band_y1):
-        for x in range(2, w - 2):
-            i = idx(x, y)
-            if arr[i][3] >= 200 or not exterior[i]:
-                continue
-            above = has_opaque_band(x - 1, x + 2, y - 22, y)
-            if not above:
-                continue
-            left = has_opaque_band(x - 26, x, y - 4, y + 10)
-            right = has_opaque_band(x + 1, x + 27, y - 4, y + 10)
-            if not (left or right):
-                continue
-            near = any(
-                is_opaque(x + dx, y + dy, 200)
-                for dy in range(-6, 7)
-                for dx in range(-6, 7)
-            )
-            if not near:
-                continue
-            inward = left if x > w * 0.5 else right
-            if not inward:
-                continue
-            arr[i] = nearest_fill(x, y)
-            exterior[i] = False
+    # Pepper holes along eave/wall: transparent with many opaque neighbors.
+    for _pass in range(4):
+        pending = []
+        for y in range(1, roof_band_y1):
+            for x in range(1, w - 1):
+                i = idx(x, y)
+                if arr[i][3] >= 200:
+                    continue
+                opaque_n = sum(
+                    1
+                    for dy in (-1, 0, 1)
+                    for dx in (-1, 0, 1)
+                    if not (dx == 0 and dy == 0) and is_opaque(x + dx, y + dy, 200)
+                )
+                if opaque_n >= 4 and has_opaque_band(x - 1, x + 2, y - 10, y):
+                    pending.append((x, y))
+        for x, y in pending:
+            arr[idx(x, y)] = _sample_eave_fill(arr, w, h, x, y)
+            exterior[idx(x, y)] = False
             filled += 1
 
-    # Explicit column-sandwich gaps (roof above + wall below in same column).
+    # Thin column-sandwich gaps only.
     for y in range(2, roof_band_y1):
         for x in range(w):
             i = idx(x, y)
             if arr[i][3] >= 200:
                 continue
-            above = any(is_opaque(x, y - dy, 200) for dy in range(1, 16) if y - dy >= 0)
-            below = any(is_opaque(x, y + dy, 200) for dy in range(1, 16) if y + dy < h)
-            if above and below:
-                arr[i] = nearest_fill(x, y)
+            if thin_column_gap(x, y):
+                arr[i] = _sample_eave_fill(arr, w, h, x, y)
                 exterior[i] = False
                 filled += 1
 
-    # Harden soft fringe in roof band.
+    # Under-eave pockets (¾ view): roof immediately above + wall inward.
+    # Fill with roof/wood samples — never pure black. Cap depth so open yard stays clear.
+    eave_depth = max(3, min(10, h // 18))
+    for y in range(2, roof_band_y1):
+        for x in range(2, w - 2):
+            i = idx(x, y)
+            if arr[i][3] >= 200 or not exterior[i]:
+                continue
+            # Must hang just under an opaque roof edge.
+            roof_above = False
+            for dy in range(1, eave_depth + 1):
+                if is_opaque(x, y - dy, 200):
+                    # roof edge: opaque above, was transparent/soft at fill cell
+                    roof_above = True
+                    break
+            if not roof_above:
+                continue
+            # Wall mass inward (toward house center), not a floating island.
+            if x < w * 0.5:
+                inward = any(is_opaque(x + dx, y + dy, 200) for dx in range(1, 18) for dy in range(-2, 8))
+            else:
+                inward = any(is_opaque(x - dx, y + dy, 200) for dx in range(1, 18) for dy in range(-2, 8))
+            if not inward:
+                continue
+            # Stay close to roof lip (avoid painting a foundation slab).
+            dist_up = 0
+            for dy in range(1, eave_depth + 2):
+                if y - dy < 0:
+                    break
+                if is_opaque(x, y - dy, 200):
+                    dist_up = dy
+                    break
+            if dist_up == 0 or dist_up > eave_depth:
+                continue
+            arr[i] = _sample_eave_fill(arr, w, h, x, y)
+            exterior[i] = False
+            filled += 1
+
+    # Harden soft fringe in roof band (keep color if already wood-like).
     for y in range(roof_band_y1):
         for x in range(w):
             i = idx(x, y)
-            a = arr[i][3]
+            r, g, b, a = arr[i]
             if a == 0 or a >= 230:
                 continue
             opaque_n = sum(
@@ -490,21 +626,24 @@ def _fill_under_eave_gaps(im: Image.Image) -> Image.Image:
                 if not (dx == 0 and dy == 0) and is_opaque(x + dx, y + dy, 220)
             )
             if opaque_n >= 5 and has_opaque_band(x, x + 1, y - 8, y):
-                r, g, b, _ = arr[i]
-                arr[i] = nearest_fill(x, y) if r + g + b < 8 else (r, g, b, 255)
+                if _is_usable_house_sample(r, g, b):
+                    arr[i] = (r, g, b, 255)
+                else:
+                    arr[i] = _sample_eave_fill(arr, w, h, x, y)
                 filled += 1
 
     out = Image.new("RGBA", (w, h))
     out.putdata(arr)
-    print(f"House gap fill: {filled} pixels closed (roof band only)")
+    print(f"House gap fill: {filled} pixels closed (thin eave leaks only)")
     return out
 
 
 def _fill_display_eave_gaps(im: Image.Image) -> Image.Image:
-    """Aggressive close of thin under-eave leaks at final display resolution."""
+    """Close thin under-eave leaks at final display resolution (no black slabs)."""
     arr = list(im.getdata())
     w, h = im.size
-    y_max = int(h * 0.78)
+    y_max = int(h * 0.70)
+    max_gap_h = 3
 
     def idx(x: int, y: int) -> int:
         return y * w + x
@@ -512,42 +651,133 @@ def _fill_display_eave_gaps(im: Image.Image) -> Image.Image:
     def opaque(x: int, y: int) -> bool:
         return 0 <= x < w and 0 <= y < h and arr[idx(x, y)][3] >= 200
 
-    def sample(x: int, y: int) -> tuple[int, int, int, int]:
-        for r in range(1, 12):
-            for dy in range(-r, r + 1):
-                for dx in range(-r, r + 1):
-                    if abs(dx) != r and abs(dy) != r:
-                        continue
-                    nx, ny = x + dx, y + dy
-                    if opaque(nx, ny):
-                        pr, pg, pb, _ = arr[idx(nx, ny)]
-                        if pr + pg + pb < 420:
-                            return (pr, pg, pb, 255)
-        return (38, 28, 20, 255)
+    # Drop only edge-adjacent near-black fringe from nearest downsample.
+    for y in range(h):
+        for x in range(w):
+            i = idx(x, y)
+            r, g, b, a = arr[i]
+            if a < 8 or not (r <= 12 and g <= 12 and b <= 12):
+                continue
+            if any(
+                (nx < 0 or ny < 0 or nx >= w or ny >= h or arr[idx(nx, ny)][3] < 8)
+                for dy in (-1, 0, 1)
+                for dx in (-1, 0, 1)
+                for nx, ny in ((x + dx, y + dy),)
+                if not (dx == 0 and dy == 0)
+            ):
+                arr[i] = (0, 0, 0, 0)
 
-    filled = 0
-    for _pass in range(4):
+    filled = _seal_roof_thickness(arr, w, h, depth=4, y_max=int(h * 0.62))
+    for _pass in range(5):
         pending: list[tuple[int, int]] = []
         for y in range(1, y_max):
             for x in range(w):
                 if arr[idx(x, y)][3] >= 200:
                     continue
-                above = any(opaque(x, y - dy) for dy in range(1, 18))
-                below = any(opaque(x, y + dy) for dy in range(1, 18))
+                above_y = None
+                for dy in range(1, 14):
+                    if y - dy >= 0 and opaque(x, y - dy):
+                        above_y = y - dy
+                        break
+                below_y = None
+                for dy in range(1, 14):
+                    if y + dy < h and opaque(x, y + dy):
+                        below_y = y + dy
+                        break
+                thin = (
+                    above_y is not None
+                    and below_y is not None
+                    and (below_y - above_y - 1) <= max_gap_h
+                )
                 n = sum(
                     1
                     for dy in (-1, 0, 1)
                     for dx in (-1, 0, 1)
                     if not (dx == 0 and dy == 0) and opaque(x + dx, y + dy)
                 )
-                if (above and below) or n >= 4:
+                # Shallow under-eave: opaque above within 8px + neighbor mass.
+                shallow_eave = False
+                if above_y is not None and (y - above_y) <= 8 and n >= 2:
+                    if x < w * 0.5:
+                        shallow_eave = any(opaque(x + dx, y) for dx in range(1, 12))
+                    else:
+                        shallow_eave = any(opaque(x - dx, y) for dx in range(1, 12))
+                # Single-pixel pepper holes in the silhouette.
+                pepper = n >= 3 and above_y is not None
+                if thin or n >= 5 or shallow_eave or pepper:
                     pending.append((x, y))
         for x, y in pending:
-            arr[idx(x, y)] = sample(x, y)
+            arr[idx(x, y)] = _sample_eave_fill(arr, w, h, x, y)
             filled += 1
     out = Image.new("RGBA", (w, h))
     out.putdata(arr)
     print(f"House display eave close: {filled} pixels")
+    return out
+
+def _harden_house_alpha(im: Image.Image) -> Image.Image:
+    """Force binary alpha: soft fringe over grass reads as green speckles in-game."""
+    from collections import deque
+
+    arr = list(im.getdata())
+    w, h = im.size
+
+    def idx(x: int, y: int) -> int:
+        return y * w + x
+
+    exterior = [False] * (w * h)
+    q: deque[tuple[int, int]] = deque()
+
+    def try_ext(x: int, y: int) -> None:
+        if x < 0 or y < 0 or x >= w or y >= h:
+            return
+        i = idx(x, y)
+        # Walk soft fringe as exterior so it doesn't become a dark halo.
+        if exterior[i] or arr[i][3] >= 200:
+            return
+        exterior[i] = True
+        q.append((x, y))
+
+    for x in range(w):
+        try_ext(x, 0)
+        try_ext(x, h - 1)
+    for y in range(h):
+        try_ext(0, y)
+        try_ext(w - 1, y)
+    while q:
+        x, y = q.popleft()
+        try_ext(x + 1, y)
+        try_ext(x - 1, y)
+        try_ext(x, y + 1)
+        try_ext(x, y - 1)
+
+    hardened = 0
+    filled = 0
+    for y in range(h):
+        for x in range(w):
+            i = idx(x, y)
+            r, g, b, a = arr[i]
+            if exterior[i]:
+                if a != 0:
+                    arr[i] = (0, 0, 0, 0)
+                    hardened += 1
+                continue
+            if a == 255 and _is_usable_house_sample(r, g, b):
+                continue
+            # Interior / silhouette: binary opaque wood/roof, no soft grass blend.
+            if _is_usable_house_sample(r, g, b) and a >= 80:
+                arr[i] = (r, g, b, 255)
+            else:
+                arr[i] = _sample_eave_fill(arr, w, h, x, y)
+            filled += 1
+    # Final binary alpha guarantee.
+    for i, (r, g, b, a) in enumerate(arr):
+        if a < 200:
+            arr[i] = (0, 0, 0, 0)
+        elif a != 255:
+            arr[i] = (r, g, b, 255)
+    out = Image.new("RGBA", (w, h))
+    out.putdata(arr)
+    print(f"House alpha harden: cleared_ext={hardened}, solidified={filled}")
     return out
 
 
@@ -614,6 +844,8 @@ def prepare_main_house() -> dict:
     # Second + third pass at display size: nearest downsample reopens thin eave gaps.
     disp = _fill_under_eave_gaps(disp)
     disp = _fill_display_eave_gaps(disp)
+    disp = _harden_house_alpha(disp)
+    disp = _lift_crushed_blacks(disp)
     disp.save(OUT / "main_house_v1.png")
 
     sx = disp_w / float(crop.width)
@@ -634,7 +866,7 @@ def prepare_main_house() -> dict:
         "notes": [
             "main_house_v1.png is the approved base exterior for the childhood home.",
             "Original stays permanently in upload/houses/.",
-            "Runtime: key black BG, fill under-eave gaps, nearest ÷4, then ~10% nearest shrink.",
+            "Runtime: key black BG, eave seal + binary alpha, nearest ÷4, then ~12% nearest shrink.",
         ],
     }
     (OUT / "main_house_v1.json").write_text(

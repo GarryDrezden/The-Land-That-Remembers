@@ -19,9 +19,10 @@ const HOUSE_PIXEL_DIV := 4
 const HOUSE_FEET := Vector2(20.0, 14.4)
 ## Front-yard spawn: follow-cam frames whole house + path + yard (gate is south).
 const PLAYER_SPAWN := Vector2(20.0, 19.2)
-## Pulled-back start zoom so roof has air and yard stays readable (nearest).
-const PLAY_CAMERA_ZOOM := 2.2
-const PLAY_CAMERA_OFFSET := Vector2(0, -72)
+## Pulled-back start zoom: whole house (245px) fits 384-wide view with air + yard.
+## Visible world ≈ viewport/zoom; at 1.4 → ~274×171 px (house 245×128 fits).
+const PLAY_CAMERA_ZOOM := 1.4
+const PLAY_CAMERA_OFFSET := Vector2(0, -40)
 
 var _ysort: Node2D
 var _player: CharacterBody2D

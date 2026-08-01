@@ -6,7 +6,7 @@
 
 - **PixelLab hero v1** принят временно: idle+walk 8-dir, node scale `1.0`, display `PIXEL_DIV=2`.
 - **Outdoor VS01:** `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` — карта больше одного экрана.
-- **Дом:** `HOUSE_MAIN_HOUSE_V1`; runtime bake закрывает щели под крышей; display ≈ **0.88** nearest после ÷4; стартовая камера (zoom 2.2, offset вверх) показывает весь дом + дорожку + двор.
+- **Дом:** `HOUSE_MAIN_HOUSE_V1`; runtime bake: eave seal + binary alpha + lift crushed blacks; display ≈ **0.88** nearest после ÷4 (245×128); старт: zoom **1.4**, offset `(0,-40)` — весь дом + дорожка + двор.
 - **Каталог ассетов:** корневой [`README.md`](../README.md#где-смотреть-ассеты).
 
 ## Следующее
