@@ -23,7 +23,7 @@ UPLOAD = ROOT / "upload"
 
 TILE = 16
 MAP_W = 40
-MAP_H = 32
+MAP_H = 34
 GROUND_W = MAP_W * TILE
 GROUND_H = MAP_H * TILE
 
@@ -34,6 +34,8 @@ DIRT_B = ROOT / "assets/art/outdoor/texture_proof_v1/terrain/dirt_16_b.png"
 HOUSE_SRC = UPLOAD / "houses" / "main_house_v1.png"
 ## Integer nearest downsample after crop; door ~32px vs hero ~23px (~71%).
 HOUSE_PIXEL_DIV = 4
+## Extra nearest shrink after ÷4 so the house fits the start frame with air (~12%).
+HOUSE_DISPLAY_SCALE = 0.88
 # Manual door rect on keyed crop (x0,y0,x1,y1) — verified visually.
 HOUSE_DOOR_CROP = (430, 338, 478, 468)
 
@@ -263,19 +265,18 @@ def bake_ground() -> Image.Image:
             tile = grass_tiles[(tx * 3 + ty * 5) % 2]
             ground.paste(tile, (tx * TILE, ty * TILE))
 
-    # Path mask: gate (bottom) → door (¾ house door is slightly left of center).
-    # Gate ~(20,29), door approach ~(18–20, 15–16)
+    # Path mask: south gate → house door (house feet ~tile y=13.6).
     path_cells: set[tuple[int, int]] = set()
-    for y in range(15, 30):
+    for y in range(13, 33):
         for dx in (-1, 0, 1):
             path_cells.add((19 + dx, y))
-    for y in range(24, 30):
+    for y in range(26, 33):
         for dx in (-2, 2):
             path_cells.add((19 + dx, y))
-    for y in range(15, 21):
+    for y in range(13, 20):
         for dx in (-2, -1, 0, 1, 2):
             path_cells.add((19 + dx, y))
-    for y in range(17, 23):
+    for y in range(16, 24):
         for x in range(14, 18):
             if (x + y) % 3 != 0:
                 path_cells.add((x, y))
@@ -296,8 +297,262 @@ def bake_ground() -> Image.Image:
     return ground
 
 
+def _fill_under_eave_gaps(im: Image.Image) -> Image.Image:
+    """Close small under-roof silhouette notches only (no ground fill under house).
+
+    Restricts edits to the upper roof/wall band so the open yard under the
+    foundation stays transparent. Original upload file is never modified.
+    """
+    from collections import deque
+
+    arr = list(im.getdata())
+    w, h = im.size
+    # Upper ~70%: roof + under-eave line. Keep lower foundation/yard open.
+    roof_band_y1 = int(h * 0.72)
+
+    def idx(x: int, y: int) -> int:
+        return y * w + x
+
+    def alpha_at(x: int, y: int) -> int:
+        return arr[idx(x, y)][3]
+
+    def is_opaque(x: int, y: int, thr: int = 200) -> bool:
+        return 0 <= x < w and 0 <= y < h and alpha_at(x, y) >= thr
+
+    exterior = [False] * (w * h)
+    q: deque[tuple[int, int]] = deque()
+
+    def try_ext(x: int, y: int) -> None:
+        if x < 0 or y < 0 or x >= w or y >= h:
+            return
+        i = idx(x, y)
+        if exterior[i] or is_opaque(x, y, 200):
+            return
+        exterior[i] = True
+        q.append((x, y))
+
+    for x in range(w):
+        try_ext(x, 0)
+        try_ext(x, h - 1)
+    for y in range(h):
+        try_ext(0, y)
+        try_ext(w - 1, y)
+    while q:
+        x, y = q.popleft()
+        try_ext(x + 1, y)
+        try_ext(x - 1, y)
+        try_ext(x, y + 1)
+        try_ext(x, y - 1)
+
+    def nearest_fill(x: int, y: int) -> tuple[int, int, int, int]:
+        best = None
+        best_d = 10**9
+        for r in range(1, 14):
+            for dy in range(-r, r + 1):
+                for dx in range(-r, r + 1):
+                    if abs(dx) != r and abs(dy) != r:
+                        continue
+                    nx, ny = x + dx, y + dy
+                    if not is_opaque(nx, ny, 220):
+                        continue
+                    pr, pg, pb, _pa = arr[idx(nx, ny)]
+                    if pr + pg + pb > 400:
+                        continue
+                    d = dx * dx + dy * dy
+                    score = d + (pr + pg + pb) * 0.01
+                    if score < best_d:
+                        best_d = score
+                        best = (pr, pg, pb, 255)
+            if best is not None:
+                break
+        return best if best is not None else (42, 30, 22, 255)
+
+    def has_opaque_band(x0: int, x1: int, y0: int, y1: int) -> bool:
+        for yy in range(max(0, y0), min(h, y1)):
+            for xx in range(max(0, x0), min(w, x1)):
+                if is_opaque(xx, yy, 200):
+                    return True
+        return False
+
+    # Component size for enclosed holes — only fill tiny pockets.
+    hole_label = [-1] * (w * h)
+    comp_size: list[int] = []
+    for y in range(h):
+        for x in range(w):
+            i = idx(x, y)
+            if hole_label[i] != -1 or exterior[i] or is_opaque(x, y, 200):
+                continue
+            cid = len(comp_size)
+            stack = [(x, y)]
+            hole_label[i] = cid
+            size = 0
+            while stack:
+                cx, cy = stack.pop()
+                size += 1
+                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    nx, ny = cx + dx, cy + dy
+                    if nx < 0 or ny < 0 or nx >= w or ny >= h:
+                        continue
+                    ni = idx(nx, ny)
+                    if hole_label[ni] != -1 or exterior[ni] or is_opaque(nx, ny, 200):
+                        continue
+                    hole_label[ni] = cid
+                    stack.append((nx, ny))
+            comp_size.append(size)
+
+    filled = 0
+    max_hole = max(48, (w * h) // 800)
+    for y in range(roof_band_y1):
+        for x in range(w):
+            i = idx(x, y)
+            a = arr[i][3]
+            if a < 200 and not exterior[i]:
+                cid = hole_label[i]
+                if cid >= 0 and comp_size[cid] <= max_hole:
+                    arr[i] = nearest_fill(x, y)
+                    filled += 1
+
+    # Morphological close on roof band: fill exterior pixels tightly surrounded
+    # by house (under-eave jags) without painting open sky/yard.
+    for _pass in range(3):
+        pending: list[tuple[int, int]] = []
+        for y in range(1, roof_band_y1):
+            for x in range(1, w - 1):
+                i = idx(x, y)
+                if arr[i][3] >= 200 or not exterior[i]:
+                    continue
+                opaque_n = sum(
+                    1
+                    for dy in (-1, 0, 1)
+                    for dx in (-1, 0, 1)
+                    if not (dx == 0 and dy == 0) and is_opaque(x + dx, y + dy, 200)
+                )
+                col_gap = is_opaque(x, y - 1, 200) and is_opaque(x, y + 1, 200)
+                if opaque_n >= 5 or (col_gap and opaque_n >= 3):
+                    pending.append((x, y))
+        for x, y in pending:
+            arr[idx(x, y)] = nearest_fill(x, y)
+            filled += 1
+            exterior[idx(x, y)] = False
+
+    # Fill ¾-view under-eave pockets: roof above + wall on one side.
+    # These stay exterior-connected (open sideways) but read as holes over grass.
+    for y in range(2, roof_band_y1):
+        for x in range(2, w - 2):
+            i = idx(x, y)
+            if arr[i][3] >= 200 or not exterior[i]:
+                continue
+            above = has_opaque_band(x - 1, x + 2, y - 22, y)
+            if not above:
+                continue
+            left = has_opaque_band(x - 26, x, y - 4, y + 10)
+            right = has_opaque_band(x + 1, x + 27, y - 4, y + 10)
+            if not (left or right):
+                continue
+            near = any(
+                is_opaque(x + dx, y + dy, 200)
+                for dy in range(-6, 7)
+                for dx in range(-6, 7)
+            )
+            if not near:
+                continue
+            inward = left if x > w * 0.5 else right
+            if not inward:
+                continue
+            arr[i] = nearest_fill(x, y)
+            exterior[i] = False
+            filled += 1
+
+    # Explicit column-sandwich gaps (roof above + wall below in same column).
+    for y in range(2, roof_band_y1):
+        for x in range(w):
+            i = idx(x, y)
+            if arr[i][3] >= 200:
+                continue
+            above = any(is_opaque(x, y - dy, 200) for dy in range(1, 16) if y - dy >= 0)
+            below = any(is_opaque(x, y + dy, 200) for dy in range(1, 16) if y + dy < h)
+            if above and below:
+                arr[i] = nearest_fill(x, y)
+                exterior[i] = False
+                filled += 1
+
+    # Harden soft fringe in roof band.
+    for y in range(roof_band_y1):
+        for x in range(w):
+            i = idx(x, y)
+            a = arr[i][3]
+            if a == 0 or a >= 230:
+                continue
+            opaque_n = sum(
+                1
+                for dy in (-1, 0, 1)
+                for dx in (-1, 0, 1)
+                if not (dx == 0 and dy == 0) and is_opaque(x + dx, y + dy, 220)
+            )
+            if opaque_n >= 5 and has_opaque_band(x, x + 1, y - 8, y):
+                r, g, b, _ = arr[i]
+                arr[i] = nearest_fill(x, y) if r + g + b < 8 else (r, g, b, 255)
+                filled += 1
+
+    out = Image.new("RGBA", (w, h))
+    out.putdata(arr)
+    print(f"House gap fill: {filled} pixels closed (roof band only)")
+    return out
+
+
+def _fill_display_eave_gaps(im: Image.Image) -> Image.Image:
+    """Aggressive close of thin under-eave leaks at final display resolution."""
+    arr = list(im.getdata())
+    w, h = im.size
+    y_max = int(h * 0.78)
+
+    def idx(x: int, y: int) -> int:
+        return y * w + x
+
+    def opaque(x: int, y: int) -> bool:
+        return 0 <= x < w and 0 <= y < h and arr[idx(x, y)][3] >= 200
+
+    def sample(x: int, y: int) -> tuple[int, int, int, int]:
+        for r in range(1, 12):
+            for dy in range(-r, r + 1):
+                for dx in range(-r, r + 1):
+                    if abs(dx) != r and abs(dy) != r:
+                        continue
+                    nx, ny = x + dx, y + dy
+                    if opaque(nx, ny):
+                        pr, pg, pb, _ = arr[idx(nx, ny)]
+                        if pr + pg + pb < 420:
+                            return (pr, pg, pb, 255)
+        return (38, 28, 20, 255)
+
+    filled = 0
+    for _pass in range(4):
+        pending: list[tuple[int, int]] = []
+        for y in range(1, y_max):
+            for x in range(w):
+                if arr[idx(x, y)][3] >= 200:
+                    continue
+                above = any(opaque(x, y - dy) for dy in range(1, 18))
+                below = any(opaque(x, y + dy) for dy in range(1, 18))
+                n = sum(
+                    1
+                    for dy in (-1, 0, 1)
+                    for dx in (-1, 0, 1)
+                    if not (dx == 0 and dy == 0) and opaque(x + dx, y + dy)
+                )
+                if (above and below) or n >= 4:
+                    pending.append((x, y))
+        for x, y in pending:
+            arr[idx(x, y)] = sample(x, y)
+            filled += 1
+    out = Image.new("RGBA", (w, h))
+    out.putdata(arr)
+    print(f"House display eave close: {filled} pixels")
+    return out
+
+
 def prepare_main_house() -> dict:
-    """Key black BG from upload house, crop, integer nearest downsample for VS01."""
+    """Key black BG from upload house, crop, fill eave gaps, nearest downsample for VS01."""
     from collections import deque
 
     if not HOUSE_SRC.exists():
@@ -347,31 +602,45 @@ def prepare_main_house() -> dict:
             min(h, bb[3] + pad),
         )
     )
+    # Close under-eave grass leaks before downsample so gaps stay filled.
+    crop = _fill_under_eave_gaps(crop)
     crop.save(OUT / "main_house_v1_source_crop.png")
-    disp = crop.resize(
-        (crop.width // HOUSE_PIXEL_DIV, crop.height // HOUSE_PIXEL_DIV),
-        Image.NEAREST,
-    )
+
+    base_w = crop.width // HOUSE_PIXEL_DIV
+    base_h = crop.height // HOUSE_PIXEL_DIV
+    disp_w = max(1, int(round(base_w * HOUSE_DISPLAY_SCALE)))
+    disp_h = max(1, int(round(base_h * HOUSE_DISPLAY_SCALE)))
+    disp = crop.resize((disp_w, disp_h), Image.NEAREST)
+    # Second + third pass at display size: nearest downsample reopens thin eave gaps.
+    disp = _fill_under_eave_gaps(disp)
+    disp = _fill_display_eave_gaps(disp)
     disp.save(OUT / "main_house_v1.png")
-    dx0, dy0, dx1, dy1 = [c // HOUSE_PIXEL_DIV for c in HOUSE_DOOR_CROP]
+
+    sx = disp_w / float(crop.width)
+    sy = disp_h / float(crop.height)
+    dx0 = int(HOUSE_DOOR_CROP[0] * sx)
+    dy0 = int(HOUSE_DOOR_CROP[1] * sy)
+    dx1 = int(HOUSE_DOOR_CROP[2] * sx)
+    dy1 = int(HOUSE_DOOR_CROP[3] * sy)
     meta = {
         "source": "upload/houses/main_house_v1.png",
         "runtime": "assets/art/outdoor/yard_vs01/main_house_v1.png",
         "source_crop": "assets/art/outdoor/yard_vs01/main_house_v1_source_crop.png",
         "pixel_div": HOUSE_PIXEL_DIV,
+        "display_scale": HOUSE_DISPLAY_SCALE,
         "crop_size": list(crop.size),
         "display_size": list(disp.size),
         "door_rect_display": {"x0": dx0, "y0": dy0, "x1": dx1, "y1": dy1},
         "notes": [
             "main_house_v1.png is the approved base exterior for the childhood home.",
             "Original stays permanently in upload/houses/.",
-            "Runtime uses keyed crop + integer nearest downsample only (no blur).",
+            "Runtime: key black BG, fill under-eave gaps, nearest ÷4, then ~10% nearest shrink.",
         ],
     }
     (OUT / "main_house_v1.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    print("House runtime", disp.size, "door", meta["door_rect_display"])
+    print("House runtime", disp.size, "door", meta["door_rect_display"], "scale", HOUSE_DISPLAY_SCALE)
     return meta
 
 

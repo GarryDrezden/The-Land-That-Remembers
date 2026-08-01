@@ -17,8 +17,11 @@
 | Builder script | `scripts/locations/outdoor/childhood_home/yard_vs01.gd` |
 | Door hotspot | `yard_vs01_door.gd` → `GameFlow.go_location("workshop")` (stub) |
 | Runtime art | `assets/art/outdoor/yard_vs01/` |
-| Approved house source | `upload/houses/main_house_v1.png` |
-| House runtime | `…/yard_vs01/main_house_v1.png` (Node `MainHouse`) |
+| Approved house source | `upload/houses/main_house_v1.png` (permanent; never edited) |
+| House runtime | `…/yard_vs01/main_house_v1.png` — key BG, **eave gap fill**, nearest ÷4, display_scale **0.88** |
+| House node | `YSortWorld/MainHouse` @ feet ~(20, 14.4) tiles |
+| Start camera | player zoom **2.2**, offset `(0, -72)` — house + path + front yard |
+| Map | 40×34 tiles (larger than one screen) |
 | Asset bake | `tools/build_yard_vs01_assets.py` |
 | Player | `player_pixellab_test.tscn` (scale unchanged) |
 

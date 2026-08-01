@@ -215,6 +215,11 @@ func set_camera_zoom(z: Vector2) -> void:
 		_cam.zoom = z
 
 
+func set_camera_offset(offset: Vector2) -> void:
+	if _cam:
+		_cam.offset = offset
+
+
 func set_camera_enabled(on: bool) -> void:
 	if _cam:
 		_cam.enabled = on
