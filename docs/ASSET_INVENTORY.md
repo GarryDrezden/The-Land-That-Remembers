@@ -1,6 +1,6 @@
 # ASSET INVENTORY
 
-Обновлено: 2026-07-31 (texture proof v1)
+Обновлено: 2026-08-01 (seamless terrain proof)
 
 Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · ориентир: [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) §20–21.
 
@@ -10,6 +10,7 @@
 |------|----------|
 | Направление | original detailed Stardew-like outdoor pixel art with rural childhood-home identity |
 | Mood refs | `docs/art_direction/outdoor_target_yard_mood.png`, `…_asset_scope.png` |
+| AI sheets | **mood/palette reference only** — not tile sources |
 | Status | **approved** ([DEC-005](DECISIONS.md), [DEC-006](DECISIONS.md)) |
 
 ## Scale lock (accepted greybox)
@@ -19,65 +20,33 @@
 | Viewport | 384×240 |
 | Tile | 16×16 |
 | Map | 72×45 tiles (1152×720 px) |
-| Player box | 24×32 |
-| Deciduous | 64×80 |
-| Birch | 48×80 |
-| Spruce | 48×96 |
-| Bush | 32×24 |
-| Rock | 16×16 / 24×24 |
-| Log | 32×16 |
-| Stump | 24×24 |
-| House | ~144×112 |
 | Scene | `yard_scale_test.tscn` |
 
 ---
 
-## Texture proof v1 — candidate
+## Seamless terrain proof (current)
 
 | Поле | Значение |
 |------|----------|
-| Asset ID | `generated_outdoor_texture_proof_v1` |
-| Status | **generated outdoor texture proof v1 — candidate** |
-| Folder | `assets/art/outdoor/texture_proof_v1/` |
-| Scene | `scenes/locations/outdoor/childhood_home/yard_texture_test_v1.tscn` |
-| Tool | `tools/prep_texture_proof_v1.py` |
-| Manifest | `assets/art/outdoor/texture_proof_v1/manifest.json` |
-| Source material | downscaled/cleaned slices from rejected generated_test refs |
+| Status | **deterministic seamless prototype** |
+| Ground | `assets/art/outdoor/terrain_proof/terrain_ground.png` (128×64) |
+| Decor | `assets/art/outdoor/terrain_proof/terrain_decor.png` (128×16) |
+| TileSet | `resources/tilesets/yard_ground_tileset.tres` |
+| Scene | `yard_terrain_proof.tscn` |
+| Tools | `generate_terrain_proof.py`, `test_terrain_atlas.py`, `build_yard_ground_tileset.gd` |
+| Terrain | Match Corners · Grass / Soil · 16 masks + variants (probability) |
+| Previews | `docs/art_tests/terrain_seamless*.png` |
 
-### PNG used (actual sizes)
+### Ground atlas layout
 
-| File | Size |
-|------|------|
-| `player/frame_00…19.png` | 24×32 each |
-| `tree_deciduous.png` | 64×80 |
-| `tree_spruce.png` | 48×96 |
-| `bush.png` | 32×24 |
-| `rock.png` | 24×24 |
-| `log.png` | 32×16 |
-| `stump.png` | 24×24 |
-| `house.png` | 144×112 |
-| `pond.png` | 128×96 |
-
-Notes: player left = **prototype flip** of right. Pond = temporary whole sprite. Dirt-island trim is heuristic. NEAREST downscale from larger sources → softer pixel than native 16px art.
-
-Previews: `docs/art_tests/yard_texture_test_v1_*.png`
+| Region | Content |
+|--------|---------|
+| cols 0–3, rows 0–3 | corner masks 0…15 (TL=1,TR=2,BR=4,BL=8) |
+| cols 4–7, row 0 | grass variants (shared border with mask 0) |
+| cols 4–7, row 1 | soil variants (shared border with mask 15) |
 
 ---
 
-## Art test v2 — generated outdoor pack (REJECTED as production)
+## Earlier texture_proof_v1 (superseded for terrain)
 
-| Поле | Значение |
-|------|----------|
-| Status | **rejected as production** ([DEC-007](DECISIONS.md)) |
-| Role | visual references only |
-| Scene | `yard_art_test_v2.tscn` (keep as failed experiment) |
-
----
-
-## Art test v1 — Puny World (отклонён)
-
-| Status | **NOT approved** ([DEC-004](DECISIONS.md)) |
-
-## Запрещено
-
-Рипы Stardew; AI sheets как production без technical gate; GameRoot до утверждения арта.
+Kept under `assets/art/outdoor/texture_proof_v1/` as failed/legacy experiment material. Not used by seamless proof.

@@ -2,6 +2,81 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (d) — deterministic seamless grass/soil terrain proof
+
+**Стоп AI-sheet slicing.** Присланные листы = mood/palette reference only.
+
+**Сделано:**
+- `tools/generate_terrain_proof.py` → `terrain_ground.png` (16 corner masks + grass/soil variants) + `terrain_decor.png`;
+- shared edge profiles (marching-squares seam contract); wraparound full grass/soil;
+- `tools/test_terrain_atlas.py` (opaque ground, alpha decor, borders, 16 masks, seam pairs);
+- `scripts/tilesets/yard_terrain_tileset_factory.gd` + `resources/tilesets/yard_ground_tileset.tres`
+  (Terrain Set 0, Match Corners, Grass/Soil, probability on variants);
+- сцена `yard_terrain_proof.tscn`: GroundTerrain + GroundDecoration TileMapLayer, `set_cells_terrain_connect`, player;
+- скрины `terrain_seamless*.png`.
+
+**Не делалось:** дом, вода, деревья, основной двор, production art density.
+
+---
+
+## 2026-08-01 (c) — tileset_v2 clustered grass + framed soil
+
+**Источник:** новый grass/soil sheet (temporary).
+
+**Сделано:**
+- extract `tileset_v2/tiles` (11×7 → 32px);
+- `tools/bake_terrain_tileset_v2.py`: grass base/var/dark/dense/flower **кластерами** (не шахматка);
+- soil center + edge/corner frame; один variant на каждую сторону края;
+- props: bush + rock + 1 weed;
+- скрины `terrain_hero_proof_v2.png`, `…_v2_grid.png`.
+
+**Не делалось:** production tileset, полный autotile, большой двор.
+
+---
+
+## 2026-08-01 (b) — soil patch as framed border
+
+**Принцип:** центр = full soil; снаружи = full grass; периметр = edge/corner only.
+
+**Сделано:**
+- `tools/bake_soil_patch_framed.py` — ручная простая прямоугольная форма 6×4;
+- role map: `ref_proto/roles/` + `terrain_plate_roles.txt`;
+- недостающие bottom/side/corners — flip/rot от явных top/NW (sheet неполный);
+- скрины `terrain_hero_proof_framed.png`, `…_framed_grid.png`.
+
+**Не делалось:** полный Godot Terrain/autotile, сложные вогнутые формы.
+
+---
+
+## 2026-08-01 (a) — temporary terrain ref-proto tiles
+
+**Источник:** присланный rural tileset sheet (temporary prototype only).
+
+**Сделано:**
+- `tools/prep_terrain_ref_proto.py` — вырезка grass / bare soil / transition (~3× display → 32px);
+- baked `terrain_plate.png` (12×8 @32px) с неровным soil island;
+- сцена: герой + bush + rock на маленьком участке; без дерева/сорняков/дома/пруда;
+- скрины `terrain_hero_proof_ref_proto*.png`.
+
+**Не делалось:** production tileset, autotile system, GameRoot, расширение двора.
+
+---
+
+## 2026-07-31 (n) — terrain + hero proof (narrow)
+
+**Цель:** стабилизировать основу — не расширять объекты.
+
+**Сделано:**
+- `tools/prep_terrain_hero_proof.py` → `texture_proof_v1/terrain/` (`grass_16`, `dirt_16`, `terrain_plate` 384×240);
+- ground: backdrop + текстурированная plate (трава + dirt + неровная граница), без autotile;
+- герой: opaque binary alpha, idle/walk, speed 72, диагональ `limit_length(1)` + anim по dominant axis;
+- объекты только: 1 дерево, 1 куст, 1 камень, 3 сорняка;
+- скрины `docs/art_tests/terrain_hero_proof_{terrain,idle,walk,walk_diag,props}.png`.
+
+**Не делалось:** дом, пруд, GameRoot, полный outdoor, новая scale-pass.
+
+---
+
 ## 2026-07-31 (m) — texture proof v1 integration cleanup
 
 **Причина:** v1 rejected — полупрозрачный герой, ломалась диагональная анимация, кривые baseline/offset.
