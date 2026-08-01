@@ -1,6 +1,6 @@
 # ASSET INVENTORY
 
-Обновлено: 2026-08-01 (seamless terrain proof)
+Обновлено: 2026-08-01 (visual terrain pass)
 
 Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · ориентир: [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) §20–21.
 
@@ -24,18 +24,19 @@
 
 ---
 
-## Seamless terrain proof (current)
+## Seamless terrain (accepted) + visual pass
 
 | Поле | Значение |
 |------|----------|
-| Status | **deterministic seamless prototype** |
+| Status | **seamless system accepted**; visual grass/soil pass done |
 | Ground | `assets/art/outdoor/terrain_proof/terrain_ground.png` (128×64) |
 | Decor | `assets/art/outdoor/terrain_proof/terrain_decor.png` (128×16) |
 | TileSet | `resources/tilesets/yard_ground_tileset.tres` |
 | Scene | `yard_terrain_proof.tscn` |
 | Tools | `generate_terrain_proof.py`, `test_terrain_atlas.py`, `build_yard_ground_tileset.gd` |
-| Terrain | Match Corners · Grass / Soil · 16 masks + variants (probability) |
-| Previews | `docs/art_tests/terrain_seamless*.png` |
+| Terrain | Match Corners · Grass / Soil · 16 masks + variants |
+| Variant weights | grass/soil base **65%**, A **20%**, B **10%**, C **5%** |
+| Previews | `docs/art_tests/terrain_visual.png`, `…_alt.png`, `…_{grass,soil,border}_x4.png` |
 
 ### Ground atlas layout
 

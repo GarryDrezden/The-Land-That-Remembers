@@ -90,36 +90,35 @@ func _all_cells() -> Array[Vector2i]:
 
 
 func _soil_shape_a() -> Array[Vector2i]:
-	## Solid 8×6 with soft inset (2×2) and protrusion (2×2) — no diagonal islands.
+	## ~9×7 solid patch: one wide protrusion, one shallow concave — no 1-cell tails.
 	var cells: Array[Vector2i] = []
-	var ox := 8
+	var ox := 7
 	var oy := 4
-	for y in range(6):
-		for x in range(8):
-			if y <= 1 and x >= 6:
-				continue # inset top-right 2×2
+	for y in range(7):
+		for x in range(9):
+			# Shallow concave on top edge (2 cells wide, 1 deep)
+			if y == 0 and x >= 5 and x <= 6:
+				continue
 			cells.append(Vector2i(ox + x, oy + y))
-	# protrusion bottom-left 2×2
-	for y in range(4, 6):
-		for x in range(-2, 0):
+	# Wide protrusion left (3×2), attached to mid-left
+	for y in range(2, 5):
+		for x in range(-3, 0):
 			cells.append(Vector2i(ox + x, oy + y))
 	return _unique_in_map(cells)
 
 
 func _soil_shape_b() -> Array[Vector2i]:
-	## Alternate solid form for auto-corner proof.
+	## Alternate ~9×7: concave bottom, protrusion right.
 	var cells: Array[Vector2i] = []
-	var ox := 7
-	var oy := 5
-	for y in range(6):
-		for x in range(8):
-			if y <= 1 and x <= 1:
-				continue
-			if y >= 4 and x >= 6:
+	var ox := 8
+	var oy := 3
+	for y in range(7):
+		for x in range(9):
+			if y == 6 and x >= 3 and x <= 5:
 				continue
 			cells.append(Vector2i(ox + x, oy + y))
-	for y in range(2, 4):
-		for x in range(8, 10):
+	for y in range(1, 4):
+		for x in range(9, 12):
 			cells.append(Vector2i(ox + x, oy + y))
 	return _unique_in_map(cells)
 
@@ -149,27 +148,39 @@ func _paint_terrain(shape_b: bool) -> void:
 
 func _paint_decor() -> void:
 	_decor.clear()
-	# Rare accents — not every cell
-	var blades := [Vector2i(3, 2), Vector2i(5, 10), Vector2i(18, 3), Vector2i(20, 12), Vector2i(2, 7), Vector2i(15, 13)]
-	for c in blades:
-		_decor.set_cell(c, 0, Vector2i(0 if (c.x + c.y) % 2 == 0 else 1, 0))
-	_decor.set_cell(Vector2i(4, 12), 0, Vector2i(3, 0)) # white flowers
-	_decor.set_cell(Vector2i(19, 8), 0, Vector2i(4, 0)) # yellow
-	_decor.set_cell(Vector2i(10, 3), 0, Vector2i(5, 0)) # pebbles
-	_decor.set_cell(Vector2i(14, 11), 0, Vector2i(5, 0))
-	_decor.set_cell(Vector2i(21, 5), 0, Vector2i(6, 0)) # twig
+	# 5–7 grass tufts
+	var tufts := [
+		Vector2i(2, 2), Vector2i(4, 11), Vector2i(17, 2), Vector2i(21, 12),
+		Vector2i(1, 8), Vector2i(14, 13), Vector2i(20, 6),
+	]
+	for i in range(tufts.size()):
+		var atlas_x := 0 if i % 3 == 0 else (1 if i % 3 == 1 else 7)
+		_decor.set_cell(tufts[i], 0, Vector2i(atlas_x, 0))
+	# 1 white flower, 1 yellow
+	_decor.set_cell(Vector2i(5, 13), 0, Vector2i(3, 0))
+	_decor.set_cell(Vector2i(18, 9), 0, Vector2i(4, 0))
+	# 2–3 pebble groups
+	_decor.set_cell(Vector2i(10, 2), 0, Vector2i(5, 0))
+	_decor.set_cell(Vector2i(15, 11), 0, Vector2i(5, 0))
+	_decor.set_cell(Vector2i(22, 4), 0, Vector2i(5, 0))
+	# 1 dry twig
+	_decor.set_cell(Vector2i(12, 12), 0, Vector2i(6, 0))
+	# clover accent
+	_decor.set_cell(Vector2i(3, 5), 0, Vector2i(2, 0))
 
 
 func _build_player() -> void:
-	# Unchanged hero pipeline from scene_art (same walk sheet / player.gd)
+	# Temporary: keep SceneArt player for interactive WASD; hide on art shots.
 	var world := Rect2(0, 0, MAP_W * TILE, MAP_H * TILE)
 	_player = SceneArt.make_player(Vector2(12 * TILE, 8 * TILE), float(WINDOW_SCALE), world)
-	# Cap speed for 16px tile feel in this proof
 	_player.set("speed", MOVE_SPEED)
-	# Hide nametag noise on art screenshots
 	var tag := _player.get_node_or_null("NameTag") as Label
 	if tag:
 		tag.visible = false
+	# Hide red placeholder body for clean terrain view (interactive still has camera)
+	var body := _player.get_node_or_null("Body") as CanvasItem
+	if body:
+		body.visible = false
 	add_child(_player)
 	_anim = _player.get_node_or_null("Body") as AnimatedSprite2D
 
@@ -201,57 +212,35 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _shot_sequence() -> void:
-	_paint_terrain(false)
 	_hint.visible = false
 	get_tree().debug_collisions_hint = false
 	if _player:
-		_player.position = Vector2(12 * TILE, 9 * TILE)
-		_facing = "down"
-		if _anim and _anim.sprite_frames:
-			_anim.play("idle_down")
-	await get_tree().process_frame
-	await get_tree().create_timer(0.25).timeout
-	await _take_screenshot("seamless")
+		_player.visible = false
 
-	# Alternate soil shape (auto corners)
-	_paint_terrain(true)
-	if _player:
-		_player.position = Vector2(11 * TILE, 9 * TILE)
-	await get_tree().process_frame
-	await get_tree().create_timer(0.25).timeout
-	await _take_screenshot("seamless_alt")
+	var look := Camera2D.new()
+	look.name = "ShotCam"
+	look.enabled = true
+	look.zoom = Vector2(WINDOW_SCALE, WINDOW_SCALE)
+	look.position = Vector2(12 * TILE, 7 * TILE)
+	add_child(look)
 
-	# ×4 crop of boundary region
-	await _take_border_zoom()
-
-
-func _take_border_zoom() -> void:
 	_paint_terrain(false)
+	_paint_decor()
 	await get_tree().process_frame
+	await get_tree().create_timer(0.25).timeout
+	await _take_screenshot("visual")
+
+	_paint_terrain(true)
+	_paint_decor()
+	look.position = Vector2(13 * TILE, 6 * TILE)
 	await get_tree().process_frame
-	var img := get_viewport().get_texture().get_image()
-	if img == null:
-		return
-	# Crop around soil edge (approx center of map in viewport)
-	# Window is VIEW*SCALE; world camera follows player — place cam on edge
+	await get_tree().create_timer(0.25).timeout
+	await _take_screenshot("visual_alt")
+
+	look.queue_free()
 	if _player:
-		_player.position = Vector2(8 * TILE, 4 * TILE) # near top of soil patch
-	await get_tree().process_frame
-	await get_tree().create_timer(0.2).timeout
-	img = get_viewport().get_texture().get_image()
-	if img == null:
-		return
-	var w := img.get_width()
-	var h := img.get_height()
-	var cw := mini(160, w)
-	var ch := mini(120, h)
-	var cx := (w - cw) / 2
-	var cy := (h - ch) / 2
-	var crop := img.get_region(Rect2i(cx, cy, cw, ch))
-	crop.resize(cw * 4, ch * 4, Image.INTERPOLATE_NEAREST)
-	var path := ProjectSettings.globalize_path("res://docs/art_tests/terrain_seamless_border_x4.png")
-	crop.save_png(path)
-	print("seamless border x4 -> ", path)
+		_player.visible = true
+	# Atlas ×4 crops: terrain_visual_{grass,soil,border}_x4.png from generate_terrain_proof.py
 
 
 func _take_screenshot(tag: String) -> void:

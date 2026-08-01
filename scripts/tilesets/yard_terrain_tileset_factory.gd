@@ -8,7 +8,7 @@ const TERRAIN_GRASS := 0
 const TERRAIN_SOIL := 1
 
 ## Atlas layout: masks 0..15 at (mask%4, mask/4); grass vars (4..7, 0); soil vars (4..7, 1)
-const GRASS_PROBS := [0.60, 0.20, 0.12, 0.06]  # base + 3 extras; 4th var gets 0.02 via remaining
+## Variant weights: base 65%, A 20%, B 10%, C 5% (4th atlas slot unused = 0)
 
 
 static func build_ground_tileset() -> TileSet:
@@ -53,19 +53,19 @@ static func build_ground_tileset() -> TileSet:
 		var td := src.get_tile_data(coords, 0)
 		td.probability = 1.0
 
-	# Full grass = mask 0 + variants at (4..7, 0) with probabilities
+	# Full grass = mask 0 + variants A/B/C (65/20/10/5)
 	_apply_mask_terrains(src, Vector2i(0, 0), 0)
-	src.get_tile_data(Vector2i(0, 0), 0).probability = 0.60
-	var grass_probs := [0.20, 0.12, 0.06, 0.02]
+	src.get_tile_data(Vector2i(0, 0), 0).probability = 0.65
+	var grass_probs := [0.20, 0.10, 0.05, 0.0] # A B C ; 4th unused
 	for i in range(4):
 		var coords := Vector2i(4 + i, 0)
 		_apply_mask_terrains(src, coords, 0)
 		src.get_tile_data(coords, 0).probability = grass_probs[i]
 
-	# Full soil = mask 15 + variants
+	# Full soil = mask 15 + variants (same weights)
 	_apply_mask_terrains(src, Vector2i(3, 3), 15)
-	src.get_tile_data(Vector2i(3, 3), 0).probability = 0.60
-	var soil_probs := [0.20, 0.12, 0.06, 0.02]
+	src.get_tile_data(Vector2i(3, 3), 0).probability = 0.65
+	var soil_probs := [0.20, 0.10, 0.05, 0.0]
 	for i in range(4):
 		var coords := Vector2i(4 + i, 1)
 		_apply_mask_terrains(src, coords, 15)

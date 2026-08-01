@@ -1,17 +1,17 @@
 # NEXT STEPS
 
-Обновлено: 2026-08-01 (seamless terrain proof)
+Обновлено: 2026-08-01 (visual terrain pass)
 
 ## Сейчас
 
-Оценить seamless terrain proof:
+Visual terrain pass сдан. Оценить:
 
-- сцена `yard_terrain_proof.tscn`
-- скрины `docs/art_tests/terrain_seamless.png`, `…_alt.png`, `…_border_x4.png`
-- atlas `assets/art/outdoor/terrain_proof/`
-- TileSet `resources/tilesets/yard_ground_tileset.tres`
+- `docs/art_tests/terrain_visual.png`, `terrain_visual_alt.png`
+- ×4: `terrain_visual_grass_x4.png`, `…_soil_x4.png`, `…_border_x4.png`
 - тесты: `python tools/test_terrain_atlas.py`
+
+Следующий отдельный proof: **персонаж** (нейтральный / не placeholder).
 
 ## Стоп
 
-Не добавлять деревья, воду, дом, основной двор.
+Не добавлять деревья, воду, дом, основной двор, paths system, переписывание Terrain Set.

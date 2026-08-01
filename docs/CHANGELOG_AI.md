@@ -2,6 +2,23 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (e) — visual pass: seamless grass/soil art
+
+**Система бесшовного terrain принята.** Только художественное улучшение атласов / shapes / decor.
+
+**Сделано:**
+- richer grass interiors (3–4 greens, clusters, short blades, soft dark patches); weights 65/20/10/5;
+- warmer packed-earth soil (clumps, pebbles, root fibers) — не песок / не noise-filter;
+- fringe 1–3px на grass→soil; shared edge profiles / seam contract сохранены;
+- decor overlays: tufts, white+yellow flower, pebbles, twig;
+- soil shapes ~9×7 (wide protrusion + shallow concave), без 1-cell tails;
+- скрины без персонажа/debug: `terrain_visual*.png` + ×4 crops;
+- `test_terrain_atlas.py` — OK.
+
+**Не делалось:** персонаж, paths, дом, вода, деревья.
+
+---
+
 ## 2026-08-01 (d) — deterministic seamless grass/soil terrain proof
 
 **Стоп AI-sheet slicing.** Присланные листы = mood/palette reference only.
