@@ -1,17 +1,17 @@
 # PROJECT STATUS
 
-Обновлено: 2026-08-01 (full 8-direction PixelLab hero)
+Обновлено: 2026-08-01 (VS01 yard candidate)
 
 ## Кратко
 
-- **PixelLab hero v1**: idle + walking in **8 directions** from `upload/hero/` → `assets/characters/player/pixellab_v1/`.
-- Тест: `craftpix_hero_test.tscn` (основной двор / `craftpix_home_preview` не менялись).
-- Node scale `Vector2.ONE` provisionally accepted; runtime display `PIXEL_DIV=2` (PNG на диске не трогаем).
-- No mirroring; dedicated west/diagonal walk frames.
-- Asset Catalog остаётся интерфейсом выбора props.
+- **PixelLab hero v1** принят временно: idle+walk 8-dir, node scale `1.0`, display `PIXEL_DIV=2`.
+- **Outdoor VS01 candidate:** `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` — стартовый двор у дома детства (не CraftPix-коттедж).
+- Дом: временный placeholder **старой русской избы** (не cute fantasy cottage).
+- Oversized fairy props (гигантские грибы и т.п.) не используются.
+- Основной двор CraftPix preview / старые art-test сцены **не ломались**.
 
 ## Следующее
 
-1. Владелец смотрит 8-dir скрины / `craftpix_hero_walk8.gif` и подтверждает героя.
-2. Только после подтверждения — анимации топора / кирки.
-3. Не начинать house restoration states.
+1. Владелец смотрит `docs/art_tests/yard_vs01_*.png` и решает, принимать ли двор как базу VS01.
+2. Заменить placeholder-избу на настоящий rural house art.
+3. Не генерировать axe/pickaxe и не открывать interior, пока двор не утверждён.

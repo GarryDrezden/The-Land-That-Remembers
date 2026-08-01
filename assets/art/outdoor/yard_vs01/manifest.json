@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "generated": "2026-08-01",
+  "tile": 16,
+  "map_tiles": [
+    40,
+    32
+  ],
+  "map_px": [
+    640,
+    512
+  ],
+  "notes": [
+    "VS01 yard candidate around approved PixelLab hero scale.",
+    "House is a temporary old Russian wooden izba placeholder — not final art.",
+    "Oversized fairy props (giant mushrooms etc.) intentionally omitted.",
+    "upload/ originals were copied/resized with Nearest; not modified in place."
+  ],
+  "props": {
+    "rock_sm.png": {
+      "source": "upload/rocks-and-stones-top-down-pixel-art/PNG/Objects_separately/Rock1_5_no_shadow.png",
+      "size": [
+        14,
+        14
+      ]
+    },
+    "rock_md.png": {
+      "source": "upload/rocks-and-stones-top-down-pixel-art/PNG/Objects_separately/Rock2_4_no_shadow.png",
+      "size": [
+        20,
+        20
+      ]
+    },
+    "rock_lg.png": {
+      "source": "upload/rocks-and-stones-top-down-pixel-art/PNG/Objects_separately/Rock3_3_no_shadow.png",
+      "size": [
+        24,
+        24
+      ]
+    },
+    "bush_sm.png": {
+      "source": "upload/bushes-pixel-art/PNG/Assets/Bush_simple1_3.png",
+      "size": [
+        16,
+        16
+      ]
+    },
+    "bush_md.png": {
+      "source": "upload/bushes-pixel-art/PNG/Assets/Bush_simple1_2.png",
+      "size": [
+        28,
+        28
+      ]
+    },
+    "bush_overgrown.png": {
+      "source": "upload/bushes-pixel-art/PNG/Assets/Bush_simple2_2.png",
+      "size": [
+        28,
+        28
+      ]
+    },
+    "tree_a.png": {
+      "source": "upload/trees-pixel-art/PNG/Assets_separately/Trees/Tree2.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "tree_b.png": {
+      "source": "upload/trees-pixel-art/PNG/Assets_separately/Trees/Moss_tree2.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "tree_c.png": {
+      "source": "upload/trees-pixel-art/PNG/Assets_separately/Trees/Broken_tree4.png",
+      "size": [
+        64,
+        64
+      ]
+    }
+  },
+  "house": "house_izba_placeholder.png",
+  "ground": "ground.png"
+}

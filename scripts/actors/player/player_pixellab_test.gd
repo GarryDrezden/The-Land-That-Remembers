@@ -22,6 +22,8 @@ var _facing_idx: int = 2  ## south
 var _cam: Camera2D
 ## When false, load full-res frames (A/B compare only).
 var use_pixel_div: bool = true
+var _nearby: Array[Node] = []
+var _prompt_label: Label
 
 
 func _ready() -> void:
@@ -216,3 +218,50 @@ func set_camera_zoom(z: Vector2) -> void:
 func set_camera_enabled(on: bool) -> void:
 	if _cam:
 		_cam.enabled = on
+
+
+func set_prompt_label(label: Label) -> void:
+	_prompt_label = label
+	_update_prompt()
+
+
+func register_nearby(node: Node) -> void:
+	if node not in _nearby:
+		_nearby.append(node)
+		_update_prompt()
+
+
+func unregister_nearby(node: Node) -> void:
+	_nearby.erase(node)
+	_update_prompt()
+
+
+func _update_prompt() -> void:
+	if _prompt_label == null:
+		return
+	var target := _current_target()
+	if target == null:
+		_prompt_label.visible = false
+		return
+	_prompt_label.visible = true
+	if target.has_method("get_prompt"):
+		_prompt_label.text = "E — %s" % target.get_prompt()
+	else:
+		_prompt_label.text = "E — взаимодействие"
+
+
+func _current_target() -> Node:
+	while not _nearby.is_empty() and not is_instance_valid(_nearby[0]):
+		_nearby.pop_front()
+	if _nearby.is_empty():
+		return null
+	return _nearby[0]
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_E:
+			var target := _current_target()
+			if target and target.has_method("interact"):
+				target.interact(self)
+			get_viewport().set_input_as_handled()

@@ -1,10 +1,25 @@
 # ARCHITECTURE
 
-Обновлено: 2026-08-01 (full 8-direction PixelLab hero)  
+Обновлено: 2026-08-01 (VS01 yard candidate)  
 **Ориентир структуры (план):** [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md)  
 **Этот файл:** что **фактически** есть в репозитории сейчас (не идеальная целевая схема).
 
 Приоритет документов: VISION → VERTICAL_SLICE → PROJECT_STRUCTURE → **этот файл** → PROJECT_STATUS.
+
+---
+
+## VS01 outdoor yard candidate
+
+| Элемент | Путь |
+|---------|------|
+| Playable scene | `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` |
+| Layout twin | `…/yard_vs01_layout_test.tscn` |
+| Builder script | `scripts/locations/outdoor/childhood_home/yard_vs01.gd` |
+| Runtime art | `assets/art/outdoor/yard_vs01/` |
+| Asset bake | `tools/build_yard_vs01_assets.py` |
+| Player | `player_pixellab_test.tscn` (scale unchanged) |
+
+CraftPix `craftpix_home_preview` / `craftpix_hero_test` остаются отдельными art-test сценами.
 
 ---
 

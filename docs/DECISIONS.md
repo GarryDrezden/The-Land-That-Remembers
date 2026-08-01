@@ -5,6 +5,19 @@
 
 ---
 
+## DEC-011: VS01 outdoor yard rebuilt around hero scale + Russian izba direction
+
+**Решение:**
+- outdoor scene is being rebuilt around **correct / approved hero scale**;
+- oversized decorative props are **reduced/replaced** (no fairy giant mushrooms as scene anchors);
+- house direction is now **old Russian wooden rural house (izba)**, not cute fantasy cottage;
+- current goal is a **playable VS01 yard candidate**: `yard_vs01.tscn`;
+- CraftPix cottage preview remains reference-only and is not the VS01 base.
+
+**Статус:** under evaluation · 2026-08-01
+
+---
+
 ## DEC-010: PixelLab hero v1 — 8-dir walk under evaluation
 
 **Решение:**

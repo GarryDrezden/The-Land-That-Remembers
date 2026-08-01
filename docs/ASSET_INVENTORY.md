@@ -1,8 +1,21 @@
 # ASSET INVENTORY
 
-Обновлено: 2026-08-01 (full 8-direction PixelLab hero)
+Обновлено: 2026-08-01 (VS01 yard candidate)
 
 Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md) · **catalog:** [assets/README.md](assets/README.md)
+
+## VS01 yard (under evaluation)
+
+| Item | Path |
+|------|------|
+| Scene | `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` |
+| Runtime pack | `assets/art/outdoor/yard_vs01/` |
+| Bake tool | `tools/build_yard_vs01_assets.py` |
+| House | `house_izba_placeholder.png` (**temporary** old Russian wooden house) |
+| Props source | selected copies from `upload/trees|rocks|bushes-pixel-art/` + drawn fence/well/log/stump |
+| Terrain | baked from `texture_proof_v1` grass/dirt 16×16 |
+
+Not used as VS01 anchors: CraftPix fairy cottage, oversized mushrooms.
 
 ## PixelLab hero v1 (under evaluation)
 

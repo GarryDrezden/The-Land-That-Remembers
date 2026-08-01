@@ -2,6 +2,18 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (n) — first proper VS01 yard around hero scale
+
+**Сделано:**
+- новая сцена `yard_vs01.tscn` (+ layout twin) — двор детства, путь от калитки к двери;
+- ассеты `assets/art/outdoor/yard_vs01/` (ground bake, izba placeholder, fence/well/woodpile/shed, scaled props из upload);
+- 4 обязательных clearable на пути + optional сорняки; Y-sort + коллизии; PixelLab hero без смены scale;
+- скрины `docs/art_tests/yard_vs01_*.png`; DEC-011.
+
+**Не делалось:** финальный house art, interior, axe/pickaxe, ломка старых test-сцен.
+
+---
+
 ## 2026-08-01 (m) — full eight-direction PixelLab hero walk
 
 **Сделано:**
