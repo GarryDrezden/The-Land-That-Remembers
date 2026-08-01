@@ -1,15 +1,15 @@
 # NEXT STEPS
 
-Обновлено: 2026-08-01 (CraftPix preview polish)
+Обновлено: 2026-08-01 (CraftPix preview polish — gate/hedge)
 
 ## Сейчас
 
-Проверить polish:
+Просмотреть polish-скрины и решить по pack:
 
 - `docs/art_tests/craftpix_home_preview.png`
-- `…_gate.png` — у калитки
+- `…_gate.png` — игрок у калитки
 - `…_outside.png` — снаружи после прохода
-- `…_gate_collisions.png` — debug коллизий у проёма
+- `…_gate_collisions.png` — коллизии у проёма (cyan = fence/house, orange = player)
 
 ## Стоп
 

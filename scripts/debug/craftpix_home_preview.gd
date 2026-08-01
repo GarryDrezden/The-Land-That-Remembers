@@ -14,12 +14,21 @@ const GATE_CELLS := [
 	Vector2i(16, 16), Vector2i(17, 16),
 ]
 ## Clear decorative clutter in/around the gate corridor for a readable exit.
+## Wide enough to drop incomplete multi-tile props and open a readable path.
 const GATE_CLEAR := [
-	Vector2i(15, 15), Vector2i(16, 15), Vector2i(17, 15), Vector2i(18, 15),
-	Vector2i(15, 16), Vector2i(16, 16), Vector2i(17, 16), Vector2i(18, 16),
-	Vector2i(15, 17), Vector2i(16, 17), Vector2i(17, 17), Vector2i(18, 17),
-	Vector2i(14, 16), Vector2i(14, 17), Vector2i(19, 16), Vector2i(19, 17),
-	Vector2i(13, 17), # lone/sliced prop on south edge
+	# corridor + flanks (x 10–20, y 13–17)
+	Vector2i(10, 13), Vector2i(11, 13), Vector2i(12, 13), Vector2i(13, 13), Vector2i(14, 13), Vector2i(15, 13),
+	Vector2i(16, 13), Vector2i(17, 13), Vector2i(18, 13), Vector2i(19, 13), Vector2i(20, 13),
+	Vector2i(10, 14), Vector2i(11, 14), Vector2i(12, 14), Vector2i(13, 14), Vector2i(14, 14), Vector2i(15, 14),
+	Vector2i(16, 14), Vector2i(17, 14), Vector2i(18, 14), Vector2i(19, 14), Vector2i(20, 14),
+	Vector2i(10, 15), Vector2i(11, 15), Vector2i(12, 15), Vector2i(13, 15), Vector2i(14, 15), Vector2i(15, 15),
+	Vector2i(16, 15), Vector2i(17, 15), Vector2i(18, 15), Vector2i(19, 15), Vector2i(20, 15),
+	Vector2i(10, 16), Vector2i(11, 16), Vector2i(12, 16), Vector2i(13, 16), Vector2i(14, 16), Vector2i(15, 16),
+	Vector2i(16, 16), Vector2i(17, 16), Vector2i(18, 16), Vector2i(19, 16), Vector2i(20, 16),
+	Vector2i(10, 17), Vector2i(11, 17), Vector2i(12, 17), Vector2i(13, 17), Vector2i(14, 17), Vector2i(15, 17),
+	Vector2i(16, 17), Vector2i(17, 17), Vector2i(18, 17), Vector2i(19, 17), Vector2i(20, 17),
+	# orphan / sliced south-edge bottoms outside the corridor
+	Vector2i(8, 17), Vector2i(9, 17), Vector2i(6, 17), Vector2i(7, 17),
 ]
 
 var _layout: Dictionary = {}
@@ -94,18 +103,18 @@ func _apply_layout_polish() -> void:
 		var kept: Array = []
 		for cell in cells:
 			var key := "%d,%d" % [int(cell["x"]), int(cell["y"])]
-			# Open gate in fence (closed gate tiles 788/789 sit on path columns)
 			if lname == "Fence" and gate_set.has(key):
 				continue
-			# Clear props/details that choke the gate corridor
-			if lname in ["Objects1", "Objects2", "Objects3", "Objects4", "Grass_top_details"] and clear_set.has(key):
+			# Props + grass/hedge overlays that choke / clip the gate corridor
+			if lname in [
+				"Objects1", "Objects2", "Objects3", "Objects4",
+				"Grass", "Grass_top_details", "Grass_details3", "Grass_details4",
+				"Grass_details5", "Grass_detail6",
+			] and clear_set.has(key):
 				continue
-			# Drop incomplete south-edge clutter that reads as sliced (lone tiles on y=17 outside path)
-			if lname in ["Objects1", "Objects3"] and int(cell["y"]) == _map_h - 1:
-				var x := int(cell["x"])
-				# keep far-side bushes; remove orphan near gate already cleared; remove left orphans
-				if x == 6 or x == 7 or x == 13:
-					continue
+			# Extra: clear Grass hedge tiles across the south entrance band
+			if lname == "Grass" and int(cell["x"]) >= 14 and int(cell["x"]) <= 19 and int(cell["y"]) >= 14 and int(cell["y"]) <= 17:
+				continue
 			kept.append(cell)
 		layer_info["cells"] = kept
 
@@ -233,10 +242,11 @@ func _build_world() -> void:
 		layer.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		layer.z_index = z
 		z += 1
-		if lname in ["Objects1", "Objects2", "Objects3", "Objects4", "Fence", "House_wall", "House_roof", "windows1", "windows2", "Grass_top_details"]:
+		if lname in ["Objects1", "Objects2", "Objects3", "Objects4", "Fence", "House_wall", "House_roof", "windows1", "windows2"]:
 			layer.y_sort_enabled = true
 			_ysort.add_child(layer)
 		else:
+			# Ground + grass overlays stay non-Y-sorted so they don't clip the player mid-body
 			_ground_root.add_child(layer)
 
 		for cell in layer_info.get("cells", []):
@@ -317,7 +327,8 @@ func _build_player() -> void:
 	# Start inside yard, facing toward gate
 	_player.position = Vector2(16.5 * _tile, 13.5 * _tile)
 	_player.y_sort_enabled = true
-	_player.z_index = 20
+	_player.z_as_relative = false
+	_player.z_index = 50
 
 	var body := Polygon2D.new()
 	body.name = "Silhouette"
@@ -414,32 +425,65 @@ func _shot_sequence(_mode: String) -> void:
 	await get_tree().create_timer(0.25).timeout
 	await _take("craftpix_home_preview")
 
-	# 2) Player at gate (inside, facing exit)
+	# 2) Player at gate (just inside, facing exit)
 	if _player:
 		_player.visible = true
-		_player.position = Vector2(16.5 * _tile, 14.2 * _tile)
-	_shot_cam.position = Vector2(16.5 * _tile, 15.2 * _tile)
+		_player.position = Vector2(16.5 * _tile, 15.35 * _tile)
+	_shot_cam.position = Vector2(16.5 * _tile, 15.6 * _tile)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.2).timeout
 	await _take("craftpix_home_preview_gate")
 
 	# 3) Player outside fence after passing gate
 	if _player:
-		_player.position = Vector2(16.5 * _tile, 17.2 * _tile)
-	_shot_cam.position = Vector2(16.5 * _tile, 16.4 * _tile)
+		_player.position = Vector2(16.5 * _tile, 17.35 * _tile)
+	_shot_cam.position = Vector2(16.5 * _tile, 16.5 * _tile)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.2).timeout
 	await _take("craftpix_home_preview_outside")
 
-	# 4) Collisions debug at gate
+	# 4) Collisions debug at gate (explicit overlays — CLI has no editor collision hint)
 	get_tree().debug_collisions_hint = true
+	var debug_draw := Node2D.new()
+	debug_draw.name = "CollisionDebugDraw"
+	debug_draw.z_as_relative = false
+	debug_draw.z_index = 80
+	add_child(debug_draw)
+	var blockers := get_node_or_null("Blockers") as StaticBody2D
+	if blockers:
+		for child in blockers.get_children():
+			if child is CollisionShape2D and child.shape is RectangleShape2D:
+				var rs := child.shape as RectangleShape2D
+				var poly := Polygon2D.new()
+				var hx := rs.size.x * 0.5
+				var hy := rs.size.y * 0.5
+				poly.polygon = PackedVector2Array([
+					Vector2(-hx, -hy), Vector2(hx, -hy), Vector2(hx, hy), Vector2(-hx, hy),
+				])
+				poly.color = Color(0.15, 0.85, 1.0, 0.45)
+				poly.global_position = child.global_position
+				debug_draw.add_child(poly)
+	# Player collider
 	if _player:
-		_player.position = Vector2(16.5 * _tile, 15.5 * _tile)
-	_shot_cam.position = Vector2(16.5 * _tile, 15.8 * _tile)
+		_player.position = Vector2(16.5 * _tile, 15.6 * _tile)
+		for child in _player.get_children():
+			if child is CollisionShape2D and child.shape is RectangleShape2D:
+				var rs2 := child.shape as RectangleShape2D
+				var poly2 := Polygon2D.new()
+				var hx2 := rs2.size.x * 0.5
+				var hy2 := rs2.size.y * 0.5
+				poly2.polygon = PackedVector2Array([
+					Vector2(-hx2, -hy2), Vector2(hx2, -hy2), Vector2(hx2, hy2), Vector2(-hx2, hy2),
+				])
+				poly2.color = Color(1.0, 0.35, 0.2, 0.55)
+				poly2.global_position = _player.to_global(child.position)
+				debug_draw.add_child(poly2)
+	_shot_cam.position = Vector2(16.5 * _tile, 15.9 * _tile)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.2).timeout
 	await _take("craftpix_home_preview_gate_collisions")
 	get_tree().debug_collisions_hint = false
+	debug_draw.queue_free()
 
 
 func _take(tag: String) -> void:

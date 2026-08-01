@@ -2,6 +2,20 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (j) — polish CraftPix home preview (gate / hedge / collisions)
+
+**Сделано:**
+- калитка: убраны closed gate-tiles; дорожка (Road) читается через проём x=16–17;
+- вход: очищены Objects + Grass_details* + Grass_top_details в коридоре; с path сняты Grass-hedge тайлы exterior (они же давали «разрезанный»/шумный вид);
+- orphan south-edge props убраны; incomplete mushroom leftovers у проёма сняты;
+- коллизии: fence кроме проёма + house; CLI debug-оверлеи cyan/orange на gate_collisions shot;
+- Y-sort: Grass overlays на ground (не над игроком); player z absolute;
+- скрины overview / gate / outside / gate_collisions.
+
+**Не делалось:** смена art direction, GameRoot, character pack, farming.
+
+---
+
 ## 2026-08-01 (i) — polish CraftPix home preview
 
 **Сделано:**
