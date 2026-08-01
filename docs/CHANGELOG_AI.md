@@ -2,6 +2,38 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (g) — macro variation seamless grass/soil
+
+**Принята техническая система.** Предыдущий detail pass отклонён как слишком слабый на game scale.
+
+**Сделано:**
+- atlas ground → 12×4: masks + grass macros (light/dark/sparse/dense) + soil macros + edge/corner visual variants (same bits, same borders);
+- кластеры 2–4 клеток (не шахматка); base~65% / subtle~20% / light+dark~10% / dense~5%;
+- readable decor overlays (tufts, clover, flowers, soil pebbles/clumps/root/sprout);
+- простая soil shape ~9×7 (wide protrusion + soft indent);
+- compare before/after: `terrain_macro_compare.png`;
+- `test_terrain_atlas.py` — OK (включая border match edge variants).
+
+**Не делалось:** персонаж, деревья, вода, дом.
+
+---
+
+## 2026-08-01 (f) — terrain visual detail pass
+
+**Без изменения** tile size / masks / Terrain Set / seam contract / atlas layout (ground 8×4).
+
+**Сделано:**
+- richer grass interiors (5 close greens, low-freq density, 2–3px clusters, short blades);
+- moist packed-earth soil (soft dark patches, clumps, rare pebbles/roots);
+- stronger grass↔soil fringe (shared edge profiles still pixel-identical);
+- decor atlas → 16 overlays (blades, dense growth, white/yellow flowers, pebbles, twig, dark/dense patches);
+- sparse clustered decor placement; shots without placeholder character;
+- `test_terrain_atlas.py` — OK.
+
+**Не делалось:** character art, paths, house, water, trees.
+
+---
+
 ## 2026-08-01 (e) — visual pass: seamless grass/soil art
 
 **Система бесшовного terrain принята.** Только художественное улучшение атласов / shapes / decor.

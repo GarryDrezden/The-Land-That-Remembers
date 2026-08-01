@@ -111,6 +111,19 @@ def main() -> int:
 			vt, vb, vl, vr = border_pixels(v)
 			check(vt == st and vb == sb and vl == sl and vr == sr, f"soil variant {vi} border mismatch")
 
+		# Macro-pass edge variants (cols 8+) must match primary mask borders
+		if cols >= 12:
+			straight = [(12, 0, 0, 3), (3, 1, 3, 0), (6, 2, 2, 1), (9, 3, 1, 2)]
+			# (mask, variant_row, primary_col, primary_row)
+			for mask, vrow, pc, pr in straight:
+				pt, pb, pl, pright = border_pixels(cell(ground, pc, pr))
+				for vi in range(3):
+					vt, vb, vl, vr = border_pixels(cell(ground, 8 + vi, vrow))
+					check(
+						vt == pt and vb == pb and vl == pl and vr == pright,
+						f"edge variant mask {mask} vi={vi} border mismatch",
+					)
+
 		# Seam contract: compatible horizontal neighbors have matching vertical edges
 		# For masks A and B side by side: A.TR==B.TL and A.BR==B.BL ⇒ A.right == B.left
 		def corners(m: int) -> tuple[bool, bool, bool, bool]:

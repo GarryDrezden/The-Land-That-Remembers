@@ -1,39 +1,52 @@
 #!/usr/bin/env python3
-"""Deterministic seamless grass/soil terrain atlas (16×16, margin=0, separation=0).
+"""Deterministic seamless grass/soil terrain atlas — MACRO variation pass.
 
-Visual pass: richer interiors + fringe, while preserving shared edge profiles
-and wraparound borders (seam contract / test_terrain_atlas.py).
+Architecture preserved:
+- Match Corners masks 0..15 at (mask%4, mask/4)
+- Shared edge profiles / wraparound borders (seam contract)
+- Variants keep identical border pixels; interiors may differ
+
+Atlas layout 12×4 (192×64):
+  cols 0–3, rows 0–3 : primary masks 0..15
+  cols 4–7, row 0    : grass macro (light, dark, sparse, dense)
+  cols 4–7, row 1    : soil macro (base-style, dark, clumps, pebbles)
+  cols 8–11          : edge/corner visual variants (same terrain bits + same borders)
 """
 from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets/art/outdoor/terrain_proof"
+DOCS = ROOT / "docs/art_tests"
 TILE = 16
 SEED = 20260801
+ATLAS_COLS = 12
+ATLAS_ROWS = 4
 
-# Close greens — differ by detail, not whole-tile hue
-GRASS = [
-	(70, 112, 48),   # base
-	(66, 106, 44),   # darker soft
-	(76, 118, 52),   # lighter fleck
-	(62, 100, 42),   # soft shadow patch
-]
-SOIL = [
-	(114, 80, 50),   # warm packed earth
-	(104, 72, 44),   # darker clump base
-	(122, 88, 56),   # lighter dry spot
-	(96, 66, 40),    # deep shadow
-]
-FRINGE = (58, 92, 38)       # grass overhang shade
-SOIL_EDGE = (88, 60, 36)    # darker earth under fringe
-PEBBLE = (102, 96, 88)
-PEBBLE2 = (90, 86, 80)
-CLUMP = (86, 58, 34)
-ROOT_FIBER = (130, 100, 62)
+# Calm grass palette — mid green + muted dark + warm yellow-green accents only
+G_BASE = (68, 108, 46)
+G_DARK = (54, 88, 36)
+G_MID = (62, 100, 42)
+G_WARM = (82, 118, 48)  # yellow-green fleck only
+G_LIGHT = (78, 122, 54)
+G_DEEP = (46, 76, 32)
+
+# Warm packed loam — not orange sand
+S_BASE = (108, 74, 46)
+S_DARK = (86, 56, 34)
+S_MID = (98, 66, 40)
+S_LIFT = (116, 82, 52)
+S_CLUMP = (74, 48, 30)
+S_PEBBLE = (96, 90, 82)
+S_PEBBLE2 = (84, 80, 74)
+S_ROOT = (120, 92, 56)
+
+FRINGE = (52, 86, 34)
+FRINGE2 = (60, 96, 40)
+SOIL_EDGE = (78, 50, 30)
 
 TL, TR, BR, BL = 1, 2, 4, 8
 
@@ -46,133 +59,149 @@ def _h(*parts: int) -> int:
 	return n
 
 
-def grass_c(i: int) -> tuple[int, int, int]:
-	return GRASS[i % 4]
-
-
-def soil_c(i: int) -> tuple[int, int, int]:
-	return SOIL[i % 4]
-
-
 def _put(px, ox: int, oy: int, x: int, y: int, c: tuple[int, int, int]) -> None:
 	if 0 <= x < TILE and 0 <= y < TILE:
 		px[ox + x, oy + y] = (*c, 255)
 
 
-def _stamp_cluster(px, ox: int, oy: int, cx: int, cy: int, color: tuple[int, int, int], n: int, salt: int) -> None:
-	"""Stamp 2–4 connected pixels around cx,cy (interior-safe caller)."""
-	_put(px, ox, oy, cx, cy, color)
-	dirs = ((1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (-1, 1))
-	for i in range(max(1, n - 1)):
-		d = dirs[(_h(salt, cx, cy, i) >> 3) % len(dirs)]
-		_put(px, ox, oy, cx + d[0], cy + d[1], color)
+def _fill(px, ox: int, oy: int, c: tuple[int, int, int], pad: int = 0) -> None:
+	for y in range(pad, TILE - pad):
+		for x in range(pad, TILE - pad):
+			px[ox + x, oy + y] = (*c, 255)
 
 
-def paint_grass_surface(px, ox: int, oy: int, salt: int, style: int = 0, inner_only: bool = False) -> None:
-	"""style 0=base, 1=A more flecks, 2=B darker patches, 3=C sparse blades."""
-	# Fill base
-	for y in range(TILE):
-		for x in range(TILE):
-			if inner_only and (x < 2 or y < 2 or x > 13 or y > 13):
-				continue
+def _soft_flecks(px, ox: int, oy: int, salt: int, colors: list, chance_mod: int, pad: int = 1) -> None:
+	"""Sparse intentional flecks — not per-pixel noise."""
+	for y in range(pad, TILE - pad):
+		for x in range(pad, TILE - pad):
 			v = _h(x, y, salt)
-			c = GRASS[0]
-			# Soft shade banding — rare, clustered feel via shared hash
-			if (v % 29) == 0:
-				c = GRASS[1]
-			elif (v % 37) == 0:
-				c = GRASS[2]
-			px[ox + x, oy + y] = (*c, 255)
-
-	# Interior-only details (never on outer 2px ring for variants; base then wrap-locked)
-	x0, x1 = (2, 13) if inner_only else (1, 14)
-	y0, y1 = (2, 13) if inner_only else (1, 14)
-
-	# Soft dark patches
-	patch_n = 1 + (style == 2)
-	for p in range(patch_n):
-		cx = 3 + (_h(salt, 10 + p) % 10)
-		cy = 3 + (_h(salt, 20 + p) % 10)
-		_stamp_cluster(px, ox, oy, cx, cy, GRASS[3], 3, salt + p)
-
-	# Small 2–4 px fleck groups
-	flecks = 2 + style  # A more flecks
-	for p in range(flecks):
-		cx = 3 + (_h(salt, 30 + p) % 10)
-		cy = 3 + (_h(salt, 40 + p) % 10)
-		_stamp_cluster(px, ox, oy, cx, cy, GRASS[2 if p % 2 == 0 else 1], 2 + (p % 2), salt + 50 + p)
-
-	# Short blades (2px), rare
-	blade_n = 1 if style == 0 else (2 if style != 3 else 3)
-	for p in range(blade_n):
-		bx = 3 + (_h(salt, 60 + p) % 10)
-		by = 4 + (_h(salt, 70 + p) % 8)
-		_put(px, ox, oy, bx, by, GRASS[2])
-		_put(px, ox, oy, bx, by - 1, GRASS[0])
-		if style == 3 and (_h(salt, p) & 1):
-			_put(px, ox, oy, bx - 1, by - 1, GRASS[1])
-
-	if not inner_only:
-		for y in range(TILE):
-			px[ox + TILE - 1, oy + y] = px[ox + 0, oy + y]
-		for x in range(TILE):
-			px[ox + x, oy + TILE - 1] = px[ox + x, oy + 0]
+			if (v % chance_mod) == 0:
+				_put(px, ox, oy, x, y, colors[v % len(colors)])
 
 
-def paint_soil_surface(px, ox: int, oy: int, salt: int, style: int = 0, inner_only: bool = False) -> None:
+def paint_grass_base(px, ox: int, oy: int, salt: int = 11) -> None:
+	"""Calm seamless grass — soft texture, minimal repeating motif."""
+	_fill(px, ox, oy, G_BASE)
+	# Soft low-freq shade blobs (large, few)
+	for p in range(2):
+		cx = 4 + (_h(salt, 1 + p) % 8)
+		cy = 4 + (_h(salt, 2 + p) % 8)
+		for dy in range(-2, 3):
+			for dx in range(-2, 3):
+				if abs(dx) + abs(dy) <= 3:
+					_put(px, ox, oy, cx + dx, cy + dy, G_MID if (dx + dy) % 2 == 0 else G_DARK)
+	_soft_flecks(px, ox, oy, salt, [G_DARK, G_WARM], chance_mod=23, pad=1)
+	# Lock wraparound borders
 	for y in range(TILE):
-		for x in range(TILE):
-			if inner_only and (x < 2 or y < 2 or x > 13 or y > 13):
-				continue
-			v = _h(x, y, salt + 7)
-			c = SOIL[0]
-			if (v % 31) == 0:
-				c = SOIL[1]
-			elif (v % 43) == 0:
-				c = SOIL[2]
-			px[ox + x, oy + y] = (*c, 255)
-
-	# Darker soft patches
-	for p in range(1 + (style > 0)):
-		cx = 3 + (_h(salt, 80 + p) % 10)
-		cy = 3 + (_h(salt, 90 + p) % 10)
-		_stamp_cluster(px, ox, oy, cx, cy, SOIL[3], 3, salt + 100 + p)
-
-	# Clumps
-	for p in range(1 + style):
-		cx = 4 + (_h(salt, 110 + p) % 8)
-		cy = 4 + (_h(salt, 120 + p) % 8)
-		_put(px, ox, oy, cx, cy, CLUMP)
-		if (_h(salt, p) & 1):
-			_put(px, ox, oy, cx + 1, cy, CLUMP)
-
-	# Pebbles
-	for p in range(1 + (style == 2)):
-		cx = 4 + (_h(salt, 130 + p) % 8)
-		cy = 4 + (_h(salt, 140 + p) % 8)
-		_put(px, ox, oy, cx, cy, PEBBLE if p % 2 == 0 else PEBBLE2)
-
-	# Dry root fiber (1–3 px diagonal), rare
-	if style >= 1 or (_h(salt, 9) % 3) == 0:
-		rx = 5 + (_h(salt, 150) % 6)
-		ry = 6 + (_h(salt, 160) % 5)
-		_put(px, ox, oy, rx, ry, ROOT_FIBER)
-		_put(px, ox, oy, rx + 1, ry, ROOT_FIBER)
-		if style >= 2:
-			_put(px, ox, oy, rx + 2, ry - 1, ROOT_FIBER)
-
-	if not inner_only:
-		for y in range(TILE):
-			px[ox + TILE - 1, oy + y] = px[ox + 0, oy + y]
-		for x in range(TILE):
-			px[ox + x, oy + TILE - 1] = px[ox + x, oy + 0]
+		px[ox + TILE - 1, oy + y] = px[ox + 0, oy + y]
+	for x in range(TILE):
+		px[ox + x, oy + TILE - 1] = px[ox + x, oy + 0]
 
 
-def paint_seamless_surface(px, ox: int, oy: int, is_soil: bool, salt: int, inner_only: bool = False, style: int = 0) -> None:
-	if is_soil:
-		paint_soil_surface(px, ox, oy, salt, style=style, inner_only=inner_only)
-	else:
-		paint_grass_surface(px, ox, oy, salt, style=style, inner_only=inner_only)
+def paint_grass_macro(px, ox: int, oy: int, kind: str, salt: int) -> None:
+	"""Macro interiors only (caller copies borders from base). kind: light|dark|sparse|dense."""
+	pad = 2
+	if kind == "light":
+		_fill(px, ox, oy, G_LIGHT, pad=pad)
+		# Soft pale patches
+		for p in range(3):
+			cx = 3 + (_h(salt, p) % 10)
+			cy = 3 + (_h(salt, 10 + p) % 10)
+			for dy in range(-1, 2):
+				for dx in range(-1, 2):
+					_put(px, ox, oy, cx + dx, cy + dy, G_WARM if abs(dx) + abs(dy) < 2 else G_LIGHT)
+		_soft_flecks(px, ox, oy, salt, [G_BASE, G_WARM], 19, pad)
+	elif kind == "dark":
+		_fill(px, ox, oy, G_DARK, pad=pad)
+		for p in range(3):
+			cx = 3 + (_h(salt, p) % 10)
+			cy = 3 + (_h(salt, 20 + p) % 10)
+			for dy in range(-2, 3):
+				for dx in range(-2, 3):
+					if abs(dx) + abs(dy) <= 2:
+						_put(px, ox, oy, cx + dx, cy + dy, G_DEEP)
+		_soft_flecks(px, ox, oy, salt, [G_MID, G_BASE], 17, pad)
+	elif kind == "sparse":
+		_fill(px, ox, oy, G_BASE, pad=pad)
+		# Open feel: few dark dots only
+		for p in range(4):
+			_put(px, ox, oy, 4 + (_h(salt, p) % 8), 4 + (_h(salt, 30 + p) % 8), G_DARK)
+		# One short blade
+		bx, by = 7, 9
+		_put(px, ox, oy, bx, by, G_WARM)
+		_put(px, ox, oy, bx, by - 1, G_LIGHT)
+	else:  # dense
+		_fill(px, ox, oy, G_MID, pad=pad)
+		for p in range(8):
+			cx = 3 + (_h(salt, 40 + p) % 10)
+			cy = 3 + (_h(salt, 50 + p) % 10)
+			_put(px, ox, oy, cx, cy, G_DARK)
+			_put(px, ox, oy, cx, cy - 1, G_WARM if p % 2 == 0 else G_LIGHT)
+			_put(px, ox, oy, cx + 1, cy, G_DEEP if p % 3 == 0 else G_DARK)
+		for p in range(3):
+			cx = 4 + (_h(salt, 60 + p) % 8)
+			cy = 5 + (_h(salt, 70 + p) % 6)
+			for dy in range(0, 3):
+				for dx in range(0, 3):
+					_put(px, ox, oy, cx + dx, cy + dy, G_DARK)
+
+
+def paint_soil_base(px, ox: int, oy: int, salt: int = 29) -> None:
+	_fill(px, ox, oy, S_BASE)
+	for p in range(2):
+		cx = 4 + (_h(salt, 1 + p) % 8)
+		cy = 4 + (_h(salt, 2 + p) % 8)
+		for dy in range(-2, 3):
+			for dx in range(-2, 3):
+				if abs(dx) + abs(dy) <= 2:
+					_put(px, ox, oy, cx + dx, cy + dy, S_MID)
+	_soft_flecks(px, ox, oy, salt, [S_DARK, S_LIFT], 29, pad=1)
+	for y in range(TILE):
+		px[ox + TILE - 1, oy + y] = px[ox + 0, oy + y]
+	for x in range(TILE):
+		px[ox + x, oy + TILE - 1] = px[ox + x, oy + 0]
+
+
+def paint_soil_macro(px, ox: int, oy: int, kind: str, salt: int) -> None:
+	"""kind: normal|dark|clumps|pebbles — interiors only."""
+	pad = 2
+	if kind == "normal":
+		_fill(px, ox, oy, S_BASE, pad=pad)
+		_soft_flecks(px, ox, oy, salt, [S_MID, S_DARK], 21, pad)
+		for p in range(2):
+			cx = 4 + (_h(salt, p) % 8)
+			cy = 4 + (_h(salt, 5 + p) % 8)
+			_put(px, ox, oy, cx, cy, S_DARK)
+			_put(px, ox, oy, cx + 1, cy, S_MID)
+	elif kind == "dark":
+		_fill(px, ox, oy, S_DARK, pad=pad)
+		for p in range(3):
+			cx = 3 + (_h(salt, p) % 10)
+			cy = 3 + (_h(salt, 10 + p) % 10)
+			for dy in range(-2, 3):
+				for dx in range(-2, 3):
+					if abs(dx) + abs(dy) <= 2:
+						_put(px, ox, oy, cx + dx, cy + dy, S_CLUMP)
+		_soft_flecks(px, ox, oy, salt, [S_MID, S_BASE], 19, pad)
+	elif kind == "clumps":
+		_fill(px, ox, oy, S_BASE, pad=pad)
+		spots = [(5, 5), (10, 7), (7, 11), (11, 10), (4, 9)]
+		for i, (cx, cy) in enumerate(spots):
+			_put(px, ox, oy, cx, cy, S_CLUMP)
+			_put(px, ox, oy, cx + 1, cy, S_CLUMP)
+			_put(px, ox, oy, cx, cy + 1, S_DARK)
+			if i % 2 == 0:
+				_put(px, ox, oy, cx + 1, cy + 1, S_MID)
+	else:  # pebbles + roots
+		_fill(px, ox, oy, S_MID, pad=pad)
+		for cx, cy in ((5, 6), (9, 5), (7, 10), (11, 9), (6, 12)):
+			_put(px, ox, oy, cx, cy, S_PEBBLE if (cx + cy) % 2 == 0 else S_PEBBLE2)
+		# dry root fiber
+		_put(px, ox, oy, 4, 8, S_ROOT)
+		_put(px, ox, oy, 5, 8, S_ROOT)
+		_put(px, ox, oy, 6, 7, S_ROOT)
+		_put(px, ox, oy, 8, 11, S_ROOT)
+		_put(px, ox, oy, 9, 10, (110, 84, 50))
 
 
 _BASE_GRASS: list[list[tuple[int, int, int]]] | None = None
@@ -184,7 +213,7 @@ def base_grass() -> list[list[tuple[int, int, int]]]:
 	if _BASE_GRASS is None:
 		tmp = Image.new("RGBA", (TILE, TILE))
 		px = tmp.load()
-		paint_grass_surface(px, 0, 0, salt=11, style=0)
+		paint_grass_base(px, 0, 0, 11)
 		_BASE_GRASS = [[px[x, y][:3] for x in range(TILE)] for y in range(TILE)]
 	return _BASE_GRASS
 
@@ -194,42 +223,45 @@ def base_soil() -> list[list[tuple[int, int, int]]]:
 	if _BASE_SOIL is None:
 		tmp = Image.new("RGBA", (TILE, TILE))
 		px = tmp.load()
-		paint_soil_surface(px, 0, 0, salt=29, style=0)
+		paint_soil_base(px, 0, 0, 29)
 		_BASE_SOIL = [[px[x, y][:3] for x in range(TILE)] for y in range(TILE)]
 	return _BASE_SOIL
 
 
 def build_edge_profiles() -> dict[tuple[bool, bool], list[tuple[int, int, int]]]:
-	"""Shared side profiles — identical bytes for identical corner pairs (seam contract)."""
 	g = base_grass()
 	s = base_soil()
 	profiles: dict[tuple[bool, bool], list[tuple[int, int, int]]] = {}
 	profiles[(False, False)] = [g[0][x] for x in range(TILE)]
 	profiles[(True, True)] = [s[0][x] for x in range(TILE)]
 
-	# GS: grass → soil with 1–3px fringe, fixed connection points
+	# Fixed connection slots — richer fringe but locked indices
 	gs: list[tuple[int, int, int]] = []
 	for i in range(TILE):
 		if i <= 4:
 			gs.append(g[0][i])
 		elif i == 5:
-			gs.append(g[1][i])  # protruding blade
-		elif i == 6:
+			gs.append(FRINGE2)
+		elif i in (6, 7):
 			gs.append(FRINGE)
-		elif i == 7:
-			gs.append(SOIL_EDGE)  # darker earth under fringe
+		elif i == 8:
+			gs.append(SOIL_EDGE)
 		else:
 			gs.append(s[0][i])
 	profiles[(False, True)] = gs
 
 	sg: list[tuple[int, int, int]] = []
 	for i in range(TILE):
-		if i <= 7:
-			sg.append(s[0][i] if i <= 6 else SOIL_EDGE)
+		if i <= 5:
+			sg.append(s[0][i])
+		elif i == 6:
+			sg.append(SOIL_EDGE)
+		elif i == 7:
+			sg.append(SOIL_EDGE)
 		elif i == 8:
 			sg.append(FRINGE)
 		elif i == 9:
-			sg.append(g[1][i])
+			sg.append(FRINGE2)
 		else:
 			sg.append(g[0][i])
 	profiles[(True, False)] = sg
@@ -258,35 +290,49 @@ def bilinear_soil(mask: int, x: float, y: float) -> float:
 	)
 
 
-def paint_transition_interior(px, ox: int, oy: int, mask: int) -> None:
-	"""Interior transition with 1–3px grass fringe; edges overwritten by shared profiles."""
+def paint_transition_interior(px, ox: int, oy: int, mask: int, variant: int = 0) -> None:
+	"""Interior fringe variation by variant id; borders applied separately."""
 	g = base_grass()
 	s = base_soil()
+	# Shift fringe thresholds / blade density by variant
+	lo = 0.36 + (variant % 3) * 0.02
+	hi = 0.56 + (variant % 3) * 0.02
+	blade_mod = 3 + (variant % 4)
+	gap_mod = 11 + variant * 2
 	for y in range(TILE):
 		for x in range(TILE):
 			f = bilinear_soil(mask, float(x), float(y))
-			h = _h(mask, x, y)
-			if f >= 0.55:
+			h = _h(mask, x, y, variant)
+			if f >= hi:
 				c = s[y][x]
-				# darker soil just under fringe band
-				if 0.55 <= f < 0.68:
+				if hi <= f < hi + 0.12:
 					c = SOIL_EDGE if (h & 3) != 0 else s[y][x]
-			elif f <= 0.42:
+					if variant >= 1 and (h % 5) == 0:
+						c = S_DARK
+			elif f <= lo:
 				c = g[y][x]
 			else:
-				# fringe band 1–3px: grass overhang / blades into soil
-				band = (f - 0.42) / 0.13  # 0..1 across fringe
-				if band < 0.35:
+				band = (f - lo) / max(0.01, hi - lo)
+				# Rare fringe gap
+				if (h % gap_mod) == 0 and 0.4 < band < 0.7:
+					c = SOIL_EDGE if band > 0.55 else s[y][x]
+				elif band < 0.28:
 					c = g[y][x]
-					if (h % 5) == 0:
-						c = GRASS[2]
-				elif band < 0.65:
-					c = FRINGE if (h & 1) == 0 else GRASS[1]
+					if (h % blade_mod) == 0:
+						c = G_WARM
+				elif band < 0.50:
+					# blade length variation
+					c = FRINGE2 if (h & 1) == 0 else FRINGE
+					if (h % (blade_mod + 1)) == 0:
+						c = G_LIGHT
+				elif band < 0.72:
+					c = FRINGE
+					if (h % 5) == variant % 5:
+						c = G_WARM  # 1–2px protrusion feel
 				else:
-					c = SOIL_EDGE if (h & 2) == 0 else s[y][x]
-					# occasional blade tip into soil
+					c = SOIL_EDGE if (h & 1) == 0 else s[y][x]
 					if (h % 7) == 0:
-						c = GRASS[2]
+						c = FRINGE
 			px[ox + x, oy + y] = (*c, 255)
 
 
@@ -330,13 +376,13 @@ def apply_shared_edges(px, ox: int, oy: int, mask: int) -> None:
 			px[ox + 15, oy + i] = (*s[i][15], 255)
 
 
-def draw_mask(px, ox: int, oy: int, mask: int) -> None:
+def draw_mask(px, ox: int, oy: int, mask: int, variant: int = 0) -> None:
 	if mask == 0:
-		paint_grass_surface(px, ox, oy, salt=11, style=0)
+		paint_grass_base(px, ox, oy, 11)
 	elif mask == 15:
-		paint_soil_surface(px, ox, oy, salt=29, style=0)
+		paint_soil_base(px, ox, oy, 29)
 	else:
-		paint_transition_interior(px, ox, oy, mask)
+		paint_transition_interior(px, ox, oy, mask, variant=variant)
 	apply_shared_edges(px, ox, oy, mask)
 
 
@@ -348,34 +394,82 @@ def copy_border(px, sox: int, soy: int, dox: int, doy: int) -> None:
 		px[dox + 15, doy + i] = px[sox + 15, soy + i]
 
 
+def copy_full(px, sox: int, soy: int, dox: int, doy: int) -> None:
+	for y in range(TILE):
+		for x in range(TILE):
+			px[dox + x, doy + y] = px[sox + x, soy + y]
+
+
 def make_ground() -> Image.Image:
-	cols, rows = 8, 4
-	im = Image.new("RGBA", (cols * TILE, rows * TILE), (0, 0, 0, 255))
+	im = Image.new("RGBA", (ATLAS_COLS * TILE, ATLAS_ROWS * TILE), (0, 0, 0, 255))
 	px = im.load()
 
+	# Primary 16 masks
 	for mask in range(16):
-		draw_mask(px, (mask % 4) * TILE, (mask // 4) * TILE, mask)
+		draw_mask(px, (mask % 4) * TILE, (mask // 4) * TILE, mask, variant=0)
 
-	# Grass variants A/B/C (+ keep 4th mild unused visually same borders)
-	# col4=A(style1), col5=B(style2), col6=C(style3), col7=extra mild
-	for vi, style in enumerate((1, 2, 3, 1)):
+	# Grass macro variants (cols 4–7, row 0) — borders from mask 0
+	kinds_g = ("light", "dark", "sparse", "dense")
+	for vi, kind in enumerate(kinds_g):
 		ox, oy = (4 + vi) * TILE, 0
 		draw_mask(px, ox, oy, 0)
-		paint_grass_surface(px, ox, oy, salt=100 + vi * 13, style=style, inner_only=True)
+		paint_grass_macro(px, ox, oy, kind, salt=100 + vi * 17)
 		copy_border(px, 0, 0, ox, oy)
 
-	for vi, style in enumerate((1, 2, 3, 1)):
+	# Soil macro variants (cols 4–7, row 1)
+	kinds_s = ("normal", "dark", "clumps", "pebbles")
+	for vi, kind in enumerate(kinds_s):
 		ox, oy = (4 + vi) * TILE, TILE
 		draw_mask(px, ox, oy, 15)
-		paint_soil_surface(px, ox, oy, salt=200 + vi * 17, style=style, inner_only=True)
+		paint_soil_macro(px, ox, oy, kind, salt=200 + vi * 19)
 		copy_border(px, 3 * TILE, 3 * TILE, ox, oy)
 
-	for row in (2, 3):
-		for col in range(4, 8):
-			ox, oy = col * TILE, row * TILE
-			draw_mask(px, ox, oy, 0)
-			copy_border(px, 0, 0, ox, oy)
+	# Edge visual variants — same mask bits, same borders, different interiors
+	# Straight edges: 12, 3, 6, 9 — 3 variants each at cols 8–10
+	straight = [
+		(12, 0),  # row 0 of variant strip uses y offsets below
+		(3, 1),
+		(6, 2),
+		(9, 3),
+	]
+	for mask, row in straight:
+		primary = ((mask % 4) * TILE, (mask // 4) * TILE)
+		for vi in range(3):
+			ox, oy = (8 + vi) * TILE, row * TILE
+			draw_mask(px, ox, oy, mask, variant=vi + 1)
+			copy_border(px, primary[0], primary[1], ox, oy)
 
+	# Corner variants: masks 1,2,4,8 — 2 variants each in remaining cells of row via col 11 + reuse
+	# Place at (11,0)=mask1 v1, (11,1)=mask2 v1, (11,2)=mask4 v1, (11,3)=mask8 v1
+	# Second corner variants overwrite? Use primary redraw at unused — also paint variant 2 into
+	# the fourth straight slot isn't available. Put second corner variants by replacing
+	# one straight's 3rd slot? Better: put corner v1 at col11, and corner v2 interiors into
+	# cells that were filler — draw into (8-10 already used). Expand: use col11 only for corners v1.
+	# For second corner variant, re-use probability on primary + one alt: draw alts into
+	# positions that tests don't require as grass/soil.
+	corners = [(1, 0), (2, 1), (4, 2), (8, 3)]
+	for mask, row in corners:
+		primary = ((mask % 4) * TILE, (mask // 4) * TILE)
+		ox, oy = 11 * TILE, row * TILE
+		draw_mask(px, ox, oy, mask, variant=1)
+		copy_border(px, primary[0], primary[1], ox, oy)
+
+	# Second corner variants: paint into cols 4-7 rows 2-3 (were unused copies)
+	corners2 = [(1, 4, 2), (2, 5, 2), (4, 6, 2), (8, 7, 2), (1, 4, 3), (2, 5, 3), (4, 6, 3), (8, 7, 3)]
+	# Actually rows 2-3 cols 4-7 = 8 cells: two variants for each of 4 corners
+	corner_slots = [
+		(1, 4, 2, 1), (1, 5, 2, 2),
+		(2, 6, 2, 1), (2, 7, 2, 2),
+		(4, 4, 3, 1), (4, 5, 3, 2),
+		(8, 6, 3, 1), (8, 7, 3, 2),
+	]
+	for mask, col, row, var in corner_slots:
+		primary = ((mask % 4) * TILE, (mask // 4) * TILE)
+		ox, oy = col * TILE, row * TILE
+		draw_mask(px, ox, oy, mask, variant=var)
+		copy_border(px, primary[0], primary[1], ox, oy)
+
+	# Opaque
 	for y in range(im.height):
 		for x in range(im.width):
 			r, g, b, _a = px[x, y]
@@ -389,66 +483,116 @@ def put(px, x: int, y: int, rgba: tuple[int, int, int, int]) -> None:
 
 
 def make_decor() -> Image.Image:
-	"""Transparent overlays only — denser readable tufts/flowers/pebbles/twig."""
-	im = Image.new("RGBA", (8 * TILE, TILE), (0, 0, 0, 0))
-	cells = [Image.new("RGBA", (TILE, TILE), (0, 0, 0, 0)) for _ in range(8)]
+	"""Readable overlays at game scale — tufts/flowers larger than 1px."""
+	n = 16
+	im = Image.new("RGBA", (n * TILE, TILE), (0, 0, 0, 0))
+	cells = [Image.new("RGBA", (TILE, TILE), (0, 0, 0, 0)) for _ in range(n)]
 
-	# 0: single tuft
+	def blade_tuft(p, x0: int, h: int = 5) -> None:
+		for i in range(h):
+			put(p, x0, 14 - i, (*((G_DEEP, G_DARK, G_MID, G_WARM, G_LIGHT)[min(i, 4)]), 255))
+		put(p, x0 - 1, 12, (*G_DARK, 255))
+		put(p, x0 + 1, 13, (*G_MID, 255))
+
+	# 0–2: three distinct grass tufts (tall enough to read)
 	p = cells[0].load()
-	put(p, 7, 13, (*GRASS[3], 255))
-	put(p, 7, 12, (*GRASS[0], 255))
-	put(p, 7, 11, (*GRASS[2], 255))
-	put(p, 6, 10, (*GRASS[1], 255))
-	put(p, 8, 12, (*GRASS[1], 255))
+	blade_tuft(p, 8, 6)
 
-	# 1: double tuft
 	p = cells[1].load()
-	for x, tip in ((5, 10), (9, 9)):
-		put(p, x, 13, (*GRASS[3], 255))
-		put(p, x, 12, (*GRASS[0], 255))
-		put(p, x, 11, (*GRASS[2], 255))
-		put(p, x + (1 if x == 5 else -1), tip, (*GRASS[1], 255))
+	blade_tuft(p, 6, 5)
+	blade_tuft(p, 10, 4)
 
-	# 2: clover / leaf
 	p = cells[2].load()
-	for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (1, -1)):
-		put(p, 8 + dx, 11 + dy, (*GRASS[0], 255))
-	put(p, 8, 11, (56, 132, 58, 255))
+	blade_tuft(p, 5, 5)
+	blade_tuft(p, 8, 7)
+	blade_tuft(p, 11, 4)
 
-	# 3: white flower accent
+	# 3: clover
 	p = cells[3].load()
-	put(p, 6, 11, (*GRASS[1], 255))
-	put(p, 6, 10, (214, 214, 204, 255))
-	put(p, 5, 10, (214, 214, 204, 255))
-	put(p, 7, 10, (214, 214, 204, 255))
-	put(p, 6, 9, (200, 200, 190, 255))
+	for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (1, -1), (-1, 1)):
+		put(p, 8 + dx, 11 + dy, (*G_MID, 255))
+	put(p, 8, 11, (52, 128, 56, 255))
+	put(p, 7, 10, (52, 128, 56, 255))
+	put(p, 9, 10, (48, 120, 52, 255))
 
-	# 4: yellow flower
+	# 4–5: white flowers (readable cluster)
 	p = cells[4].load()
-	put(p, 9, 12, (*GRASS[0], 255))
-	put(p, 9, 11, (198, 168, 48, 255))
-	put(p, 8, 11, (198, 168, 48, 255))
-	put(p, 10, 11, (188, 158, 42, 255))
+	put(p, 7, 13, (*G_DARK, 255))
+	for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, -1), (0, 1)):
+		put(p, 7 + dx, 11 + dy, (220, 220, 210, 255))
+	put(p, 7, 11, (200, 200, 120, 255))
 
-	# 5: pebble group
 	p = cells[5].load()
-	put(p, 6, 12, (*PEBBLE, 255))
-	put(p, 7, 12, (*PEBBLE2, 255))
-	put(p, 8, 11, (*PEBBLE, 255))
-	put(p, 10, 13, (*PEBBLE2, 255))
+	for cx in (5, 10):
+		put(p, cx, 13, (*G_DARK, 255))
+		for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, -1)):
+			put(p, cx + dx, 11 + dy, (216, 216, 206, 255))
 
-	# 6: dry twig
+	# 6: yellow flowers
 	p = cells[6].load()
-	put(p, 4, 12, (*ROOT_FIBER, 255))
-	put(p, 5, 12, (120, 92, 56, 255))
-	put(p, 6, 11, (*ROOT_FIBER, 255))
-	put(p, 7, 11, (110, 84, 50, 255))
-	put(p, 8, 10, (*ROOT_FIBER, 255))
+	put(p, 8, 13, (*G_MID, 255))
+	for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, -1), (1, -1)):
+		put(p, 8 + dx, 11 + dy, (200, 168, 44, 255))
+	put(p, 8, 11, (188, 140, 36, 255))
 
-	# 7: dark grass speck
+	# 7: dark low-veg patch (readable blob)
 	p = cells[7].load()
-	for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1), (-1, 1)):
-		put(p, 8 + dx, 12 + dy, (*GRASS[3], 255))
+	for dy in range(0, 4):
+		for dx in range(0, 5):
+			put(p, 6 + dx, 10 + dy, (*G_DEEP, 255))
+	put(p, 8, 9, (*G_DARK, 255))
+	put(p, 9, 10, (*G_MID, 255))
+
+	# 8: pebble group (soil decor)
+	p = cells[8].load()
+	put(p, 6, 12, (*S_PEBBLE, 255))
+	put(p, 7, 12, (*S_PEBBLE2, 255))
+	put(p, 8, 11, (*S_PEBBLE, 255))
+	put(p, 9, 13, (*S_PEBBLE2, 255))
+	put(p, 7, 11, (78, 74, 68, 255))
+
+	# 9–10: earth clumps
+	p = cells[9].load()
+	for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1), (2, 0)):
+		put(p, 6 + dx, 11 + dy, (*S_CLUMP, 255))
+	put(p, 7, 10, (*S_DARK, 255))
+
+	p = cells[10].load()
+	for dx, dy in ((0, 0), (1, 0), (-1, 1), (0, 1), (1, 1)):
+		put(p, 9 + dx, 12 + dy, (*S_CLUMP, 255))
+
+	# 11: dry root
+	p = cells[11].load()
+	put(p, 4, 12, (*S_ROOT, 255))
+	put(p, 5, 12, (112, 86, 52, 255))
+	put(p, 6, 11, (*S_ROOT, 255))
+	put(p, 7, 11, (108, 82, 48, 255))
+	put(p, 8, 10, (*S_ROOT, 255))
+	put(p, 9, 10, (100, 76, 46, 255))
+
+	# 12: dark soil patch
+	p = cells[12].load()
+	for dy in range(0, 3):
+		for dx in range(0, 4):
+			put(p, 6 + dx, 11 + dy, (*S_DARK, 255))
+	put(p, 7, 10, (*S_CLUMP, 255))
+
+	# 13: sprout
+	p = cells[13].load()
+	put(p, 8, 13, (*S_DARK, 255))
+	put(p, 8, 12, (*G_MID, 255))
+	put(p, 8, 11, (*G_WARM, 255))
+	put(p, 7, 11, (*G_LIGHT, 255))
+	put(p, 9, 12, (*G_DARK, 255))
+
+	# 14–15: extra blade / tiny flower
+	p = cells[14].load()
+	blade_tuft(p, 8, 4)
+
+	p = cells[15].load()
+	put(p, 8, 12, (*G_DARK, 255))
+	for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, -1)):
+		put(p, 8 + dx, 10 + dy, (210, 210, 200, 255))
 
 	for i, cell in enumerate(cells):
 		im.paste(cell, (i * TILE, 0), cell)
@@ -456,27 +600,55 @@ def make_decor() -> Image.Image:
 
 
 def write_zoom_crops(ground: Image.Image) -> None:
-	"""Export ×4 crops for docs from atlas (grass / soil / transition)."""
-	docs = ROOT / "docs/art_tests"
-	docs.mkdir(parents=True, exist_ok=True)
+	DOCS.mkdir(parents=True, exist_ok=True)
 
-	def zoom_cell(col: int, row: int, name: str) -> None:
-		cell = ground.crop((col * TILE, row * TILE, (col + 1) * TILE, (row + 1) * TILE))
-		# 3×3 of same cell for grass/soil field feel
-		if name in ("grass", "soil"):
-			field = Image.new("RGBA", (TILE * 3, TILE * 3))
+	def zoom_field(col: int, row: int, name: str, variants: list[tuple[int, int]] | None = None) -> None:
+		field = Image.new("RGBA", (TILE * 3, TILE * 3))
+		if variants is None:
+			cell = ground.crop((col * TILE, row * TILE, (col + 1) * TILE, (row + 1) * TILE))
 			for yy in range(3):
 				for xx in range(3):
 					field.paste(cell, (xx * TILE, yy * TILE))
-			field.resize((field.width * 4, field.height * 4), Image.NEAREST).save(docs / f"terrain_visual_{name}_x4.png")
 		else:
-			cell.resize((TILE * 8, TILE * 8), Image.NEAREST).save(docs / f"terrain_visual_{name}_x4.png")
+			# show mix of macros
+			idx = 0
+			for yy in range(3):
+				for xx in range(3):
+					c, r = variants[idx % len(variants)]
+					cell = ground.crop((c * TILE, r * TILE, (c + 1) * TILE, (r + 1) * TILE))
+					field.paste(cell, (xx * TILE, yy * TILE))
+					idx += 1
+		field.resize((field.width * 4, field.height * 4), Image.NEAREST).save(DOCS / f"terrain_macro_{name}_x4.png")
 
-	zoom_cell(0, 0, "grass")
-	zoom_cell(3, 3, "soil")
-	# transition: top edge mask (grass N / soil S) ≈ mask with TL=TR=0 BL=BR=1 → bits 8+4=12
-	zoom_cell(0, 3, "border")  # mask 12 at col0 row3
-	print("wrote visual x4 crops")
+	zoom_field(0, 0, "grass", [(0, 0), (4, 0), (5, 0), (0, 0), (6, 0), (7, 0), (4, 0), (0, 0), (5, 0)])
+	zoom_field(3, 3, "soil", [(3, 3), (4, 1), (5, 1), (6, 1), (3, 3), (7, 1), (4, 1), (5, 1), (3, 3)])
+	# edge: primary + variants of mask 12
+	edge = Image.new("RGBA", (TILE * 3, TILE))
+	for i, (c, r) in enumerate([(0, 3), (8, 0), (9, 0)]):
+		cell = ground.crop((c * TILE, r * TILE, (c + 1) * TILE, (r + 1) * TILE))
+		edge.paste(cell, (i * TILE, 0))
+	edge.resize((edge.width * 6, edge.height * 6), Image.NEAREST).save(DOCS / "terrain_macro_edge_x4.png")
+	print("wrote macro x4 crops")
+
+
+def write_comparison(before_scene: Path, after_scene: Path, out: Path) -> None:
+	if not before_scene.exists() or not after_scene.exists():
+		print("skip comparison (missing scene shots)")
+		return
+	a = Image.open(before_scene).convert("RGBA")
+	b = Image.open(after_scene).convert("RGBA")
+	h = max(a.height, b.height)
+	w = a.width + b.width + 8
+	canvas = Image.new("RGBA", (w, h), (20, 20, 24, 255))
+	canvas.paste(a, (0, 0))
+	canvas.paste(b, (a.width + 8, 0))
+	draw = ImageDraw.Draw(canvas)
+	draw.rectangle([0, 0, a.width, 22], fill=(0, 0, 0, 180))
+	draw.rectangle([a.width + 8, 0, w, 22], fill=(0, 0, 0, 180))
+	draw.text((8, 4), "BEFORE", fill=(255, 255, 255, 255))
+	draw.text((a.width + 16, 4), "AFTER (macro)", fill=(255, 255, 255, 255))
+	canvas.save(out)
+	print("wrote", out)
 
 
 def main() -> None:

@@ -20,9 +20,9 @@
 | Generator | `tools/generate_terrain_proof.py` |
 | Atlas tests | `tools/test_terrain_atlas.py` |
 
-Слои proof-сцены: `GroundTerrain` (TileMapLayer, Match Corners) → `GroundDecoration` (TileMapLayer) → Player (скрыт на art-shot) → Camera2D.  
-Terrain Set 0: Grass (0) / Soil (1). Переходы не ставятся вручную — `set_cells_terrain_connect`.  
-Visual pass: richer grass/soil interiors + fringe; seam contract / shared edge profiles сохранены.
+Слои proof-сцены: `GroundTerrain` (TileMapLayer, Match Corners) → `GroundDecoration` → Camera.  
+Terrain Set 0: Grass (0) / Soil (1). Переходы — `set_cells_terrain_connect`.  
+Macro pass: interior grass/soil cluster overrides + edge visual variants (same peering bits, identical border pixels).
 
 AI presentation sheets **не** являются источником тайлов (только mood/palette).
 

@@ -28,15 +28,15 @@
 
 | Поле | Значение |
 |------|----------|
-| Status | **seamless system accepted**; visual grass/soil pass done |
-| Ground | `assets/art/outdoor/terrain_proof/terrain_ground.png` (128×64) |
-| Decor | `assets/art/outdoor/terrain_proof/terrain_decor.png` (128×16) |
+| Status | **seamless system accepted**; macro variation pass done |
+| Ground | `assets/art/outdoor/terrain_proof/terrain_ground.png` (192×64, 12×4) |
+| Decor | `assets/art/outdoor/terrain_proof/terrain_decor.png` (256×16, 16 overlays) |
 | TileSet | `resources/tilesets/yard_ground_tileset.tres` |
 | Scene | `yard_terrain_proof.tscn` |
 | Tools | `generate_terrain_proof.py`, `test_terrain_atlas.py`, `build_yard_ground_tileset.gd` |
-| Terrain | Match Corners · Grass / Soil · 16 masks + variants |
-| Variant weights | grass/soil base **65%**, A **20%**, B **10%**, C **5%** |
-| Previews | `docs/art_tests/terrain_visual.png`, `…_alt.png`, `…_{grass,soil,border}_x4.png` |
+| Terrain | Match Corners · Grass / Soil · masks + macros + edge variants |
+| Variant weights | base **65%**, subtle **20%**, light/dark **10%**, dense **5%** |
+| Previews | `docs/art_tests/terrain_macro_compare.png`, `terrain_macro.png`, `…_decor.png`, `…_{grass,soil,edge}_x4.png` |
 
 ### Ground atlas layout
 
