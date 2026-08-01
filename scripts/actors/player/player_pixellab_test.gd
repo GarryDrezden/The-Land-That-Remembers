@@ -1,20 +1,32 @@
 extends CharacterBody2D
-## PixelLab hero prototype (south/east walk; west=flip; north=idle until generated).
+## PixelLab hero v1 — idle + walk in 8 directions (no mirroring).
+## Node scale stays Vector2.ONE. Runtime display uses integer nearest PIXEL_DIV
+## (provisionally accepted CraftPix fit). Source GIF/PNG on disk are not rewritten.
 
 const ROOT := "res://assets/characters/player/pixellab_v1/"
 const MOVE_SPEED := 70.0
-const FRAME_DURATION := 0.2  ## from GIF 200ms
+## GIF duration 200 ms → 5 FPS.
+const FRAME_DURATION := 0.2
+const PIXEL_DIV := 2
+const SRC_CANVAS := 92
+const SRC_FOOT_Y := 70  ## shared baseline after import align (opaque bbox bottom)
 
-enum Facing { SOUTH, NORTH, EAST, WEST }
+const DIR_NAMES := [
+	"east", "south_east", "south", "south_west",
+	"west", "north_west", "north", "north_east",
+]
 
 var _anim: AnimatedSprite2D
 var _interaction: Marker2D
-var _facing: Facing = Facing.SOUTH
+var _facing_idx: int = 2  ## south
 var _cam: Camera2D
+## When false, load full-res frames (A/B compare only).
+var use_pixel_div: bool = true
 
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	scale = Vector2.ONE
 	collision_layer = 1
 	collision_mask = 1
 	y_sort_enabled = true
@@ -31,9 +43,10 @@ func _ensure_nodes() -> void:
 		_anim.name = "AnimatedSprite2D"
 		add_child(_anim)
 	_anim.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_anim.scale = Vector2.ONE
 	_anim.centered = true
-	# Canvas 92×92, feet near y≈69 → place feet on CharacterBody2D origin
-	_anim.offset = Vector2(0, -23)
+	_anim.flip_h = false
+	_apply_foot_offset()
 
 	var cs := get_node_or_null("CollisionShape2D") as CollisionShape2D
 	if cs == null:
@@ -45,6 +58,7 @@ func _ensure_nodes() -> void:
 		shape.size = Vector2(8, 4)
 		cs.shape = shape
 	cs.position = Vector2(0, -1)
+	cs.scale = Vector2.ONE
 
 	_interaction = get_node_or_null("InteractionOrigin") as Marker2D
 	if _interaction == null:
@@ -62,22 +76,37 @@ func _ensure_nodes() -> void:
 	_cam.position_smoothing_speed = 8.0
 
 
+func _apply_foot_offset() -> void:
+	var div := PIXEL_DIV if use_pixel_div else 1
+	var canvas := float(SRC_CANVAS) / float(div)
+	var foot := float(SRC_FOOT_Y) / float(div)
+	_anim.offset = Vector2(0, canvas * 0.5 - foot)
+
+
 func _load_tex(path: String) -> Texture2D:
 	var abs_path := ProjectSettings.globalize_path(path)
+	var img := Image.new()
+	var loaded := false
 	if FileAccess.file_exists(abs_path):
-		var img := Image.new()
 		if img.load(abs_path) == OK:
-			var tex := ImageTexture.create_from_image(img)
-			return tex
-	if ResourceLoader.exists(path):
+			loaded = true
+	if not loaded and ResourceLoader.exists(path):
 		var res := load(path)
 		if res is Texture2D:
-			return res as Texture2D
-	push_warning("Missing hero frame: %s" % path)
-	return null
+			img = res.get_image()
+			if img != null:
+				loaded = true
+	if not loaded or img == null:
+		push_warning("Missing hero frame: %s" % path)
+		return null
+	if use_pixel_div and PIXEL_DIV > 1:
+		var nw := maxi(1, int(img.get_width() / PIXEL_DIV))
+		var nh := maxi(1, int(img.get_height() / PIXEL_DIV))
+		img.resize(nw, nh, Image.INTERPOLATE_NEAREST)
+	return ImageTexture.create_from_image(img)
 
 
-func _add_anim(frames: SpriteFrames, name: String, paths: Array, flip_h: bool = false) -> void:
+func _add_anim(frames: SpriteFrames, name: String, paths: Array) -> void:
 	if frames.has_animation(name):
 		frames.remove_animation(name)
 	frames.add_animation(name)
@@ -87,33 +116,46 @@ func _add_anim(frames: SpriteFrames, name: String, paths: Array, flip_h: bool = 
 		var tex := _load_tex(str(p))
 		if tex == null:
 			continue
-		var at := AtlasTexture.new()
-		at.atlas = tex
-		at.region = Rect2(Vector2.ZERO, tex.get_size())
-		# flip handled on node, not per-frame atlas
-		frames.add_frame(name, at)
+		frames.add_frame(name, tex)
 
 
 func _build_sprite_frames() -> void:
 	var sf := SpriteFrames.new()
-	var idle_dirs := {
-		"idle_south": "idle/south.png",
-		"idle_north": "idle/north.png",
-		"idle_east": "idle/east.png",
-		"idle_west": "idle/west.png",
-	}
-	for anim_name in idle_dirs.keys():
-		_add_anim(sf, anim_name, [ROOT + idle_dirs[anim_name]])
-
-	var walk_s: Array = []
-	var walk_e: Array = []
-	for i in range(8):
-		walk_s.append("%swalk_south/frame_%02d.png" % [ROOT, i])
-		walk_e.append("%swalk_east/frame_%02d.png" % [ROOT, i])
-	_add_anim(sf, "walk_south", walk_s)
-	_add_anim(sf, "walk_east", walk_e)
-	_add_anim(sf, "walk_west", walk_e)  ## same frames; flip_h at runtime
+	for dir_name in DIR_NAMES:
+		_add_anim(sf, "idle_%s" % dir_name, [ROOT + "idle/%s.png" % dir_name])
+		var walk_paths: Array = []
+		for i in range(8):
+			walk_paths.append("%swalk/%s/frame_%02d.png" % [ROOT, dir_name, i])
+		_add_anim(sf, "walk_%s" % dir_name, walk_paths)
 	_anim.sprite_frames = sf
+	_anim.flip_h = false
+	_apply_foot_offset()
+
+
+func rebuild_frames_for_compare(full_res: bool) -> void:
+	use_pixel_div = not full_res
+	scale = Vector2.ONE
+	if _anim:
+		_anim.scale = Vector2.ONE
+		_anim.flip_h = false
+	_build_sprite_frames()
+	_anim.play("idle_south")
+
+
+func facing_name() -> String:
+	return DIR_NAMES[_facing_idx]
+
+
+func set_facing_name(dir_name: String) -> void:
+	var idx := DIR_NAMES.find(dir_name)
+	if idx >= 0:
+		_facing_idx = idx
+
+
+func _facing_from_vector(dir: Vector2) -> int:
+	## Godot angle(): 0=east, increases clockwise (y+). Eight 45° sectors.
+	var idx := int(round(dir.angle() / (PI / 4.0)))
+	return posmod(idx, 8)
 
 
 func _physics_process(_delta: float) -> void:
@@ -129,7 +171,9 @@ func _physics_process(_delta: float) -> void:
 		dir.y -= 1.0
 	if Input.is_key_pressed(KEY_S) or Input.is_action_pressed("ui_down"):
 		dir.y += 1.0
-	dir = dir.limit_length(1.0)
+	## Keyboard already yields exact 8 directions; normalize so diagonals match cardinal speed.
+	if dir != Vector2.ZERO:
+		dir = dir.normalized()
 	velocity = dir * MOVE_SPEED
 	move_and_slide()
 	_update_anim(dir)
@@ -139,53 +183,19 @@ func _physics_process(_delta: float) -> void:
 func _update_anim(dir: Vector2) -> void:
 	var moving := dir.length() > 0.01
 	if moving:
-		if absf(dir.x) > absf(dir.y):
-			_facing = Facing.EAST if dir.x > 0.0 else Facing.WEST
-		else:
-			_facing = Facing.SOUTH if dir.y > 0.0 else Facing.NORTH
+		_facing_idx = _facing_from_vector(dir)
 
 	_anim.flip_h = false
-	var anim := "idle_south"
-	if not moving:
-		match _facing:
-			Facing.SOUTH:
-				anim = "idle_south"
-			Facing.NORTH:
-				anim = "idle_north"
-			Facing.EAST:
-				anim = "idle_east"
-			Facing.WEST:
-				anim = "idle_west"
-				_anim.flip_h = true
-				anim = "idle_east"
-	else:
-		match _facing:
-			Facing.SOUTH:
-				anim = "walk_south"
-			Facing.EAST:
-				anim = "walk_east"
-			Facing.WEST:
-				anim = "walk_west"
-				_anim.flip_h = true
-			Facing.NORTH:
-				# Prototype limitation: no walk_north yet
-				anim = "idle_north"
-
+	var name := facing_name()
+	var anim := ("walk_%s" % name) if moving else ("idle_%s" % name)
 	if _anim.animation != anim or not _anim.is_playing():
 		_anim.play(anim)
 
 
 func _update_interaction() -> void:
-	var forward := Vector2(0, 10)
-	match _facing:
-		Facing.SOUTH:
-			forward = Vector2(0, 10)
-		Facing.NORTH:
-			forward = Vector2(0, -10)
-		Facing.EAST:
-			forward = Vector2(10, 0)
-		Facing.WEST:
-			forward = Vector2(-10, 0)
+	## Unit facing vector from 8-dir index (east=0 …), then scale.
+	var ang := float(_facing_idx) * (PI / 4.0)
+	var forward := Vector2(cos(ang), sin(ang)) * 10.0
 	_interaction.position = forward
 
 

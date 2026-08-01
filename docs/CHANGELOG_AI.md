@@ -2,6 +2,19 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (m) — full eight-direction PixelLab hero walk
+
+**Сделано:**
+- полный комплект GIF в `upload/hero/` (idle 8-dir + walk ×8);
+- импортёр обновлён: preserve GIF transparency, shared baseline, `walk/<dir>/`, contact sheets;
+- player: 16 SpriteFrames (idle+walk ×8), WASD angle facing, no flip_h;
+- тест-скрины idle/walk ×8, door/gate/outside/tree/collisions + `craftpix_hero_walk8.gif`;
+- docs + DEC-010; основной двор не тронут.
+
+**Не делалось:** axe/pickaxe, house restoration, смена scale без ревью.
+
+---
+
 ## 2026-08-01 (l) — PixelLab hero walking prototype
 
 **Сделано:**

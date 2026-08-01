@@ -5,6 +5,21 @@
 
 ---
 
+## DEC-010: PixelLab hero v1 — 8-dir walk under evaluation
+
+**Решение:**
+- PixelLab hero v1 has **idle and walking in 8 directions**;
+- originals stay permanently in `res://upload/hero/`;
+- runtime prepared under `assets/characters/player/pixellab_v1/`;
+- **no mirroring or direction substitution**;
+- current in-engine **node scale is `Vector2.ONE`** and is **provisionally accepted** (display may use integer nearest `PIXEL_DIV=2` without rewriting PNGs);
+- evaluation only in `craftpix_hero_test.tscn` — main CraftPix yard unchanged;
+- axe / pickaxe / house restoration **blocked** until owner review.
+
+**Статус:** under evaluation · 2026-08-01
+
+---
+
 ## DEC-009: Permanent asset inbox + stable Asset Catalog
 
 **Решение:**

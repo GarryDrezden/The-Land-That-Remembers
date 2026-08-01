@@ -41,7 +41,6 @@ var _player: CharacterBody2D
 var _hint: Label
 var _shot_cam: Camera2D
 var _gate_center := Vector2.ZERO
-var _hero_scale := 1.0
 
 
 func _ready() -> void:
@@ -330,8 +329,17 @@ func _build_player() -> void:
 	_player.position = Vector2(16.5 * _tile, 13.2 * _tile)
 	_player.z_as_relative = true
 	_player.z_index = 0
-	_player.scale = Vector2(_hero_scale, _hero_scale)
+	# No node-level scale hacks — pixel size handled inside player (PIXEL_DIV).
+	_player.scale = Vector2.ONE
+	if _player.get_parent() != null:
+		(_player.get_parent() as Node2D).scale = Vector2.ONE
+	_ysort.scale = Vector2.ONE
+	scale = Vector2.ONE
 	_ysort.add_child(_player)
+	var anim := _player.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if anim:
+		anim.scale = Vector2.ONE
+		anim.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	if _player.has_method("set_camera_zoom"):
 		_player.call("set_camera_zoom", Vector2(WINDOW_SCALE, WINDOW_SCALE))
 	if _player.has_method("set_camera_limits"):
@@ -345,7 +353,7 @@ func _build_ui() -> void:
 	_hint.position = Vector2(8, 6)
 	_hint.add_theme_font_size_override("font_size", 11)
 	_hint.add_theme_color_override("font_color", Color.WHITE)
-	_hint.text = "CraftPix + PixelLab hero · WASD · F12 debug · scale=%s" % str(_hero_scale)
+	_hint.text = "CraftPix + PixelLab hero 8-dir · WASD · F12 · scale=1 · pixel_div=2"
 	_hint.visible = false
 	layer.add_child(_hint)
 
@@ -380,37 +388,111 @@ func _shot_sequence(_mode: String) -> void:
 	add_child(_shot_cam)
 	_shot_cam.make_current()
 
-	# 1) Door — stand on patio south of door (not inside house wall)
-	if _player:
-		_player.visible = true
-		_player.position = Vector2(17.2 * _tile, 13.15 * _tile)
-		_player.scale = Vector2(1, 1)
-		var anim := _player.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	# Provisionally accepted display: PIXEL_DIV=2, node scale 1.
+	if _player.has_method("rebuild_frames_for_compare"):
+		_player.call("rebuild_frames_for_compare", false)
+	_player.scale = Vector2.ONE
+	_player.visible = true
+
+	var anim := _player.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if anim:
+		anim.flip_h = false
+		anim.scale = Vector2.ONE
+
+	var dirs := [
+		"south", "south_east", "east", "north_east",
+		"north", "north_west", "west", "south_west",
+	]
+
+	# 8 idle facings (open patio)
+	_player.position = Vector2(16.5 * _tile, 14.2 * _tile)
+	_shot_cam.position = Vector2(16.5 * _tile, 13.6 * _tile)
+	for d in dirs:
+		if _player.has_method("set_facing_name"):
+			_player.call("set_facing_name", d)
 		if anim:
-			anim.flip_h = false
-			anim.play("idle_south")
+			anim.play("idle_%s" % d)
+		await get_tree().process_frame
+		await get_tree().create_timer(0.08).timeout
+		await _take("craftpix_hero_idle_%s" % d)
+
+	# 8 walk facings (same spot)
+	for d in dirs:
+		if _player.has_method("set_facing_name"):
+			_player.call("set_facing_name", d)
+		if anim:
+			anim.play("walk_%s" % d)
+		await get_tree().process_frame
+		await get_tree().create_timer(0.12).timeout
+		await _take("craftpix_hero_walk_%s" % d)
+
+	# Location checks
+	_player.position = Vector2(17.2 * _tile, 13.15 * _tile)
+	if anim:
+		anim.play("idle_south")
 	_shot_cam.position = Vector2(16.8 * _tile, 12.2 * _tile)
 	await get_tree().process_frame
-	await get_tree().create_timer(0.25).timeout
+	await get_tree().create_timer(0.2).timeout
 	await _take("craftpix_hero_door")
 
-	# 2) Gate
-	if _player:
-		_player.position = Vector2(16.5 * _tile, 15.5 * _tile)
+	# Inside yard (patio)
+	_player.position = Vector2(14.0 * _tile, 13.8 * _tile)
+	_shot_cam.position = Vector2(15.0 * _tile, 13.2 * _tile)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.15).timeout
+	await _take("craftpix_hero_inside_yard")
+
+	# Gate corridor
+	_player.position = Vector2(16.5 * _tile, 15.5 * _tile)
 	_shot_cam.position = Vector2(16.5 * _tile, 15.6 * _tile)
 	await get_tree().process_frame
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.15).timeout
 	await _take("craftpix_hero_gate")
 
-	# 3) Behind / beside tree (left apple tree area)
-	if _player:
-		_player.position = Vector2(5.5 * _tile, 13.5 * _tile)
+	# Outside fence (south of gate)
+	_player.position = Vector2(16.5 * _tile, 17.5 * _tile)
+	_shot_cam.position = Vector2(16.5 * _tile, 16.4 * _tile)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.15).timeout
+	await _take("craftpix_hero_outside")
+
+	# Beside tree
+	_player.position = Vector2(5.5 * _tile, 13.5 * _tile)
+	if anim:
+		anim.play("idle_east")
 	_shot_cam.position = Vector2(6.5 * _tile, 12.5 * _tile)
 	await get_tree().process_frame
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.15).timeout
 	await _take("craftpix_hero_tree")
 
-	# 4) Collision debug at gate
+	# Behind / under canopy (slightly north of tree trunk area)
+	_player.position = Vector2(5.2 * _tile, 12.2 * _tile)
+	if anim:
+		anim.play("idle_south")
+	_shot_cam.position = Vector2(6.2 * _tile, 11.8 * _tile)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.15).timeout
+	await _take("craftpix_hero_tree_behind")
+
+	# Fence edge
+	_player.position = Vector2(12.0 * _tile, 15.8 * _tile)
+	if anim:
+		anim.play("idle_east")
+	_shot_cam.position = Vector2(13.0 * _tile, 14.8 * _tile)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.15).timeout
+	await _take("craftpix_hero_fence")
+
+	# Rock / bushes (left boulder area)
+	_player.position = Vector2(4.0 * _tile, 15.0 * _tile)
+	if anim:
+		anim.play("idle_south")
+	_shot_cam.position = Vector2(5.0 * _tile, 14.0 * _tile)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.15).timeout
+	await _take("craftpix_hero_rocks")
+
+	# Collision debug at gate
 	get_tree().debug_collisions_hint = true
 	var debug_draw := Node2D.new()
 	debug_draw.z_as_relative = false
@@ -430,20 +512,21 @@ func _shot_sequence(_mode: String) -> void:
 				poly.color = Color(0.15, 0.85, 1.0, 0.45)
 				poly.global_position = child.global_position
 				debug_draw.add_child(poly)
-	if _player:
-		_player.position = Vector2(16.5 * _tile, 15.5 * _tile)
-		for child in _player.get_children():
-			if child is CollisionShape2D and child.shape is RectangleShape2D:
-				var rs2 := child.shape as RectangleShape2D
-				var poly2 := Polygon2D.new()
-				var hx2 := rs2.size.x * 0.5
-				var hy2 := rs2.size.y * 0.5
-				poly2.polygon = PackedVector2Array([
-					Vector2(-hx2, -hy2), Vector2(hx2, -hy2), Vector2(hx2, hy2), Vector2(-hx2, hy2),
-				])
-				poly2.color = Color(1.0, 0.35, 0.2, 0.55)
-				poly2.global_position = _player.to_global(child.position)
-				debug_draw.add_child(poly2)
+	_player.position = Vector2(16.5 * _tile, 15.5 * _tile)
+	if anim:
+		anim.play("idle_south")
+	for child in _player.get_children():
+		if child is CollisionShape2D and child.shape is RectangleShape2D:
+			var rs2 := child.shape as RectangleShape2D
+			var poly2 := Polygon2D.new()
+			var hx2 := rs2.size.x * 0.5
+			var hy2 := rs2.size.y * 0.5
+			poly2.polygon = PackedVector2Array([
+				Vector2(-hx2, -hy2), Vector2(hx2, -hy2), Vector2(hx2, hy2), Vector2(-hx2, hy2),
+			])
+			poly2.color = Color(1.0, 0.35, 0.2, 0.55)
+			poly2.global_position = _player.to_global(child.position)
+			debug_draw.add_child(poly2)
 	_shot_cam.position = Vector2(16.5 * _tile, 15.6 * _tile)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.2).timeout
@@ -451,26 +534,20 @@ func _shot_sequence(_mode: String) -> void:
 	get_tree().debug_collisions_hint = false
 	debug_draw.queue_free()
 
-	# 5) Scale compare 1.0 / 0.75 / 0.5 on patio in front of door
-	if _player:
-		_player.position = Vector2(15.0 * _tile, 13.15 * _tile)
-		_player.scale = Vector2(1, 1)
-	_shot_cam.position = Vector2(16.5 * _tile, 12.4 * _tile)
-	await get_tree().process_frame
-	await get_tree().create_timer(0.15).timeout
-	await _take("craftpix_hero_scale_1_0")
-	if _player:
-		_player.scale = Vector2(0.75, 0.75)
-		_player.position = Vector2(16.5 * _tile, 13.15 * _tile)
-	await get_tree().process_frame
-	await get_tree().create_timer(0.15).timeout
-	await _take("craftpix_hero_scale_0_75")
-	if _player:
-		_player.scale = Vector2(0.5, 0.5)
-		_player.position = Vector2(18.0 * _tile, 13.15 * _tile)
-	await get_tree().process_frame
-	await get_tree().create_timer(0.15).timeout
-	await _take("craftpix_hero_scale_0_5")
+	_log_hero_tex("final_pixel_div")
+
+
+func _log_hero_tex(tag: String) -> void:
+	if _player == null:
+		return
+	var anim := _player.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if anim == null or anim.sprite_frames == null:
+		return
+	var tex := anim.sprite_frames.get_frame_texture(anim.animation, anim.frame)
+	if tex:
+		print("hero tex [%s] %dx%d  player.scale=%s anim.scale=%s" % [
+			tag, tex.get_width(), tex.get_height(), _player.scale, anim.scale,
+		])
 
 
 func _take(tag: String) -> void:

@@ -2,10 +2,10 @@
 """
 Import PixelLab hero GIFs from upload/hero/ into transparent PNG runtime sheets.
 
-- Does NOT delete or modify upload/hero/ originals.
-- Removes chroma green via edge flood-fill (not global green delete).
-- Keeps a shared canvas per clip; optional integer-pixel baseline alignment.
-- Idempotent: wipes/rebuilds assets/characters/player/pixellab_v1/ outputs.
+- Does NOT delete, rename, or modify upload/hero/ originals.
+- Preserves GIF transparency when present; flood-fill chroma only for opaque backgrounds.
+- Shared canvas per clip; integer-pixel baseline alignment across the whole set.
+- Idempotent: rebuilds assets/characters/player/pixellab_v1/ outputs.
 """
 
 from __future__ import annotations
@@ -23,10 +23,20 @@ UPLOAD = ROOT / "upload" / "hero"
 OUT = ROOT / "assets" / "characters" / "player" / "pixellab_v1"
 
 GIF_IDLE = UPLOAD / "Idle_rotations_8dir.gif"
-GIF_WALK_S = UPLOAD / "Idle_v3_walking_south.gif"
-GIF_WALK_E = UPLOAD / "Idle_v3_walking_east.gif"
 
-# After visual check of indexed contact sheet (clockwise from facing camera).
+# Filename stem → runtime direction folder name
+WALK_GIFS: dict[str, Path] = {
+    "south": UPLOAD / "Idle_v3_walking_south.gif",
+    "south_east": UPLOAD / "Idle_v3_walking_south-east.gif",
+    "east": UPLOAD / "Idle_v3_walking_east.gif",
+    "north_east": UPLOAD / "Idle_v3_walking_north-east.gif",
+    "north": UPLOAD / "Idle_v3_walking_north.gif",
+    "north_west": UPLOAD / "Idle_v3_walking_north-west.gif",
+    "west": UPLOAD / "Idle_v3_walking_west.gif",
+    "south_west": UPLOAD / "Idle_v3_walking_south-west.gif",
+}
+
+# Verified from indexed contact sheet (clockwise from facing camera / south).
 IDLE_DIRECTION_MAPPING = {
     "south": 0,
     "south_east": 1,
@@ -39,59 +49,71 @@ IDLE_DIRECTION_MAPPING = {
 }
 
 DIR_ORDER = [
-    "south", "south_east", "east", "north_east",
-    "north", "north_west", "west", "south_west",
+    "south",
+    "south_east",
+    "east",
+    "north_east",
+    "north",
+    "north_west",
+    "west",
+    "south_west",
 ]
 
 
-def load_gif_frames_rgb(path: Path) -> tuple[list[Image.Image], list[int], dict]:
-    """Load frames as RGBA with chroma green kept opaque (ignore GIF transparency flag)."""
+def load_gif_frames(path: Path) -> tuple[list[Image.Image], list[int], dict]:
+    """Load frames as RGBA. Preserve GIF transparency when present."""
     im = Image.open(path)
     n = getattr(im, "n_frames", 1)
     frames: list[Image.Image] = []
     durations: list[int] = []
-    meta = {
+    transparency_index = im.info.get("transparency", None)
+    meta: dict = {
         "path": str(path.relative_to(ROOT)).replace("\\", "/"),
+        "source_name": path.name,
         "n_frames": n,
         "loop": im.info.get("loop", None),
         "gif_mode": im.mode,
-        "transparency_index": im.info.get("transparency", None),
+        "transparency_index": transparency_index,
     }
+
+    zero_alpha_total = 0
+    opaque_green_total = 0
     for i in range(n):
         im.seek(i)
         durations.append(int(im.info.get("duration", 100) or 100))
-        if im.mode == "P" and im.getpalette():
-            pal = im.getpalette()
-            data = []
-            for idx in im.getdata():
-                r, g, b = pal[idx * 3 : idx * 3 + 3]
-                data.append((r, g, b, 255))
-            fr = Image.new("RGBA", im.size)
-            fr.putdata(data)
-        else:
-            fr = im.convert("RGBA")
-            # Force full alpha so we control keying ourselves
-            px = [(r, g, b, 255) for r, g, b, _a in fr.getdata()]
-            fr.putdata(px)
+        fr = im.convert("RGBA")
+        # Normalize fully-transparent pixels to (0,0,0,0) to avoid green under alpha.
+        px = []
+        for r, g, b, a in fr.getdata():
+            if a == 0:
+                zero_alpha_total += 1
+                px.append((0, 0, 0, 0))
+            else:
+                if g >= 200 and r <= 40 and b <= 40:
+                    opaque_green_total += 1
+                px.append((r, g, b, a))
+        fr.putdata(px)
         frames.append(fr)
+
     meta["durations_ms"] = durations
     meta["canvas"] = list(frames[0].size) if frames else [0, 0]
     avg = sum(durations) / max(len(durations), 1)
     meta["avg_duration_ms"] = avg
     meta["approx_fps"] = round(1000.0 / avg, 3) if avg else None
+    meta["zero_alpha_pixels"] = zero_alpha_total
+    meta["opaque_green_pixels"] = opaque_green_total
+    # Treat as authored/GIF transparency if most background is already alpha=0.
+    pixels = max(1, sum(f.size[0] * f.size[1] for f in frames))
+    meta["has_gif_transparency"] = (transparency_index is not None) or (
+        zero_alpha_total / pixels > 0.2
+    )
+    meta["needs_chroma_flood"] = opaque_green_total > 0 and not meta["has_gif_transparency"]
     return frames, durations, meta
 
 
 def corner_bg_color(im: Image.Image) -> tuple[int, int, int]:
     w, h = im.size
-    samples = [
-        im.getpixel((0, 0))[:3],
-        im.getpixel((w - 1, 0))[:3],
-        im.getpixel((0, h - 1))[:3],
-        im.getpixel((w - 1, h - 1))[:3],
-    ]
-    # majority / first
-    return samples[0]
+    return im.getpixel((0, 0))[:3]
 
 
 def color_close(c: tuple[int, int, int], ref: tuple[int, int, int], tol: int) -> bool:
@@ -103,11 +125,9 @@ def color_close(c: tuple[int, int, int], ref: tuple[int, int, int], tol: int) ->
 
 
 def is_chroma_like(c: tuple[int, int, int], ref: tuple[int, int, int], tol: int) -> bool:
-    """Green-screen-ish: close to ref OR classic pure-green chroma."""
     if color_close(c, ref, tol):
         return True
     r, g, b = c
-    # classic PixelLab green
     if g >= 200 and r <= 40 and b <= 40:
         return True
     if g > r + 80 and g > b + 80 and g >= 160:
@@ -116,7 +136,7 @@ def is_chroma_like(c: tuple[int, int, int], ref: tuple[int, int, int], tol: int)
 
 
 def flood_remove_chroma(im: Image.Image, tol: int = 40, edge_tol: int = 55) -> Image.Image:
-    """Remove background connected to image edges (flood fill), keep interior greens."""
+    """Remove background connected to image edges only (no interior green wipe)."""
     src = im.convert("RGBA")
     w, h = src.size
     px = src.load()
@@ -148,7 +168,6 @@ def flood_remove_chroma(im: Image.Image, tol: int = 40, edge_tol: int = 55) -> I
         for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
             try_enqueue(nx, ny, tol)
 
-    # Strip residual chroma halo on silhouette edge (1px ring), no blur
     out = src.copy()
     opx = out.load()
     for y in range(h):
@@ -158,19 +177,15 @@ def flood_remove_chroma(im: Image.Image, tol: int = 40, edge_tol: int = 55) -> I
                 continue
             if not is_chroma_like((r, g, b), ref, edge_tol):
                 continue
-            # only if adjacent to transparent
             border = False
             for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                if nx < 0 or ny < 0 or nx >= w or ny >= h:
-                    border = True
-                    break
-                if opx[nx, ny][3] == 0:
+                if nx < 0 or ny < 0 or nx >= w or ny >= h or opx[nx, ny][3] == 0:
                     border = True
                     break
             if border:
                 opx[x, y] = (0, 0, 0, 0)
 
-    # Enclosed chroma pockets (e.g. between legs) — only near-pure key green
+    # Enclosed pure-key pockets (e.g. between legs)
     for y in range(h):
         for x in range(w):
             r, g, b, a = opx[x, y]
@@ -180,6 +195,26 @@ def flood_remove_chroma(im: Image.Image, tol: int = 40, edge_tol: int = 55) -> I
                 opx[x, y] = (0, 0, 0, 0)
             elif color_close((r, g, b), ref, 12) and g >= 220 and r <= 30 and b <= 30:
                 opx[x, y] = (0, 0, 0, 0)
+    return out
+
+
+def prepare_frames(frames: list[Image.Image], meta: dict) -> list[Image.Image]:
+    if meta.get("needs_chroma_flood"):
+        return [flood_remove_chroma(f) for f in frames]
+    # Transparency already present — keep it; strip residual opaque pure-green pockets only.
+    out: list[Image.Image] = []
+    for fr in frames:
+        img = fr.copy()
+        px = img.load()
+        w, h = img.size
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = px[x, y]
+                if a == 0:
+                    px[x, y] = (0, 0, 0, 0)
+                elif g >= 250 and r <= 8 and b <= 8:
+                    px[x, y] = (0, 0, 0, 0)
+        out.append(img)
     return out
 
 
@@ -199,32 +234,35 @@ def opaque_bbox(im: Image.Image) -> tuple[int, int, int, int] | None:
     return minx, miny, maxx, maxy
 
 
-def baseline_align(frames: list[Image.Image]) -> tuple[list[Image.Image], list[dict]]:
-    """Align feet to a common baseline with integer pixel shifts; keep canvas size."""
-    infos = []
-    bboxes = [opaque_bbox(f) for f in frames]
-    foot_ys = [b[3] if b else None for b in bboxes]
-    valid = [y for y in foot_ys if y is not None]
-    if not valid:
-        return frames, [{"dx": 0, "dy": 0} for _ in frames]
-    target_foot = max(valid)  # push down to lowest foot so nothing clipped
-    # horizontal: center of feet bbox mid-x to canvas center
-    w, h = frames[0].size
-    target_cx = w // 2
+def align_frames_to_target(
+    frames: list[Image.Image], target_foot: int, target_cx: int
+) -> tuple[list[Image.Image], list[dict]]:
+    """Integer-pixel shift to shared foot baseline + horizontal center. Keep canvas."""
     out: list[Image.Image] = []
-    for fr, bb, fy in zip(frames, bboxes, foot_ys):
-        if bb is None or fy is None:
+    infos: list[dict] = []
+    w, h = frames[0].size
+    for fr in frames:
+        bb = opaque_bbox(fr)
+        if bb is None:
             out.append(fr)
             infos.append({"dx": 0, "dy": 0})
             continue
         cx = (bb[0] + bb[2]) // 2
+        fy = bb[3]
         dx = target_cx - cx
         dy = target_foot - fy
-        # clamp so content stays on canvas as much as possible
         canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         canvas.paste(fr, (dx, dy), fr)
         out.append(canvas)
-        infos.append({"dx": dx, "dy": dy, "foot_y_before": fy, "foot_y_after": fy + dy})
+        infos.append(
+            {
+                "dx": dx,
+                "dy": dy,
+                "foot_y_before": fy,
+                "foot_y_after": fy + dy,
+                "bbox_before": list(bb),
+            }
+        )
     return out, infos
 
 
@@ -238,20 +276,27 @@ def contact_sheet(frames: list[Image.Image], labels: list[str], path: Path, cell
     label_h = 18
     cw, ch = w + cell_pad * 2, h + cell_pad * 2 + label_h
     sheet = Image.new("RGBA", (cols * cw, rows * ch), (40, 42, 46, 255))
-    # checker under each
     draw = ImageDraw.Draw(sheet)
     font = ImageFont.load_default()
     for i, fr in enumerate(frames):
         r, c = divmod(i, cols)
         x0, y0 = c * cw, r * ch
-        # checker
         for yy in range(h):
             for xx in range(w):
-                col = (210, 210, 210, 255) if ((xx // 4) + (yy // 4)) % 2 == 0 else (180, 180, 180, 255)
+                col = (
+                    (210, 210, 210, 255)
+                    if ((xx // 4) + (yy // 4)) % 2 == 0
+                    else (180, 180, 180, 255)
+                )
                 sheet.putpixel((x0 + cell_pad + xx, y0 + cell_pad + yy), col)
         sheet.alpha_composite(fr, (x0 + cell_pad, y0 + cell_pad))
         label = labels[i] if i < len(labels) else str(i)
-        draw.text((x0 + 4, y0 + cell_pad + h + 2), label, fill=(240, 240, 235, 255), font=font)
+        draw.text(
+            (x0 + 4, y0 + cell_pad + h + 2),
+            label,
+            fill=(240, 240, 235, 255),
+            font=font,
+        )
     path.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(path)
 
@@ -271,43 +316,75 @@ def save_frames(frames: list[Image.Image], folder: Path, prefix: str = "frame_")
 def process() -> dict:
     if not UPLOAD.is_dir():
         raise SystemExit(f"Missing inbox: {UPLOAD}")
-    for required in (GIF_IDLE, GIF_WALK_S, GIF_WALK_E):
-        if not required.exists():
-            raise SystemExit(f"Missing GIF: {required}")
+    required = [GIF_IDLE, *WALK_GIFS.values()]
+    for path in required:
+        if not path.exists():
+            raise SystemExit(f"Missing GIF: {path}")
 
     if OUT.exists():
         shutil.rmtree(OUT)
     (OUT / "idle").mkdir(parents=True)
+    (OUT / "walk").mkdir(parents=True)
     (OUT / "preview").mkdir(parents=True)
 
     manifest: dict = {
-        "version": 1,
+        "version": 2,
         "generated": date.today().isoformat(),
         "source_inbox": "upload/hero/",
         "runtime_root": "assets/characters/player/pixellab_v1/",
         "notes": [
-            "PixelLab hero v1 under in-engine evaluation.",
-            "Walk directions available: south and east.",
-            "West is mirrored from east at runtime (flip_h).",
-            "North walking animation is not generated yet.",
-            "Original PixelLab exports remain in upload/hero/.",
+            "PixelLab hero v1: idle + walking in 8 directions.",
+            "No mirroring or direction substitution.",
+            "Current in-engine node scale is Vector2.ONE (provisionally accepted).",
+            "Runtime display may apply integer nearest PIXEL_DIV=2 (does not rewrite PNGs).",
+            "Original PixelLab exports remain permanently in upload/hero/.",
         ],
         "gifs": {},
         "idle_direction_mapping": IDLE_DIRECTION_MAPPING,
+        "baseline": {},
         "baseline_offsets": {},
+        "walk_paths": {},
+        "idle_paths": {},
     }
 
-    # --- Idle rotations ---
-    idle_raw, idle_dur, idle_meta = load_gif_frames_rgb(GIF_IDLE)
-    idle_keyed = [flood_remove_chroma(f) for f in idle_raw]
-    idle_aligned, idle_off = baseline_align(idle_keyed)
-    manifest["gifs"]["Idle_rotations_8dir.gif"] = idle_meta
+    # Load + key all clips first (shared baseline pass).
+    idle_raw, _idle_dur, idle_meta = load_gif_frames(GIF_IDLE)
+    idle_keyed = prepare_frames(idle_raw, idle_meta)
+    manifest["gifs"][GIF_IDLE.name] = idle_meta
+
+    walk_keyed: dict[str, list[Image.Image]] = {}
+    for direction, gif_path in WALK_GIFS.items():
+        raw, _dur, meta = load_gif_frames(gif_path)
+        keyed = prepare_frames(raw, meta)
+        walk_keyed[direction] = keyed
+        manifest["gifs"][gif_path.name] = meta
+
+    # Shared foot baseline + center across every frame in the set.
+    all_frames: list[Image.Image] = list(idle_keyed)
+    for d in DIR_ORDER:
+        all_frames.extend(walk_keyed[d])
+    foot_ys: list[int] = []
+    for fr in all_frames:
+        bb = opaque_bbox(fr)
+        if bb:
+            foot_ys.append(bb[3])
+    if not foot_ys:
+        raise SystemExit("No opaque pixels found in hero frames.")
+    target_foot = max(foot_ys)
+    target_cx = idle_keyed[0].size[0] // 2
+    manifest["baseline"] = {
+        "target_foot_y": target_foot,
+        "target_center_x": target_cx,
+        "canvas": list(idle_keyed[0].size),
+        "method": "integer_pixel_shift_shared_across_idle_and_walk",
+    }
+
+    idle_aligned, idle_off = align_frames_to_target(idle_keyed, target_foot, target_cx)
     manifest["baseline_offsets"]["idle_rotations"] = idle_off
 
-    # Indexed contact BEFORE mapping (all frames)
     contact_sheet(
         idle_aligned,
-        [f"frame {i}" for i in range(len(idle_aligned))],
+        [f"{i}:{next(k for k,v in IDLE_DIRECTION_MAPPING.items() if v==i)}" for i in range(len(idle_aligned))],
         OUT / "preview" / "idle_rotations_indexed.png",
     )
 
@@ -318,53 +395,46 @@ def process() -> dict:
         idle_paths[name] = str(p.relative_to(ROOT)).replace("\\", "/")
     manifest["idle_paths"] = idle_paths
 
-    # --- Walk south ---
-    ws_raw, ws_dur, ws_meta = load_gif_frames_rgb(GIF_WALK_S)
-    ws_keyed = [flood_remove_chroma(f) for f in ws_raw]
-    ws_aligned, ws_off = baseline_align(ws_keyed)
-    manifest["gifs"]["Idle_v3_walking_south.gif"] = ws_meta
-    manifest["baseline_offsets"]["walk_south"] = ws_off
-    ws_paths = save_frames(ws_aligned, OUT / "walk_south")
-    manifest["walk_south_frames"] = ws_paths
-    contact_sheet(
-        ws_aligned,
-        [f"s{i:02d}" for i in range(len(ws_aligned))],
-        OUT / "preview" / "walk_south_contact_sheet.png",
-    )
+    for direction in DIR_ORDER:
+        keyed = walk_keyed[direction]
+        aligned, offs = align_frames_to_target(keyed, target_foot, target_cx)
+        manifest["baseline_offsets"][f"walk_{direction}"] = offs
+        folder = OUT / "walk" / direction
+        paths = save_frames(aligned, folder)
+        manifest["walk_paths"][direction] = paths
+        contact_sheet(
+            aligned,
+            [f"{direction[0:2]}{i:02d}" for i in range(len(aligned))],
+            OUT / "preview" / f"walk_{direction}_contact_sheet.png",
+        )
 
-    # --- Walk east ---
-    we_raw, we_dur, we_meta = load_gif_frames_rgb(GIF_WALK_E)
-    we_keyed = [flood_remove_chroma(f) for f in we_raw]
-    we_aligned, we_off = baseline_align(we_keyed)
-    manifest["gifs"]["Idle_v3_walking_east.gif"] = we_meta
-    manifest["baseline_offsets"]["walk_east"] = we_off
-    we_paths = save_frames(we_aligned, OUT / "walk_east")
-    manifest["walk_east_frames"] = we_paths
-    contact_sheet(
-        we_aligned,
-        [f"e{i:02d}" for i in range(len(we_aligned))],
-        OUT / "preview" / "walk_east_contact_sheet.png",
+    # Compact 8-dir walk demo GIF (frame 0 of each direction, then a short cycle of south).
+    demo_frames: list[Image.Image] = []
+    for direction in DIR_ORDER:
+        demo_frames.append(Image.open(OUT / "walk" / direction / "frame_00.png").convert("RGBA"))
+    south_cycle = [
+        Image.open(OUT / "walk" / "south" / f"frame_{i:02d}.png").convert("RGBA")
+        for i in range(8)
+    ]
+    demo_path = OUT / "preview" / "walk_8dir_demo.gif"
+    demo_frames[0].save(
+        demo_path,
+        save_all=True,
+        append_images=demo_frames[1:] + south_cycle,
+        duration=220,
+        loop=0,
+        disposal=2,
     )
-
-    # Scale comparison sheet (1.0 / 0.75 / 0.5) using idle south
-    scale_sheet = Image.new("RGBA", (92 * 3 + 40, 92 + 40), (36, 38, 42, 255))
-    draw = ImageDraw.Draw(scale_sheet)
-    font = ImageFont.load_default()
-    base = idle_aligned[IDLE_DIRECTION_MAPPING["south"]]
-    for i, sc in enumerate((1.0, 0.75, 0.5)):
-        nw, nh = max(1, int(round(92 * sc))), max(1, int(round(92 * sc)))
-        scaled = base.resize((nw, nh), Image.NEAREST)
-        x = 10 + i * (92 + 10)
-        y = 20
-        scale_sheet.alpha_composite(scaled, (x + (92 - nw) // 2, y + (92 - nh) // 2))
-        draw.text((x, 4), f"scale {sc}", fill=(240, 240, 235, 255), font=font)
-    scale_sheet.save(OUT / "preview" / "scale_compare.png")
+    manifest["preview_demo_gif"] = str(demo_path.relative_to(ROOT)).replace("\\", "/")
 
     manifest_path = OUT / "source_manifest.json"
-    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     print("Imported PixelLab hero ->", OUT)
     print("Idle mapping:", IDLE_DIRECTION_MAPPING)
-    print("Walk south frames:", len(ws_aligned), "Walk east frames:", len(we_aligned))
+    print("Walk directions:", ", ".join(DIR_ORDER))
+    print("Shared foot_y:", target_foot, "canvas:", idle_keyed[0].size)
     return manifest
 
 

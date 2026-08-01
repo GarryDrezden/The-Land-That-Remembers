@@ -1,6 +1,6 @@
 # ARCHITECTURE
 
-Обновлено: 2026-08-01 (PixelLab hero prototype)  
+Обновлено: 2026-08-01 (full 8-direction PixelLab hero)  
 **Ориентир структуры (план):** [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md)  
 **Этот файл:** что **фактически** есть в репозитории сейчас (не идеальная целевая схема).
 
@@ -8,18 +8,21 @@
 
 ---
 
-## PixelLab hero prototype
+## PixelLab hero v1 (8-dir)
 
 | Элемент | Путь |
 |---------|------|
-| Inbox GIFs | `upload/hero/` |
+| Inbox GIFs (permanent) | `upload/hero/` |
 | Importer | `tools/import_pixellab_hero.py` |
-| Runtime PNGs | `assets/characters/player/pixellab_v1/` |
+| Runtime PNGs | `assets/characters/player/pixellab_v1/` (`idle/`, `walk/<dir>/`, `preview/`) |
+| Manifest | `…/source_manifest.json` |
 | Player test scene | `scenes/actors/player/player_pixellab_test.tscn` |
 | CraftPix yard test | `scenes/locations/outdoor/childhood_home/craftpix_hero_test.tscn` |
 | Audit | `docs/HERO_PIXEL_LAB_AUDIT.md` |
 
-`craftpix_home_preview.tscn` остаётся без изменений; герой проверяется только в `craftpix_hero_test.tscn`.
+- Idle + walk: **8 directions**, no mirroring.
+- Node scale `Vector2.ONE` (provisionally accepted); runtime nearest `PIXEL_DIV=2` without rewriting PNGs.
+- `craftpix_home_preview.tscn` unchanged; hero only in `craftpix_hero_test.tscn`.
 
 ---
 
