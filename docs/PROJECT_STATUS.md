@@ -1,14 +1,16 @@
 # PROJECT STATUS
 
-Обновлено: 2026-08-01 (CraftPix preview polish — gate/hedge)
+Обновлено: 2026-08-01 (Asset Catalog)
 
 ## Кратко
 
-- CraftPix home preview — **polish pass принят по геймплею входа**: южный проём открыт, hedge/props убраны с дорожки, коллизии забора не перекрывают калитку.  
-- Скрины: `docs/art_tests/craftpix_home_preview*.png` (overview / gate / outside / gate_collisions).  
-- Pack по-прежнему **under evaluation** (DEC-008).  
-- **Стоп:** GameRoot, основной двор, character pack, interior gameplay.
+- **Asset Catalog** онлайн: inbox `upload/` + registry `data/assets/` + GitHub pages `docs/assets/`.  
+- Команда: `python tools/build_asset_catalog.py` (`--check` для актуальности).  
+- CraftPix home preview остаётся under evaluation; **не** перестраивался в этом шаге.  
+- **Стоп:** не внедрять AREA selections в gameplay / GameRoot / основной двор без явного выбора владельца.
 
 ## Следующее
 
-Визуально принять/отклонить pack как outdoor base после просмотра скринов.
+1. Владелец просматривает contact sheets и подтверждает лицензии packs с `needs_review`.  
+2. Заполняет `docs/assets/AREA_ASSET_SELECTIONS.md` Asset ID.  
+3. Только после этого — подготовка selected assets в `assets/third_party/.../runtime/`.

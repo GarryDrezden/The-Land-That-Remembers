@@ -1,0 +1,61 @@
+{
+  "_comment": "Manual overrides keyed by source_path (posix, relative to repo root).",
+  "assets/third_party/craftpix/main_characters_home/source/PNG/cat_animation.png": {
+    "category": "animal",
+    "tags": ["outdoor", "animal", "craftpix"],
+    "notes": "Cat animation sheet — not a player character."
+  },
+  "assets/third_party/craftpix/main_characters_home/source/Tiled_files/cat_animation.png": {
+    "category": "animal",
+    "tags": ["outdoor", "animal", "craftpix"],
+    "notes": "Cat animation sheet — not a player character."
+  },
+  "assets/third_party/craftpix/main_characters_home/source/PNG/bird_fly_animation.png": {
+    "category": "animal",
+    "tags": ["outdoor", "animal", "craftpix", "bird"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/Tiled_files/bird_fly_animation.png": {
+    "category": "animal",
+    "tags": ["outdoor", "animal", "craftpix", "bird"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/PNG/bird_jump_animation.png": {
+    "category": "animal",
+    "tags": ["outdoor", "animal", "craftpix", "bird"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/Tiled_files/bird_jump_animation.png": {
+    "category": "animal",
+    "tags": ["outdoor", "animal", "craftpix", "bird"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/PNG/ground_grass_details.png": {
+    "category": "terrain",
+    "tags": ["outdoor", "terrain", "grass", "craftpix"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/Tiled_files/ground_grass_details.png": {
+    "category": "terrain",
+    "tags": ["outdoor", "terrain", "grass", "craftpix"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/PNG/Smoke_animation.png": {
+    "category": "effect",
+    "tags": ["outdoor", "effect", "craftpix"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/Tiled_files/Smoke_animation.png": {
+    "category": "effect",
+    "tags": ["outdoor", "effect", "craftpix"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/PNG/Interior.png": {
+    "category": "interior",
+    "tags": ["interior", "craftpix"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/Tiled_files/Interior.png": {
+    "category": "interior",
+    "tags": ["interior", "craftpix"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/PNG/walls_floor.png": {
+    "category": "interior",
+    "tags": ["interior", "craftpix"]
+  },
+  "assets/third_party/craftpix/main_characters_home/source/Tiled_files/walls_floor.png": {
+    "category": "interior",
+    "tags": ["interior", "craftpix"]
+  }
+}

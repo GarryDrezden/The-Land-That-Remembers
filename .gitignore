@@ -27,8 +27,10 @@ Thumbs.db
 __MACOSX/
 **/_MACOSX/
 
-# Temporary unpack folder (assets live under assets/third_party/...)
-/upload/
+# Permanent INBOX (never delete). Track unpacked packs; zips stay ignored via *.zip above.
+upload/**/__MACOSX/
+upload/**/.DS_Store
+
 
 # Android
 /android/

@@ -1,0 +1,36 @@
+{
+  "yard_main": {
+    "house": {
+      "selected": [],
+      "candidates": [],
+      "rejected": []
+    },
+    "north_border": {
+      "trees": [],
+      "bushes": [],
+      "rocks": []
+    },
+    "entrance": {
+      "fence": [],
+      "gate": [],
+      "path": [],
+      "decoration": []
+    },
+    "pond_zone": {
+      "water": [],
+      "shore": [],
+      "reeds": [],
+      "rocks": []
+    },
+    "overgrown_zone": {
+      "weeds": [],
+      "bushes": [],
+      "logs": [],
+      "stumps": [],
+      "trees": []
+    }
+  },
+  "house_exterior": {},
+  "shed_zone": {},
+  "future_village_road": {}
+}

@@ -5,6 +5,24 @@
 
 ---
 
+## DEC-009: Permanent asset inbox + stable Asset Catalog
+
+**Решение:**
+- `res://upload/` is the **permanent incoming asset inbox** and **must not be deleted**;
+- every imported visual asset receives a **stable Asset ID**;
+- GitHub Markdown contact sheets (`docs/assets/`) are the **primary owner-facing selection interface**;
+- runtime scenes use **only explicitly selected** assets copied/prepared under `assets/third_party/`;
+- catalog is regenerated with `python tools/build_asset_catalog.py` (idempotent IDs; `--check` for staleness).
+
+**Последствия:**
+- не авто-копировать всё из `upload/` в runtime;
+- выбор зон фиксируется в `docs/assets/AREA_ASSET_SELECTIONS.md` + `data/assets/area_asset_selections.json` (пока без gameplay wiring);
+- debug gallery: `scenes/debug/asset_gallery.tscn`.
+
+**Статус:** принято · 2026-08-01
+
+---
+
 ## DEC-008: CraftPix Main Character’s Home — under evaluation
 
 **Решение:**

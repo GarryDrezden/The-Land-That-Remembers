@@ -2,6 +2,20 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (k) — incremental visual Asset Catalog
+
+**Сделано:**
+- постоянный INBOX `upload/` (убран из `.gitignore`; не удалять);
+- генератор `tools/build_asset_catalog.py` (идемпотентные Asset ID, previews, contact sheets, Markdown, `--check`);
+- реестр `data/assets/asset_catalog.json` + packs + overrides + area_asset_selections;
+- GitHub catalog: `docs/assets/README.md`, category pages, pack pages;
+- debug gallery `scenes/debug/asset_gallery.tscn`;
+- DEC-009; обновлены THIRD_PARTY_ASSETS / ASSET_INVENTORY / ARCHITECTURE.
+
+**Не делалось:** перестройка CraftPix preview, GameRoot, runtime wiring AREA selections.
+
+---
+
 ## 2026-08-01 (j) — polish CraftPix home preview (gate / hedge / collisions)
 
 **Сделано:**

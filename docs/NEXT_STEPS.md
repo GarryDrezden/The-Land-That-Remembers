@@ -1,16 +1,15 @@
 # NEXT STEPS
 
-Обновлено: 2026-08-01 (CraftPix preview polish — gate/hedge)
+Обновлено: 2026-08-01 (Asset Catalog)
 
 ## Сейчас
 
-Просмотреть polish-скрины и решить по pack:
-
-- `docs/art_tests/craftpix_home_preview.png`
-- `…_gate.png` — игрок у калитки
-- `…_outside.png` — снаружи после прохода
-- `…_gate_collisions.png` — коллизии у проёма (cyan = fence/house, orange = player)
+1. Открыть [docs/assets/README.md](assets/README.md).  
+2. Просмотреть contact sheets (trees / bushes / rocks / CraftPix home / packs).  
+3. Подтвердить лицензии packs со статусом `needs_review` в [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).  
+4. Записать выбранные Asset ID в [AREA_ASSET_SELECTIONS.md](assets/AREA_ASSET_SELECTIONS.md).
 
 ## Стоп
 
-Не переносить в основной двор / GameRoot без подтверждения.
+Не подключать catalog selections к GameRoot / yard_main gameplay без явного решения.
+Не удалять `upload/`.

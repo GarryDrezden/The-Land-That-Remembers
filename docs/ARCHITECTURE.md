@@ -1,10 +1,30 @@
 # ARCHITECTURE
 
-Обновлено: 2026-08-01 (CraftPix home preview)  
+Обновлено: 2026-08-01 (Asset Catalog)  
 **Ориентир структуры (план):** [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md)  
 **Этот файл:** что **фактически** есть в репозитории сейчас (не идеальная целевая схема).
 
 Приоритет документов: VISION → VERTICAL_SLICE → PROJECT_STRUCTURE → **этот файл** → PROJECT_STATUS.
+
+---
+
+## Asset Catalog / inbox
+
+| Элемент | Путь |
+|---------|------|
+| Permanent inbox | `upload/` (**never delete**) |
+| Catalog builder | `tools/build_asset_catalog.py` |
+| Machine registry | `data/assets/asset_catalog.json` |
+| Pack registry | `data/assets/asset_packs.json` |
+| Overrides | `data/assets/asset_catalog_overrides.json` |
+| Area selections (data) | `data/assets/area_asset_selections.json` |
+| Owner catalog (GitHub) | `docs/assets/README.md` |
+| Debug gallery | `scenes/debug/asset_gallery.tscn` |
+| Runtime selected only | `assets/third_party/<vendor>/<pack>/runtime/` |
+
+Flow: drop packs into `upload/` → run catalog → owner picks Asset IDs → record in AREA selections → only then copy/prepare into `assets/third_party/`.
+
+Decision: [DEC-009](DECISIONS.md).
 
 ---
 

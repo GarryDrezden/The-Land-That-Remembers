@@ -1,10 +1,40 @@
 # ASSET INVENTORY
 
-Обновлено: 2026-08-01 (CraftPix home pack integration)
+Обновлено: 2026-08-01 (Asset Catalog)
 
-Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md)
+Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md) · **catalog:** [assets/README.md](assets/README.md)
+
+## Asset Catalog (owner selection)
+
+| Item | Path |
+|------|------|
+| Inbox (permanent) | `upload/` |
+| Generator | `tools/build_asset_catalog.py` |
+| Registry | `data/assets/asset_catalog.json` |
+| Overrides | `data/assets/asset_catalog_overrides.json` |
+| Area selections | `docs/assets/AREA_ASSET_SELECTIONS.md` + `data/assets/area_asset_selections.json` |
+| Previews / sheets | `docs/assets/catalog/` |
+| Debug gallery | `scenes/debug/asset_gallery.tscn` |
+
+Update: `python tools/build_asset_catalog.py` · check: `python tools/build_asset_catalog.py --check`
 
 ## Visual direction (approved)
+
+| Поле | Значение |
+|------|----------|
+| Направление | original detailed Stardew-like outdoor pixel art with rural childhood-home identity |
+| Status | **approved** ([DEC-005](DECISIONS.md), [DEC-006](DECISIONS.md)) |
+
+## Scale lock
+
+| Параметр | Значение |
+|----------|----------|
+| Viewport target | 384×240 (preview uses integer ×3 window) |
+| CraftPix tile | **16×16** (TMX) |
+
+---
+
+## CraftPix Main Character’s Home (under evaluation)
 
 | Поле | Значение |
 |------|----------|
