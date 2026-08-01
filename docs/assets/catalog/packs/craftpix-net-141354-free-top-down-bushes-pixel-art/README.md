@@ -1,6 +1,6 @@
 # Pack: craftpix-net-141354-free-top-down-bushes-pixel-art
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `craftpix-net-141354-free-top-down-bushes-pixel-art` / `craftpix-net-141354-free-top-down-bushes-pixel-art`
 - **Source folder:** `upload/craftpix-net-141354-free-top-down-bushes-pixel-art.zip`

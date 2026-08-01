@@ -1,6 +1,6 @@
 # Asset Catalog
 
-**Primary entry:** [START_HERE.md](START_HERE.md)
+**Primary entry:** [корневой README — Где смотреть ассеты](../../README.md#где-смотреть-ассеты)
 
 Owner-facing catalog of incoming and imported visual assets.
 

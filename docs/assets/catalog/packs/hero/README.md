@@ -1,6 +1,6 @@
 # Pack: hero
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `hero` / `hero`
 - **Source folder:** `upload/hero`

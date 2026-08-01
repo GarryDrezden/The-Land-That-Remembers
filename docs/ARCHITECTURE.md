@@ -54,7 +54,7 @@ CraftPix `craftpix_home_preview` / `craftpix_hero_test` остаются отд�
 | Pack registry | `data/assets/asset_packs.json` |
 | Overrides | `data/assets/asset_catalog_overrides.json` |
 | Area selections (data) | `data/assets/area_asset_selections.json` |
-| Owner entry (GitHub) | `docs/assets/START_HERE.md` |
+| Owner entry (GitHub) | корневой `README.md` → раздел «Где смотреть ассеты» |
 | Categories / packs / sheets | `docs/assets/catalog/` |
 | Debug gallery | `scenes/debug/asset_gallery.tscn` (F6) |
 | Runtime selected only | after explicit Asset ID selection |

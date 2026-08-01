@@ -1,6 +1,6 @@
 # Pack: rocks-and-stones-top-down-pixel-art
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `rocks-and-stones-top-down-pixel-art` / `rocks-and-stones-top-down-pixel-art`
 - **Source folder:** `upload/rocks-and-stones-top-down-pixel-art`

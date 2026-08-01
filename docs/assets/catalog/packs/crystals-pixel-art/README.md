@@ -1,6 +1,6 @@
 # Pack: crystals-pixel-art
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `crystals-pixel-art` / `crystals-pixel-art`
 - **Source folder:** `upload/crystals-pixel-art`

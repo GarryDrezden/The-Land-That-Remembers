@@ -1,6 +1,6 @@
 # Pack: craftpix-main_characters_home
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `craftpix-main-characters-home` / `craftpix-main_characters_home`
 - **Source folder:** `assets/third_party/craftpix/main_characters_home`

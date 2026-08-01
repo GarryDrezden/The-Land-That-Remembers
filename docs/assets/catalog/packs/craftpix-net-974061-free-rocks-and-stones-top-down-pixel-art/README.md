@@ -1,6 +1,6 @@
 # Pack: craftpix-net-974061-free-rocks-and-stones-top-down-pixel-art
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `craftpix-net-974061-free-rocks-and-stones-top-down-pixel-art` / `craftpix-net-974061-free-rocks-and-stones-top-down-pixel-art`
 - **Source folder:** `upload/craftpix-net-974061-free-rocks-and-stones-top-down-pixel-art.zip`

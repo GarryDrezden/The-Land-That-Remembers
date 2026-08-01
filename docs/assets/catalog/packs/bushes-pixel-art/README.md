@@ -1,6 +1,6 @@
 # Pack: bushes-pixel-art
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `bushes-pixel-art` / `bushes-pixel-art`
 - **Source folder:** `upload/bushes-pixel-art`

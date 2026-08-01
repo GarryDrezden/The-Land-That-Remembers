@@ -2,7 +2,7 @@
 
 Обновлено: 2026-08-01 (VS01 yard candidate)
 
-Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md) · **catalog:** [assets/START_HERE.md](assets/START_HERE.md)
+Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md) · **catalog:** [README — Где смотреть ассеты](../README.md#где-смотреть-ассеты)
 
 ## VS01 yard (under evaluation)
 
@@ -38,7 +38,7 @@ Idle + walk: **8 directions**. No mirroring / no direction substitution. Node sc
 
 | Item | Path |
 |------|------|
-| **Start here** | [`docs/assets/START_HERE.md`](assets/START_HERE.md) |
+| **Start here** | корневой [`README.md`](../README.md#где-смотреть-ассеты) |
 | Inbox (permanent) | `upload/` |
 | Generator | `tools/build_asset_catalog.py` |
 | Registry | `data/assets/asset_catalog.json` |

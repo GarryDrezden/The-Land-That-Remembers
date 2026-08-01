@@ -1,6 +1,6 @@
 # Pack: trees-pixel-art
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `trees-pixel-art` / `trees-pixel-art`
 - **Source folder:** `upload/trees-pixel-art`

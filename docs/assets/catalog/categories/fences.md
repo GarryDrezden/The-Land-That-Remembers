@@ -1,6 +1,6 @@
 # Fences
 
-[← START_HERE](../../START_HERE.md)
+[← Каталог ассетов](../../../../README.md#где-смотреть-ассеты)
 
 Categories: `fence`, `gate`
 

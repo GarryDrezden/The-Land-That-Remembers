@@ -2,7 +2,7 @@
 
 Owner decisions for concrete game areas. Use **Asset IDs** only.
 
-See also: [START_HERE.md](START_HERE.md) · machine: `data/assets/area_asset_selections.json`
+See also: [корневой README — каталог](../../README.md#где-смотреть-ассеты) · machine: `data/assets/area_asset_selections.json`
 
 ## VS01 / childhood_home_yard
 

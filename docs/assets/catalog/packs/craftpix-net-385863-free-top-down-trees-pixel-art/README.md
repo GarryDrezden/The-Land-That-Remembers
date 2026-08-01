@@ -1,6 +1,6 @@
 # Pack: craftpix-net-385863-free-top-down-trees-pixel-art
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `craftpix-net-385863-free-top-down-trees-pixel-art` / `craftpix-net-385863-free-top-down-trees-pixel-art`
 - **Source folder:** `upload/craftpix-net-385863-free-top-down-trees-pixel-art.zip`

@@ -7,7 +7,7 @@
 - **PixelLab hero v1** принят временно: idle+walk 8-dir, node scale `1.0`, display `PIXEL_DIV=2`.
 - **Outdoor VS01:** `scenes/locations/outdoor/childhood_home/yard_vs01.tscn`.
 - **Дом:** `HOUSE_MAIN_HOUSE_V1` ← `upload/houses/main_house_v1.png`.
-- **Каталог ассетов:** точка входа [`docs/assets/START_HERE.md`](assets/START_HERE.md); обновление `python tools/build_asset_catalog.py`.
+- **Каталог ассетов:** точка входа — корневой [`README.md`](../README.md#где-смотреть-ассеты); обновление `python tools/build_asset_catalog.py`.
 - Oversized fairy props не используются как якоря; старые art-test сцены не ломались.
 
 ## Следующее

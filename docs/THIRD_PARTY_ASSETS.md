@@ -2,7 +2,7 @@
 
 Registry of external art/code used by *The Land That Remembers*.
 
-**Catalog:** [docs/assets/START_HERE.md](assets/START_HERE.md) · machine registry: `data/assets/asset_packs.json`
+**Catalog:** [README — Где смотреть ассеты](../README.md#где-смотреть-ассеты) · machine registry: `data/assets/asset_packs.json`
 
 **Inbox:** `upload/` is the permanent incoming asset drop folder. Do **not** delete, clear, rename, or move it wholesale. Originals are never overwritten by the catalog. Unpacked packs are catalogued; runtime integration happens only after explicit Asset ID selection.
 

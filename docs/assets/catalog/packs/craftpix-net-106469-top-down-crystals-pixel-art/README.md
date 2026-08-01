@@ -1,6 +1,6 @@
 # Pack: craftpix-net-106469-top-down-crystals-pixel-art
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `craftpix-net-106469-top-down-crystals-pixel-art` / `craftpix-net-106469-top-down-crystals-pixel-art`
 - **Source folder:** `upload/craftpix-net-106469-top-down-crystals-pixel-art.zip`

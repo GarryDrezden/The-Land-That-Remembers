@@ -1,6 +1,6 @@
 # Props
 
-[← START_HERE](../../START_HERE.md)
+[← Каталог ассетов](../../../../README.md#где-смотреть-ассеты)
 
 Categories: `prop`, `furniture`, `well`, `crystal`, `effect`, `icon`, `ui`, `interior`
 

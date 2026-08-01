@@ -1,6 +1,6 @@
 # Pack: houses
 
-[← START_HERE](../../../START_HERE.md)
+[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)
 
 - **Slug / pack_id:** `houses` / `houses`
 - **Source folder:** `upload/houses`

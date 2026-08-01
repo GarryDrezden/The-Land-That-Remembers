@@ -5,7 +5,8 @@ Persistent visual asset catalog for The Land That Remembers.
 Scans permanent INBOX `upload/` (+ already-imported `assets/third_party/`)
 and regenerates:
   - data/assets/asset_catalog.json
-  - docs/assets/START_HERE.md
+  - README.md section «Где смотреть ассеты» (primary owner entry)
+  - docs/assets/START_HERE.md (redirect stub)
   - docs/assets/catalog/previews/<PACK>/<ASSET_ID>.png
   - docs/assets/catalog/contact_sheets/
   - docs/assets/catalog/categories/*.md
@@ -683,7 +684,7 @@ def write_category_md(page_key: str, cats: list[str], assets: list[dict], sheet_
     lines = [
         f"# {page_key.replace('_', ' ').title()}",
         "",
-        f"[← START_HERE](../../START_HERE.md)",
+        f"[← Каталог ассетов](../../../../README.md#где-смотреть-ассеты)",
         "",
         f"Categories: {', '.join(f'`{c}`' for c in cats)}",
         "",
@@ -752,7 +753,7 @@ def write_pack_md(pack: dict, assets: list[dict], license_info: dict, has_local_
     lines = [
         f"# Pack: {pack['pack_id']}",
         "",
-        f"[← START_HERE](../../../START_HERE.md)",
+        f"[← Каталог ассетов](../../../../../README.md#где-смотреть-ассеты)",
         "",
         f"- **Slug / pack_id:** `{slug}` / `{pack['pack_id']}`",
         f"- **Source folder:** `{pack['source_folder']}`",
@@ -809,21 +810,26 @@ def write_pack_md(pack: dict, assets: list[dict], license_info: dict, has_local_
     (out_dir / "README.md").write_text("\n".join(lines), encoding="utf-8")
 
 
-def write_start_here(stats: dict, pack_slugs: list[str]) -> None:
+ASSET_CATALOG_BEGIN = "<!-- ASSET_CATALOG_BEGIN -->"
+ASSET_CATALOG_END = "<!-- ASSET_CATALOG_END -->"
+
+
+def _asset_catalog_section_for_root(stats: dict, pack_slugs: list[str]) -> str:
+    """Markdown block for root README (links relative to repo root)."""
     lines = [
         "# Где смотреть ассеты",
         "",
-        "1. Все категории: [docs/assets/catalog/categories/](catalog/categories/)",
+        "1. Все категории: [docs/assets/catalog/categories/](docs/assets/catalog/categories/)",
         "",
-        "2. Все наборы: [docs/assets/catalog/packs/](catalog/packs/)",
+        "2. Все наборы: [docs/assets/catalog/packs/](docs/assets/catalog/packs/)",
         "",
-        "3. Большие визуальные таблицы: [docs/assets/catalog/contact_sheets/](catalog/contact_sheets/)",
+        "3. Большие визуальные таблицы: [docs/assets/catalog/contact_sheets/](docs/assets/catalog/contact_sheets/)",
         "",
-        "4. Выбор ассетов для игровых зон: [AREA_ASSET_SELECTIONS.md](AREA_ASSET_SELECTIONS.md)",
+        "4. Выбор ассетов для игровых зон: [docs/assets/AREA_ASSET_SELECTIONS.md](docs/assets/AREA_ASSET_SELECTIONS.md)",
         "",
         "5. Каталог внутри Godot: `res://scenes/debug/asset_gallery.tscn` (F6)",
         "",
-        "6. Машинный реестр: [`data/assets/asset_catalog.json`](../../data/assets/asset_catalog.json)",
+        "6. Машинный реестр: [`data/assets/asset_catalog.json`](data/assets/asset_catalog.json)",
         "",
         "---",
         "",
@@ -856,26 +862,58 @@ def write_start_here(stats: dict, pack_slugs: list[str]) -> None:
         "",
     ]
     for key in MD_CATEGORY_PAGES:
-        lines.append(f"- [{key}](catalog/categories/{key}.md)")
+        lines.append(f"- [{key}](docs/assets/catalog/categories/{key}.md)")
     lines += ["", "## Packs", ""]
     for slug in pack_slugs:
-        lines.append(f"- [{slug}](catalog/packs/{slug}/README.md)")
+        lines.append(f"- [{slug}](docs/assets/catalog/packs/{slug}/README.md)")
     lines += [
         "",
         "## Also",
         "",
-        "- Legacy index: [README.md](README.md)",
+        "- Подробный индекс каталога: [docs/assets/README.md](docs/assets/README.md)",
         "- Overrides: `data/assets/asset_catalog_overrides.json`",
         "",
     ]
-    (DOCS_ASSETS / "START_HERE.md").write_text("\n".join(lines), encoding="utf-8")
+    return "\n".join(lines)
+
+
+def write_start_here(stats: dict, pack_slugs: list[str]) -> None:
+    """Primary owner entry lives in root README; START_HERE.md is a redirect stub."""
+    section = _asset_catalog_section_for_root(stats, pack_slugs)
+    readme_path = ROOT / "README.md"
+    block = f"{ASSET_CATALOG_BEGIN}\n{section}\n{ASSET_CATALOG_END}"
+    if readme_path.exists():
+        text = readme_path.read_text(encoding="utf-8")
+        if ASSET_CATALOG_BEGIN in text and ASSET_CATALOG_END in text:
+            before, rest = text.split(ASSET_CATALOG_BEGIN, 1)
+            _, after = rest.split(ASSET_CATALOG_END, 1)
+            text = before + block + after
+        else:
+            text = text.rstrip() + "\n\n" + block + "\n"
+        readme_path.write_text(text, encoding="utf-8")
+    else:
+        readme_path.write_text(block + "\n", encoding="utf-8")
+
+    (DOCS_ASSETS / "START_HERE.md").write_text(
+        "\n".join([
+            "# Где смотреть ассеты",
+            "",
+            "Точка входа перенесена в корневой README проекта:",
+            "",
+            "**[README.md — Где смотреть ассеты](../../README.md#где-смотреть-ассеты)**",
+            "",
+            "Этот файл оставлен как короткая ссылка для старых закладок.",
+            "",
+        ]),
+        encoding="utf-8",
+    )
 
 
 def write_main_readme(stats: dict, pack_slugs: list[str]) -> None:
     lines = [
         "# Asset Catalog",
         "",
-        f"**Primary entry:** [START_HERE.md](START_HERE.md)",
+        "**Primary entry:** [корневой README — Где смотреть ассеты](../../README.md#где-смотреть-ассеты)",
         "",
         "Owner-facing catalog of incoming and imported visual assets.",
         "",
@@ -1019,7 +1057,7 @@ def ensure_seed_files() -> None:
 
 Owner decisions for concrete game areas. Use **Asset IDs** only.
 
-See also: [START_HERE.md](START_HERE.md) · machine: `data/assets/area_asset_selections.json`
+See also: [корневой README — каталог](../../README.md#где-смотреть-ассеты) · machine: `data/assets/area_asset_selections.json`
 
 ## VS01 / childhood_home_yard
 
