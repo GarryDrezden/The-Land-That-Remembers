@@ -17,9 +17,10 @@
       "attribution_required": false,
       "owner_confirmation": null,
       "license_file": "upload/bushes-pixel-art/License.txt",
-      "notes": "CraftPix freebies typically allow game use; confirm git redistribution / this specific pack before runtime.",
       "tmx_files": [],
       "tsx_files": [],
+      "json_files": [],
+      "zip_files": [],
       "asset_count": 165,
       "categories": [
         "bush",
@@ -41,9 +42,12 @@
       "modification_allowed": true,
       "attribution_required": false,
       "owner_confirmation": null,
-      "notes": "CraftPix freebies typically allow game use; confirm git redistribution / this specific pack before runtime.",
       "tmx_files": [],
       "tsx_files": [],
+      "json_files": [],
+      "zip_files": [
+        "upload/craftpix-net-106469-top-down-crystals-pixel-art.zip"
+      ],
       "asset_count": 0,
       "categories": []
     },
@@ -62,9 +66,12 @@
       "modification_allowed": true,
       "attribution_required": false,
       "owner_confirmation": null,
-      "notes": "CraftPix freebies typically allow game use; confirm git redistribution / this specific pack before runtime.",
       "tmx_files": [],
       "tsx_files": [],
+      "json_files": [],
+      "zip_files": [
+        "upload/craftpix-net-141354-free-top-down-bushes-pixel-art.zip"
+      ],
       "asset_count": 0,
       "categories": []
     },
@@ -83,9 +90,12 @@
       "modification_allowed": true,
       "attribution_required": false,
       "owner_confirmation": null,
-      "notes": "CraftPix freebies typically allow game use; confirm git redistribution / this specific pack before runtime.",
       "tmx_files": [],
       "tsx_files": [],
+      "json_files": [],
+      "zip_files": [
+        "upload/craftpix-net-385863-free-top-down-trees-pixel-art.zip"
+      ],
       "asset_count": 0,
       "categories": []
     },
@@ -104,9 +114,12 @@
       "modification_allowed": true,
       "attribution_required": false,
       "owner_confirmation": null,
-      "notes": "CraftPix freebies typically allow game use; confirm git redistribution / this specific pack before runtime.",
       "tmx_files": [],
       "tsx_files": [],
+      "json_files": [],
+      "zip_files": [
+        "upload/craftpix-net-974061-free-rocks-and-stones-top-down-pixel-art.zip"
+      ],
       "asset_count": 0,
       "categories": []
     },
@@ -126,12 +139,61 @@
       "attribution_required": false,
       "owner_confirmation": null,
       "license_file": "upload/crystals-pixel-art/License.txt",
-      "notes": "CraftPix freebies typically allow game use; confirm git redistribution / this specific pack before runtime.",
       "tmx_files": [],
       "tsx_files": [],
+      "json_files": [],
+      "zip_files": [],
       "asset_count": 165,
       "categories": [
         "crystal"
+      ]
+    },
+    {
+      "pack_id": "hero",
+      "slug": "hero",
+      "source_folder": "upload/hero",
+      "source_kind": "upload",
+      "license": "project-owned generation — confirm redistribution terms",
+      "license_url": null,
+      "author": "PixelLab (generated)",
+      "source_url": null,
+      "license_status": "needs_review",
+      "git_storage_allowed": null,
+      "commercial_use": null,
+      "modification_allowed": null,
+      "attribution_required": null,
+      "owner_confirmation": null,
+      "tmx_files": [],
+      "tsx_files": [],
+      "json_files": [],
+      "zip_files": [],
+      "asset_count": 9,
+      "categories": [
+        "hero"
+      ]
+    },
+    {
+      "pack_id": "houses",
+      "slug": "houses",
+      "source_folder": "upload/houses",
+      "source_kind": "upload",
+      "license": "project asset",
+      "license_url": null,
+      "author": "project / owner-provided",
+      "source_url": null,
+      "license_status": "reviewed",
+      "git_storage_allowed": true,
+      "commercial_use": null,
+      "modification_allowed": null,
+      "attribution_required": null,
+      "owner_confirmation": null,
+      "tmx_files": [],
+      "tsx_files": [],
+      "json_files": [],
+      "zip_files": [],
+      "asset_count": 1,
+      "categories": [
+        "house"
       ]
     },
     {
@@ -150,9 +212,10 @@
       "attribution_required": false,
       "owner_confirmation": null,
       "license_file": "upload/rocks-and-stones-top-down-pixel-art/License.txt",
-      "notes": "CraftPix freebies typically allow game use; confirm git redistribution / this specific pack before runtime.",
       "tmx_files": [],
       "tsx_files": [],
+      "json_files": [],
+      "zip_files": [],
       "asset_count": 165,
       "categories": [
         "rock"
@@ -174,9 +237,10 @@
       "attribution_required": false,
       "owner_confirmation": null,
       "license_file": "upload/trees-pixel-art/License.txt",
-      "notes": "CraftPix freebies typically allow game use; confirm git redistribution / this specific pack before runtime.",
       "tmx_files": [],
       "tsx_files": [],
+      "json_files": [],
+      "zip_files": [],
       "asset_count": 165,
       "categories": [
         "tree"
@@ -203,6 +267,10 @@
         "assets/third_party/craftpix/main_characters_home/source/Tiled_files/Interior1.tmx"
       ],
       "tsx_files": [],
+      "json_files": [],
+      "zip_files": [
+        "assets/third_party/craftpix/main_characters_home/source/craftpix-net-654184-main-characters-home-free-top-down-pixel-art-asset.zip"
+      ],
       "asset_count": 29,
       "categories": [
         "animal",

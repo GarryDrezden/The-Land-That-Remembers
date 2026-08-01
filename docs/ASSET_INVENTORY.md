@@ -2,7 +2,7 @@
 
 Обновлено: 2026-08-01 (VS01 yard candidate)
 
-Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md) · **catalog:** [assets/README.md](assets/README.md)
+Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md) · **catalog:** [assets/START_HERE.md](assets/START_HERE.md)
 
 ## VS01 yard (under evaluation)
 
@@ -38,12 +38,17 @@ Idle + walk: **8 directions**. No mirroring / no direction substitution. Node sc
 
 | Item | Path |
 |------|------|
+| **Start here** | [`docs/assets/START_HERE.md`](assets/START_HERE.md) |
 | Inbox (permanent) | `upload/` |
 | Generator | `tools/build_asset_catalog.py` |
 | Registry | `data/assets/asset_catalog.json` |
 | Overrides | `data/assets/asset_catalog_overrides.json` |
+| Selected house | `HOUSE_MAIN_HOUSE_V1` |
+| Selected/runtime hero | `HERO_PIXEL_LAB_IDLE_8DIR` + `HERO_PIXEL_LAB_WALK_*` |
 | Area selections | `docs/assets/AREA_ASSET_SELECTIONS.md` + `data/assets/area_asset_selections.json` |
-| Previews / sheets | `docs/assets/catalog/` |
+| Categories | `docs/assets/catalog/categories/` |
+| Packs | `docs/assets/catalog/packs/` |
+| Contact sheets | `docs/assets/catalog/contact_sheets/` |
 | Debug gallery | `scenes/debug/asset_gallery.tscn` |
 
 Update: `python tools/build_asset_catalog.py` · check: `python tools/build_asset_catalog.py --check`

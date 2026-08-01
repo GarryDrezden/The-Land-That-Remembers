@@ -1,16 +1,16 @@
 # NEXT STEPS
 
-Обновлено: 2026-08-01 (main_house_v1 integrated)
+Обновлено: 2026-08-01 (asset catalog)
 
 ## Сейчас
 
-1. Просмотреть `yard_vs01` с утвержденным домом (`yard_vs01_door.png` и др.).
-2. Подтвердить масштаб дома/героя и композицию двора.
-3. Заменить workshop-stub на настоящий interior дома детства.
-4. Polish: path blending, fence, shed/well art.
+1. Открыть [`docs/assets/START_HERE.md`](assets/START_HERE.md) и выбрать Asset ID для зон двора.
+2. Записать выбор в `AREA_ASSET_SELECTIONS.md` (только ID).
+3. Просмотреть `yard_vs01` с `HOUSE_MAIN_HOUSE_V1`.
+4. После выбора растительности — точечная интеграция (не авто-копировать весь `upload/`).
 
 ## Стоп
 
-- Не переходить к house restoration stages.
-- Не генерировать топор / кирку.
-- Не удалять `upload/houses/main_house_v1.png` и старые test-сцены.
+- Не перестраивать сцену «всем подряд» из каталога.
+- Не переходить к house restoration / axe / pickaxe.
+- Не удалять и не очищать `res://upload/`.

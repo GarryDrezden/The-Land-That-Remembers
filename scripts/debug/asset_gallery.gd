@@ -11,11 +11,13 @@ var _assets: Array = []
 var _filtered: Array = []
 var _category := "all"
 var _pack := "all"
+var _query := ""
 var _status: Label
 var _grid: GridContainer
 var _scroll: ScrollContainer
 var _cat_option: OptionButton
 var _pack_option: OptionButton
+var _search: LineEdit
 var _detail: Label
 
 
@@ -67,6 +69,15 @@ func _build_ui() -> void:
 		_apply_filter()
 	)
 	top.add_child(_pack_option)
+
+	_search = LineEdit.new()
+	_search.placeholder_text = "Search Asset ID…"
+	_search.custom_minimum_size = Vector2(180, 0)
+	_search.text_changed.connect(func(t: String) -> void:
+		_query = t.strip_edges().to_upper()
+		_apply_filter()
+	)
+	top.add_child(_search)
 
 	_status = Label.new()
 	_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -138,6 +149,11 @@ func _apply_filter() -> void:
 			continue
 		if _pack != "all" and str(a.get("pack_id")) != _pack:
 			continue
+		if _query != "":
+			var aid := str(a.get("asset_id", "")).to_upper()
+			var src := str(a.get("source_path", "")).to_upper()
+			if _query not in aid and _query not in src:
+				continue
 		_filtered.append(a)
 	_status.text = "Showing %d / %d" % [_filtered.size(), _assets.size()]
 	_rebuild_grid()
@@ -158,7 +174,7 @@ func _rebuild_grid() -> void:
 
 func _make_card(a: Dictionary) -> Control:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(160, 190)
+	panel.custom_minimum_size = Vector2(168, 230)
 	var vb := VBoxContainer.new()
 	panel.add_child(vb)
 
@@ -183,16 +199,36 @@ func _make_card(a: Dictionary) -> Control:
 	id_lab.clip_text = true
 	vb.add_child(id_lab)
 
+	var meta := Label.new()
+	meta.text = "%sx%s · %s" % [str(a.get("width")), str(a.get("height")), str(a.get("status"))]
+	meta.add_theme_font_size_override("font_size", 9)
+	meta.clip_text = true
+	vb.add_child(meta)
+
+	var tags := Label.new()
+	var tag_arr: Array = a.get("tags", [])
+	var tag_parts: PackedStringArray = []
+	for t in tag_arr:
+		tag_parts.append(str(t))
+	tags.text = ", ".join(tag_parts)
+	tags.add_theme_font_size_override("font_size", 8)
+	tags.clip_text = true
+	vb.add_child(tags)
+
 	var btn := Button.new()
 	btn.text = "Copy ID"
 	btn.pressed.connect(func() -> void:
 		DisplayServer.clipboard_set(str(a.get("asset_id", "")))
-		_detail.text = "Copied %s | %s | %sx%s | %s" % [
+		var copied_tags: PackedStringArray = []
+		for t2 in a.get("tags", []):
+			copied_tags.append(str(t2))
+		_detail.text = "Copied %s | %s | %sx%s | %s | tags=%s" % [
 			str(a.get("asset_id")),
 			str(a.get("pack_id")),
 			str(a.get("width")),
 			str(a.get("height")),
 			str(a.get("source_path")),
+			", ".join(copied_tags),
 		]
 	)
 	vb.add_child(btn)

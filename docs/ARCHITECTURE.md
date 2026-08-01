@@ -48,15 +48,16 @@ CraftPix `craftpix_home_preview` / `craftpix_hero_test` остаются отд�
 
 | Элемент | Путь |
 |---------|------|
-| Permanent inbox | `upload/` (**never delete**) |
-| Catalog builder | `tools/build_asset_catalog.py` |
+| Permanent inbox | `upload/` (**never delete / clear / rename / move wholesale**) |
+| Catalog builder | `tools/build_asset_catalog.py` (`--check` for staleness) |
 | Machine registry | `data/assets/asset_catalog.json` |
 | Pack registry | `data/assets/asset_packs.json` |
 | Overrides | `data/assets/asset_catalog_overrides.json` |
 | Area selections (data) | `data/assets/area_asset_selections.json` |
-| Owner catalog (GitHub) | `docs/assets/README.md` |
-| Debug gallery | `scenes/debug/asset_gallery.tscn` |
-| Runtime selected only | `assets/third_party/<vendor>/<pack>/runtime/` |
+| Owner entry (GitHub) | `docs/assets/START_HERE.md` |
+| Categories / packs / sheets | `docs/assets/catalog/` |
+| Debug gallery | `scenes/debug/asset_gallery.tscn` (F6) |
+| Runtime selected only | after explicit Asset ID selection |
 
 Flow: drop packs into `upload/` → run catalog → owner picks Asset IDs → record in AREA selections → only then copy/prepare into `assets/third_party/`.
 

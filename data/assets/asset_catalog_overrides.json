@@ -2,60 +2,256 @@
   "_comment": "Manual overrides keyed by source_path (posix, relative to repo root).",
   "assets/third_party/craftpix/main_characters_home/source/PNG/cat_animation.png": {
     "category": "animal",
-    "tags": ["outdoor", "animal", "craftpix"],
+    "tags": [
+      "outdoor",
+      "animal",
+      "craftpix"
+    ],
     "notes": "Cat animation sheet — not a player character."
   },
   "assets/third_party/craftpix/main_characters_home/source/Tiled_files/cat_animation.png": {
     "category": "animal",
-    "tags": ["outdoor", "animal", "craftpix"],
+    "tags": [
+      "outdoor",
+      "animal",
+      "craftpix"
+    ],
     "notes": "Cat animation sheet — not a player character."
   },
   "assets/third_party/craftpix/main_characters_home/source/PNG/bird_fly_animation.png": {
     "category": "animal",
-    "tags": ["outdoor", "animal", "craftpix", "bird"]
+    "tags": [
+      "outdoor",
+      "animal",
+      "craftpix",
+      "bird"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/Tiled_files/bird_fly_animation.png": {
     "category": "animal",
-    "tags": ["outdoor", "animal", "craftpix", "bird"]
+    "tags": [
+      "outdoor",
+      "animal",
+      "craftpix",
+      "bird"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/PNG/bird_jump_animation.png": {
     "category": "animal",
-    "tags": ["outdoor", "animal", "craftpix", "bird"]
+    "tags": [
+      "outdoor",
+      "animal",
+      "craftpix",
+      "bird"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/Tiled_files/bird_jump_animation.png": {
     "category": "animal",
-    "tags": ["outdoor", "animal", "craftpix", "bird"]
+    "tags": [
+      "outdoor",
+      "animal",
+      "craftpix",
+      "bird"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/PNG/ground_grass_details.png": {
     "category": "terrain",
-    "tags": ["outdoor", "terrain", "grass", "craftpix"]
+    "tags": [
+      "outdoor",
+      "terrain",
+      "grass",
+      "craftpix"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/Tiled_files/ground_grass_details.png": {
     "category": "terrain",
-    "tags": ["outdoor", "terrain", "grass", "craftpix"]
+    "tags": [
+      "outdoor",
+      "terrain",
+      "grass",
+      "craftpix"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/PNG/Smoke_animation.png": {
     "category": "effect",
-    "tags": ["outdoor", "effect", "craftpix"]
+    "tags": [
+      "outdoor",
+      "effect",
+      "craftpix"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/Tiled_files/Smoke_animation.png": {
     "category": "effect",
-    "tags": ["outdoor", "effect", "craftpix"]
+    "tags": [
+      "outdoor",
+      "effect",
+      "craftpix"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/PNG/Interior.png": {
     "category": "interior",
-    "tags": ["interior", "craftpix"]
+    "tags": [
+      "interior",
+      "craftpix"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/Tiled_files/Interior.png": {
     "category": "interior",
-    "tags": ["interior", "craftpix"]
+    "tags": [
+      "interior",
+      "craftpix"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/PNG/walls_floor.png": {
     "category": "interior",
-    "tags": ["interior", "craftpix"]
+    "tags": [
+      "interior",
+      "craftpix"
+    ]
   },
   "assets/third_party/craftpix/main_characters_home/source/Tiled_files/walls_floor.png": {
     "category": "interior",
-    "tags": ["interior", "craftpix"]
+    "tags": [
+      "interior",
+      "craftpix"
+    ]
+  },
+  "upload/houses/main_house_v1.png": {
+    "asset_id": "HOUSE_MAIN_HOUSE_V1",
+    "category": "house",
+    "status": "selected",
+    "tags": [
+      "vs01",
+      "childhood_home",
+      "old_russian_house",
+      "house"
+    ],
+    "notes": "Утверждённый стартовый дом VS01.",
+    "license_status": "reviewed"
+  },
+  "upload/hero/Idle_rotations_8dir.gif": {
+    "asset_id": "HERO_PIXEL_LAB_IDLE_8DIR",
+    "category": "hero",
+    "status": "runtime",
+    "tags": [
+      "pixellab",
+      "hero",
+      "idle",
+      "8dir",
+      "vs01"
+    ],
+    "notes": "PixelLab idle 8 directions — runtime frames under assets/characters/player/pixellab_v1/."
+  },
+  "upload/hero/Idle_v3_walking_south.gif": {
+    "category": "hero",
+    "status": "runtime",
+    "tags": [
+      "pixellab",
+      "hero",
+      "walk",
+      "8dir",
+      "vs01",
+      "south"
+    ],
+    "notes": "PixelLab walk south — runtime under assets/characters/player/pixellab_v1/.",
+    "asset_id": "HERO_PIXEL_LAB_WALK_S"
+  },
+  "upload/hero/Idle_v3_walking_north.gif": {
+    "category": "hero",
+    "status": "runtime",
+    "tags": [
+      "pixellab",
+      "hero",
+      "walk",
+      "8dir",
+      "vs01",
+      "north"
+    ],
+    "asset_id": "HERO_PIXEL_LAB_WALK_N",
+    "notes": "PixelLab walk north — runtime under assets/characters/player/pixellab_v1/."
+  },
+  "upload/hero/Idle_v3_walking_east.gif": {
+    "category": "hero",
+    "status": "runtime",
+    "tags": [
+      "pixellab",
+      "hero",
+      "walk",
+      "8dir",
+      "vs01",
+      "east"
+    ],
+    "asset_id": "HERO_PIXEL_LAB_WALK_E",
+    "notes": "PixelLab walk east — runtime under assets/characters/player/pixellab_v1/."
+  },
+  "upload/hero/Idle_v3_walking_west.gif": {
+    "category": "hero",
+    "status": "runtime",
+    "tags": [
+      "pixellab",
+      "hero",
+      "walk",
+      "8dir",
+      "vs01",
+      "west"
+    ],
+    "asset_id": "HERO_PIXEL_LAB_WALK_W",
+    "notes": "PixelLab walk west — runtime under assets/characters/player/pixellab_v1/."
+  },
+  "upload/hero/Idle_v3_walking_north-east.gif": {
+    "category": "hero",
+    "status": "runtime",
+    "tags": [
+      "pixellab",
+      "hero",
+      "walk",
+      "8dir",
+      "vs01",
+      "north-east"
+    ],
+    "asset_id": "HERO_PIXEL_LAB_WALK_NE",
+    "notes": "PixelLab walk north-east — runtime under assets/characters/player/pixellab_v1/."
+  },
+  "upload/hero/Idle_v3_walking_north-west.gif": {
+    "category": "hero",
+    "status": "runtime",
+    "tags": [
+      "pixellab",
+      "hero",
+      "walk",
+      "8dir",
+      "vs01",
+      "north-west"
+    ],
+    "asset_id": "HERO_PIXEL_LAB_WALK_NW",
+    "notes": "PixelLab walk north-west — runtime under assets/characters/player/pixellab_v1/."
+  },
+  "upload/hero/Idle_v3_walking_south-east.gif": {
+    "category": "hero",
+    "status": "runtime",
+    "tags": [
+      "pixellab",
+      "hero",
+      "walk",
+      "8dir",
+      "vs01",
+      "south-east"
+    ],
+    "asset_id": "HERO_PIXEL_LAB_WALK_SE",
+    "notes": "PixelLab walk south-east — runtime under assets/characters/player/pixellab_v1/."
+  },
+  "upload/hero/Idle_v3_walking_south-west.gif": {
+    "category": "hero",
+    "status": "runtime",
+    "tags": [
+      "pixellab",
+      "hero",
+      "walk",
+      "8dir",
+      "vs01",
+      "south-west"
+    ],
+    "asset_id": "HERO_PIXEL_LAB_WALK_SW",
+    "notes": "PixelLab walk south-west — runtime under assets/characters/player/pixellab_v1/."
   }
 }

@@ -1,7 +1,9 @@
 {
-  "sha256": "7928b9d0e75a8a81a59acf5d152891c8f47d33bc1180406c23e31f3d5a5fb8b5",
+  "sha256": "577313b3241a750100cfadc79d453ca84147c28a8b89f0489f7e71808598c36e",
   "generated": "2026-08-01",
-  "image_count": 677,
-  "pack_count": 5,
-  "zip_only_count": 4
+  "image_count": 687,
+  "pack_count": 7,
+  "zip_only_count": 4,
+  "gif_count": 9,
+  "sprite_sheet_count": 30
 }

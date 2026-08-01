@@ -1,4 +1,58 @@
 {
+  "vs01_childhood_home_yard": {
+    "main_house": {
+      "selected": [
+        "HOUSE_MAIN_HOUSE_V1"
+      ],
+      "candidates": [],
+      "rejected": []
+    },
+    "hero": {
+      "selected": [
+        "HERO_PIXEL_LAB_IDLE_8DIR"
+      ],
+      "runtime_note": "Full 8-dir walk set from upload/hero/ is integrated as runtime candidate."
+    },
+    "entrance": {
+      "gate": [],
+      "fence": [],
+      "path": [],
+      "small_decoration": []
+    },
+    "front_yard": {
+      "grass": [],
+      "weeds": [],
+      "small_rocks": [],
+      "flowers": []
+    },
+    "left_overgrown_zone": {
+      "trees": [],
+      "bushes": [],
+      "logs": [],
+      "stumps": [],
+      "rocks": []
+    },
+    "right_utility_zone": {
+      "well": [],
+      "woodpile": [],
+      "crates": [],
+      "tools": [],
+      "bushes": []
+    },
+    "house_perimeter": {
+      "foundation_decoration": [],
+      "low_weeds": [],
+      "small_stones": []
+    },
+    "rejected_for_vs01": [
+      "oversized mushrooms",
+      "fantasy props",
+      "objects inconsistent with hero scale"
+    ]
+  },
+  "future_village_road": {},
+  "shed_area": {},
+  "pond_area": {},
   "yard_main": {
     "house": {
       "selected": [],
@@ -31,6 +85,5 @@
     }
   },
   "house_exterior": {},
-  "shed_zone": {},
-  "future_village_road": {}
+  "shed_zone": {}
 }

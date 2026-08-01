@@ -2,6 +2,19 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (p) — persistent visual asset catalog
+
+**Сделано:**
+- генератор `tools/build_asset_catalog.py` (+ `--check`): сканирует `upload/` и `assets/third_party/`;
+- реестр `data/assets/asset_catalog.json`, overrides, area selections;
+- GitHub UI: `docs/assets/START_HERE.md`, categories/, packs/, contact_sheets/, previews/;
+- стабильные Asset ID; `HOUSE_MAIN_HOUSE_V1` + PixelLab hero IDs;
+- debug gallery `scenes/debug/asset_gallery.tscn` (filter + search + Copy ID).
+
+**Не делалось:** авто-интеграция ассетов в сцену, смена дома/героя, удаление rejected props.
+
+---
+
 ## 2026-08-01 (o) — integrate approved main_house_v1 into VS01 yard
 
 **Сделано:**

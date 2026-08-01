@@ -49,11 +49,13 @@
 ## DEC-009: Permanent asset inbox + stable Asset Catalog
 
 **Решение:**
-- `res://upload/` is the **permanent incoming asset inbox** and **must not be deleted**;
-- every imported visual asset receives a **stable Asset ID**;
-- GitHub Markdown contact sheets (`docs/assets/`) are the **primary owner-facing selection interface**;
-- runtime scenes use **only explicitly selected** assets copied/prepared under `assets/third_party/`;
-- catalog is regenerated with `python tools/build_asset_catalog.py` (idempotent IDs; `--check` for staleness).
+- `res://upload/` is the **permanent incoming asset inbox**;
+- original files in `upload/` are **never deleted/cleared/renamed/moved wholesale** and never overwritten by catalog tools;
+- every visual asset receives a **stable Asset ID**;
+- GitHub Markdown pages + contact sheets (`docs/assets/START_HERE.md`, categories, packs) are the **primary owner-facing selection interface**;
+- runtime integration happens **only after explicit asset selection** (Asset ID → area selections);
+- `HOUSE_MAIN_HOUSE_V1` is the selected VS01 starting house;
+- catalog is regenerated with `python tools/build_asset_catalog.py` (stable IDs; missing files marked `missing`; `--check` for staleness).
 
 **Последствия:**
 - не авто-копировать всё из `upload/` в runtime;

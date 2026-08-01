@@ -2,42 +2,57 @@
 
 Owner decisions for concrete game areas. Use **Asset IDs** only.
 
-Update this file when choosing assets from the [Asset Catalog](README.md).
-Mirror important choices into `data/assets/area_asset_selections.json`.
+See also: [START_HERE.md](START_HERE.md) · machine: `data/assets/area_asset_selections.json`
 
-## yard_main
+## VS01 / childhood_home_yard
 
-### House
-- selected:
-- candidates:
-- rejected:
+### Main house
+Selected:
+- HOUSE_MAIN_HOUSE_V1
 
-### North border
-- trees:
-- bushes:
-- rocks:
+### Hero
+Selected / runtime:
+- HERO_PIXEL_LAB_IDLE_8DIR
+- (walk 8-dir set from `upload/hero/` — same PixelLab hero)
 
 ### Entrance
-- fence:
-- gate:
-- path:
-- decoration:
+Gate:
+Fence:
+Path:
+Small decoration:
 
-### Pond zone
-- water:
-- shore:
-- reeds:
-- rocks:
+### Front yard
+Grass:
+Weeds:
+Small rocks:
+Flowers:
 
-### Overgrown zone
-- weeds:
-- bushes:
-- logs:
-- stumps:
-- trees:
+### Left overgrown zone
+Trees:
+Bushes:
+Logs:
+Stumps:
+Rocks:
 
-## house_exterior
+### Right utility zone
+Well:
+Woodpile:
+Crates:
+Tools:
+Bushes:
 
-## shed_zone
+### House perimeter
+Foundation decoration:
+Low weeds:
+Small stones:
 
-## future_village_road
+### Rejected for VS01
+- oversized mushrooms
+- fantasy props
+- objects inconsistent with hero scale
+
+## Future village road
+
+## Shed area
+
+## Pond area
