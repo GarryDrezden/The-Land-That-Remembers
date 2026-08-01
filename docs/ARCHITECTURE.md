@@ -1,6 +1,6 @@
 # ARCHITECTURE
 
-Обновлено: 2026-08-01  
+Обновлено: 2026-08-01 (CraftPix home preview)  
 **Ориентир структуры (план):** [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md)  
 **Этот файл:** что **фактически** есть в репозитории сейчас (не идеальная целевая схема).
 
@@ -8,7 +8,26 @@
 
 ---
 
-## Terrain proof (факт)
+## CraftPix home (under evaluation)
+
+| Элемент | Путь |
+|---------|------|
+| Pack root | `assets/third_party/craftpix/main_characters_home/` |
+| Source | `…/source/{PNG,PSD,Tiled_files}/` |
+| Runtime | `…/runtime/{terrain,buildings,vegetation,props,interiors,preview}/` |
+| Preview scene | `scenes/locations/outdoor/childhood_home/craftpix_home_preview.tscn` |
+| Preview script | `scripts/debug/craftpix_home_preview.gd` |
+| Layout export | `…/runtime/preview/exterior_preview_layout.json` |
+| Organizer | `tools/organize_craftpix_home.py` |
+| Audit | `docs/CRAFTPIX_HOME_AUDIT.md` |
+
+Tile size **16×16** from TMX. Demo map `Exterior.tmx` (no Wang/Terrain). Preview loads a cropped region into TileMapLayers; blockers approximated; player = neutral silhouette (no human character in pack).
+
+Procedural seamless terrain proof остаётся отдельным экспериментом и **не** используется в CraftPix preview.
+
+---
+
+## Terrain proof (факт, experiment)
 
 | Элемент | Путь |
 |---------|------|

@@ -2,6 +2,20 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (h) — CraftPix home pack audit + outdoor preview
+
+**Сделано:**
+- аудит CraftPix Main Character’s Home (`docs/CRAFTPIX_HOME_AUDIT.md`, `THIRD_PARTY_ASSETS.md`);
+- организация в `assets/third_party/craftpix/main_characters_home/` (source + runtime); `__MACOSX` / `upload/` удалены;
+- экспорт кропа `Exterior.tmx` → `runtime/preview/exterior_preview_layout.json`;
+- сцена `craftpix_home_preview.tscn` (CraftPix only, nearest, integer scale, Y-sort, blockers, нейтральный силуэт);
+- скрины `docs/art_tests/craftpix_home_preview*.png` + tiled reference;
+- DEC-008: pack under evaluation.
+
+**Не делалось:** GameRoot, основной двор, interior gameplay, финальное утверждение pack, character pack.
+
+---
+
 ## 2026-08-01 (g) — macro variation seamless grass/soil
 
 **Принята техническая система.** Предыдущий detail pass отклонён как слишком слабый на game scale.

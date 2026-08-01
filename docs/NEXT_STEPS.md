@@ -1,16 +1,18 @@
 # NEXT STEPS
 
-Обновлено: 2026-08-01 (macro variation terrain pass)
+Обновлено: 2026-08-01 (CraftPix home preview)
 
 ## Сейчас
 
-Оценить macro pass:
+Оценить CraftPix outdoor preview:
 
-- compare: `docs/art_tests/terrain_macro_compare.png`
-- `terrain_macro.png` / `terrain_macro_decor.png`
-- ×4: `terrain_macro_{grass,soil,edge}_x4.png`
-- тесты: `python tools/test_terrain_atlas.py`
+- `docs/art_tests/craftpix_home_preview.png`
+- `…_move.png`, `…_ysort.png`, `…_collisions.png`
+- `craftpix_tiled_exterior_reference.png`
+- аудит: `docs/CRAFTPIX_HOME_AUDIT.md`
 
 ## Стоп
 
-Не добавлять персонажа, деревья, воду, дом, paths; не ломать seam contract.
+Не переносить preview в основной двор.  
+Не начинать GameRoot / vertical slice gameplay.  
+Не смешивать с procedural terrain proof.

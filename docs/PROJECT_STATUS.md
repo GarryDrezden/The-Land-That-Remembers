@@ -1,15 +1,15 @@
 # PROJECT STATUS
 
-Обновлено: 2026-08-01 (macro variation terrain pass)
+Обновлено: 2026-08-01 (CraftPix home preview)
 
 ## Кратко
 
-- Seamless Terrain Set / masks / seam contract — **сохранены**.  
-- Macro variation pass: заметные grass/soil patches, edge variants, readable decor.  
-- Автотесты: `python tools/test_terrain_atlas.py` — OK.  
-- Скрины: `docs/art_tests/terrain_macro*.png`, `terrain_macro_compare.png`.  
-- **Стоп:** персонаж, деревья, вода, дом, основной двор.
+- CraftPix **Main Character’s Home** интегрирован локально и в Git (по разрешению владельца проекта).  
+- Preview: `craftpix_home_preview.tscn` (F6) — только CraftPix, без procedural/Puny/AI terrain.  
+- Tile size: **16×16**. Готовая Tiled-карта: **да** (`Exterior.tmx`). Human character: **нет**.  
+- Статус pack: **under evaluation** (не финальное утверждение).  
+- **Стоп:** GameRoot, основной двор, farming, NPC, interior gameplay.
 
 ## Следующее
 
-Оценить compare-скрин; отдельный proof персонажа после принятия.
+Оценить скрины `docs/art_tests/craftpix_home_preview*.png` и решить, принимать ли pack как outdoor/house базу. Отдельно подобрать character pack.

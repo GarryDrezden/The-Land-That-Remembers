@@ -24,6 +24,11 @@ Thumbs.db
 *~
 .vscode/
 .idea/
+__MACOSX/
+**/_MACOSX/
+
+# Temporary unpack folder (assets live under assets/third_party/...)
+/upload/
 
 # Android
 /android/

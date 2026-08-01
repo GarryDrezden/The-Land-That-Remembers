@@ -1,53 +1,68 @@
 # ASSET INVENTORY
 
-Обновлено: 2026-08-01 (visual terrain pass)
+Обновлено: 2026-08-01 (CraftPix home pack integration)
 
-Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · ориентир: [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) §20–21.
+Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md)
 
 ## Visual direction (approved)
 
 | Поле | Значение |
 |------|----------|
 | Направление | original detailed Stardew-like outdoor pixel art with rural childhood-home identity |
-| Mood refs | `docs/art_direction/outdoor_target_yard_mood.png`, `…_asset_scope.png` |
-| AI sheets | **mood/palette reference only** — not tile sources |
 | Status | **approved** ([DEC-005](DECISIONS.md), [DEC-006](DECISIONS.md)) |
 
-## Scale lock (accepted greybox)
+## Scale lock
 
 | Параметр | Значение |
 |----------|----------|
-| Viewport | 384×240 |
-| Tile | 16×16 |
-| Map | 72×45 tiles (1152×720 px) |
-| Scene | `yard_scale_test.tscn` |
+| Viewport target | 384×240 (preview uses integer ×3 window) |
+| CraftPix tile | **16×16** (TMX) |
 
 ---
 
-## Seamless terrain (accepted) + visual pass
+## CraftPix Main Character’s Home (under evaluation)
 
-| Поле | Значение |
-|------|----------|
-| Status | **seamless system accepted**; macro variation pass done |
-| Ground | `assets/art/outdoor/terrain_proof/terrain_ground.png` (192×64, 12×4) |
-| Decor | `assets/art/outdoor/terrain_proof/terrain_decor.png` (256×16, 16 overlays) |
-| TileSet | `resources/tilesets/yard_ground_tileset.tres` |
-| Scene | `yard_terrain_proof.tscn` |
-| Tools | `generate_terrain_proof.py`, `test_terrain_atlas.py`, `build_yard_ground_tileset.gd` |
-| Terrain | Match Corners · Grass / Soil · masks + macros + edge variants |
-| Variant weights | base **65%**, subtle **20%**, light/dark **10%**, dense **5%** |
-| Previews | `docs/art_tests/terrain_macro_compare.png`, `terrain_macro.png`, `…_decor.png`, `…_{grass,soil,edge}_x4.png` |
+Root: `assets/third_party/craftpix/main_characters_home/`  
+Audit: [CRAFTPIX_HOME_AUDIT.md](CRAFTPIX_HOME_AUDIT.md)
 
-### Ground atlas layout
+### Runtime files used by preview
 
-| Region | Content |
-|--------|---------|
-| cols 0–3, rows 0–3 | corner masks 0…15 (TL=1,TR=2,BR=4,BL=8) |
-| cols 4–7, row 0 | grass variants (shared border with mask 0) |
-| cols 4–7, row 1 | soil variants (shared border with mask 15) |
+| File | Source | Runtime | Size | Tile | Role | Status | In preview |
+|------|--------|---------|------|------|------|--------|------------|
+| ground_grass_details.png | source/Tiled_files/ | runtime/terrain/ | 336×288 | 16 | grass/soil detail overlays | runtime | yes |
+| exterior.png | source/Tiled_files/ | runtime/buildings/ | 272×912 | 16 | outdoor ground, paths, props, fence pieces | runtime | yes |
+| house_details.png | source/Tiled_files/ | runtime/buildings/ | 160×272 | 16 | house walls/roof | runtime | yes |
+| Doors_windows_animation.png | source/Tiled_files/ | runtime/buildings/ | 272×192 | 16 | doors/windows | runtime | yes |
+| Smoke_animation.png | source/Tiled_files/ | runtime/buildings/ | 288×48 | 16 | chimney smoke frames | runtime | yes |
+| Trees_animation.png | source/Tiled_files/ | runtime/vegetation/ | 576×1040 | 16 | trees | runtime | yes |
+| bird_*.png / cat_animation.png | source/Tiled_files/ | runtime/props/ | varies | 16 | creatures (not player) | runtime | optional |
+| Interior.png / walls_floor.png | source/Tiled_files/ | runtime/interiors/ | varies | 16 | interior | runtime | not in outdoor preview |
+| exterior_preview_layout.json | derived from Exterior.tmx | runtime/preview/ | — | 16 | cropped layer layout | processed | yes |
+
+### Source (originals)
+
+| Path | Status |
+|------|--------|
+| `source/PNG/` | source (standalone sheets; prefer Tiled_files sizes) |
+| `source/PSD/` | source (not Godot-imported) |
+| `source/Tiled_files/*.tmx` | source demos (`Exterior.tmx`, `Interior1.tmx`, …) |
+
+### Preview scene
+
+| Item | Path |
+|------|------|
+| Scene | `scenes/locations/outdoor/childhood_home/craftpix_home_preview.tscn` |
+| Script | `scripts/debug/craftpix_home_preview.gd` |
+| Screenshots | `docs/art_tests/craftpix_home_preview*.png` |
+| Tiled crop ref | `docs/art_tests/craftpix_tiled_exterior_reference.png` |
 
 ---
 
-## Earlier texture_proof_v1 (superseded for terrain)
+## Earlier experiments (kept, not used by CraftPix preview)
 
-Kept under `assets/art/outdoor/texture_proof_v1/` as failed/legacy experiment material. Not used by seamless proof.
+| Item | Notes |
+|------|-------|
+| Seamless procedural terrain (`terrain_proof/`) | documented experiment; not mixed into CraftPix preview |
+| Puny World / AI generated outdoor tests | rejected / reference only |
+
+Character: **not included** in CraftPix home pack — separate character pack required.
