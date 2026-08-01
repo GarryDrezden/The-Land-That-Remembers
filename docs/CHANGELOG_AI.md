@@ -2,7 +2,18 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
-## 2026-08-01 (k) — incremental visual Asset Catalog
+## 2026-08-01 (l) — PixelLab hero walking prototype
+
+**Сделано:**
+- аудит GIF в `upload/hero/` → `docs/HERO_PIXEL_LAB_AUDIT.md`;
+- импортёр `tools/import_pixellab_hero.py` (flood-fill chroma, baseline align, contact sheets);
+- runtime `assets/characters/player/pixellab_v1/`;
+- `player_pixellab_test.tscn` + `craftpix_hero_test.tscn` (оригинальный CraftPix preview не тронут);
+- walk south/east, west=flip, north=idle_north; скрины двери/калитки/дерева/коллизий/scale.
+
+**Не делалось:** генерация north walk, axe/pickaxe, смена основного двора.
+
+---
 
 **Сделано:**
 - постоянный INBOX `upload/` (убран из `.gitignore`; не удалять);

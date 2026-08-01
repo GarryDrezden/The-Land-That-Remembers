@@ -1,10 +1,25 @@
 # ARCHITECTURE
 
-Обновлено: 2026-08-01 (Asset Catalog)  
+Обновлено: 2026-08-01 (PixelLab hero prototype)  
 **Ориентир структуры (план):** [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md)  
 **Этот файл:** что **фактически** есть в репозитории сейчас (не идеальная целевая схема).
 
 Приоритет документов: VISION → VERTICAL_SLICE → PROJECT_STRUCTURE → **этот файл** → PROJECT_STATUS.
+
+---
+
+## PixelLab hero prototype
+
+| Элемент | Путь |
+|---------|------|
+| Inbox GIFs | `upload/hero/` |
+| Importer | `tools/import_pixellab_hero.py` |
+| Runtime PNGs | `assets/characters/player/pixellab_v1/` |
+| Player test scene | `scenes/actors/player/player_pixellab_test.tscn` |
+| CraftPix yard test | `scenes/locations/outdoor/childhood_home/craftpix_hero_test.tscn` |
+| Audit | `docs/HERO_PIXEL_LAB_AUDIT.md` |
+
+`craftpix_home_preview.tscn` остаётся без изменений; герой проверяется только в `craftpix_hero_test.tscn`.
 
 ---
 

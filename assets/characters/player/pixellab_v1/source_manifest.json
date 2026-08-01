@@ -1,0 +1,276 @@
+{
+  "version": 1,
+  "generated": "2026-08-01",
+  "source_inbox": "upload/hero/",
+  "runtime_root": "assets/characters/player/pixellab_v1/",
+  "notes": [
+    "PixelLab hero v1 under in-engine evaluation.",
+    "Walk directions available: south and east.",
+    "West is mirrored from east at runtime (flip_h).",
+    "North walking animation is not generated yet.",
+    "Original PixelLab exports remain in upload/hero/."
+  ],
+  "gifs": {
+    "Idle_rotations_8dir.gif": {
+      "path": "upload/hero/Idle_rotations_8dir.gif",
+      "n_frames": 8,
+      "loop": 0,
+      "gif_mode": "P",
+      "transparency_index": 0,
+      "durations_ms": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "canvas": [
+        92,
+        92
+      ],
+      "avg_duration_ms": 200.0,
+      "approx_fps": 5.0
+    },
+    "Idle_v3_walking_south.gif": {
+      "path": "upload/hero/Idle_v3_walking_south.gif",
+      "n_frames": 8,
+      "loop": 0,
+      "gif_mode": "P",
+      "transparency_index": 0,
+      "durations_ms": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "canvas": [
+        92,
+        92
+      ],
+      "avg_duration_ms": 200.0,
+      "approx_fps": 5.0
+    },
+    "Idle_v3_walking_east.gif": {
+      "path": "upload/hero/Idle_v3_walking_east.gif",
+      "n_frames": 8,
+      "loop": 0,
+      "gif_mode": "P",
+      "transparency_index": 0,
+      "durations_ms": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "canvas": [
+        92,
+        92
+      ],
+      "avg_duration_ms": 200.0,
+      "approx_fps": 5.0
+    }
+  },
+  "idle_direction_mapping": {
+    "south": 0,
+    "south_east": 1,
+    "east": 2,
+    "north_east": 3,
+    "north": 4,
+    "north_west": 5,
+    "west": 6,
+    "south_west": 7
+  },
+  "baseline_offsets": {
+    "idle_rotations": [
+      {
+        "dx": 1,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 1,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 1,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 1,
+        "dy": 1,
+        "foot_y_before": 67,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 1,
+        "dy": 1,
+        "foot_y_before": 67,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 1,
+        "dy": 1,
+        "foot_y_before": 67,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 1,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 1,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      }
+    ],
+    "walk_south": [
+      {
+        "dx": -2,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      },
+      {
+        "dx": -1,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 0,
+        "dy": 1,
+        "foot_y_before": 67,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 2,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 3,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 2,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 1,
+        "dy": 1,
+        "foot_y_before": 67,
+        "foot_y_after": 68
+      },
+      {
+        "dx": 0,
+        "dy": 0,
+        "foot_y_before": 68,
+        "foot_y_after": 68
+      }
+    ],
+    "walk_east": [
+      {
+        "dx": 0,
+        "dy": 0,
+        "foot_y_before": 69,
+        "foot_y_after": 69
+      },
+      {
+        "dx": 0,
+        "dy": 0,
+        "foot_y_before": 69,
+        "foot_y_after": 69
+      },
+      {
+        "dx": 0,
+        "dy": 0,
+        "foot_y_before": 69,
+        "foot_y_after": 69
+      },
+      {
+        "dx": 0,
+        "dy": 0,
+        "foot_y_before": 69,
+        "foot_y_after": 69
+      },
+      {
+        "dx": 1,
+        "dy": 1,
+        "foot_y_before": 68,
+        "foot_y_after": 69
+      },
+      {
+        "dx": 1,
+        "dy": 1,
+        "foot_y_before": 68,
+        "foot_y_after": 69
+      },
+      {
+        "dx": 0,
+        "dy": 0,
+        "foot_y_before": 69,
+        "foot_y_after": 69
+      },
+      {
+        "dx": 0,
+        "dy": 0,
+        "foot_y_before": 69,
+        "foot_y_after": 69
+      }
+    ]
+  },
+  "idle_paths": {
+    "south": "assets/characters/player/pixellab_v1/idle/south.png",
+    "south_east": "assets/characters/player/pixellab_v1/idle/south_east.png",
+    "east": "assets/characters/player/pixellab_v1/idle/east.png",
+    "north_east": "assets/characters/player/pixellab_v1/idle/north_east.png",
+    "north": "assets/characters/player/pixellab_v1/idle/north.png",
+    "north_west": "assets/characters/player/pixellab_v1/idle/north_west.png",
+    "west": "assets/characters/player/pixellab_v1/idle/west.png",
+    "south_west": "assets/characters/player/pixellab_v1/idle/south_west.png"
+  },
+  "walk_south_frames": [
+    "assets/characters/player/pixellab_v1/walk_south/frame_00.png",
+    "assets/characters/player/pixellab_v1/walk_south/frame_01.png",
+    "assets/characters/player/pixellab_v1/walk_south/frame_02.png",
+    "assets/characters/player/pixellab_v1/walk_south/frame_03.png",
+    "assets/characters/player/pixellab_v1/walk_south/frame_04.png",
+    "assets/characters/player/pixellab_v1/walk_south/frame_05.png",
+    "assets/characters/player/pixellab_v1/walk_south/frame_06.png",
+    "assets/characters/player/pixellab_v1/walk_south/frame_07.png"
+  ],
+  "walk_east_frames": [
+    "assets/characters/player/pixellab_v1/walk_east/frame_00.png",
+    "assets/characters/player/pixellab_v1/walk_east/frame_01.png",
+    "assets/characters/player/pixellab_v1/walk_east/frame_02.png",
+    "assets/characters/player/pixellab_v1/walk_east/frame_03.png",
+    "assets/characters/player/pixellab_v1/walk_east/frame_04.png",
+    "assets/characters/player/pixellab_v1/walk_east/frame_05.png",
+    "assets/characters/player/pixellab_v1/walk_east/frame_06.png",
+    "assets/characters/player/pixellab_v1/walk_east/frame_07.png"
+  ]
+}

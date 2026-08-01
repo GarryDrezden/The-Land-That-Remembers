@@ -1,8 +1,22 @@
 # ASSET INVENTORY
 
-Обновлено: 2026-08-01 (Asset Catalog)
+Обновлено: 2026-08-01 (PixelLab hero prototype)
 
 Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md) · **catalog:** [assets/README.md](assets/README.md)
+
+## PixelLab hero v1 (under evaluation)
+
+| Item | Path |
+|------|------|
+| Inbox originals | `upload/hero/*.gif` (**permanent**) |
+| Importer | `tools/import_pixellab_hero.py` |
+| Runtime | `assets/characters/player/pixellab_v1/` |
+| Manifest | `…/source_manifest.json` |
+| Player scene | `scenes/actors/player/player_pixellab_test.tscn` |
+| Yard test | `scenes/locations/outdoor/childhood_home/craftpix_hero_test.tscn` |
+| Audit | [HERO_PIXEL_LAB_AUDIT.md](HERO_PIXEL_LAB_AUDIT.md) |
+
+Walk: south + east · west = flip_h · north walk **missing** (uses idle_north).
 
 ## Asset Catalog (owner selection)
 

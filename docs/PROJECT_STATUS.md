@@ -1,16 +1,15 @@
 # PROJECT STATUS
 
-Обновлено: 2026-08-01 (Asset Catalog)
+Обновлено: 2026-08-01 (PixelLab hero prototype)
 
 ## Кратко
 
-- **Asset Catalog** онлайн: inbox `upload/` + registry `data/assets/` + GitHub pages `docs/assets/`.  
-- Команда: `python tools/build_asset_catalog.py` (`--check` для актуальности).  
-- CraftPix home preview остаётся under evaluation; **не** перестраивался в этом шаге.  
-- **Стоп:** не внедрять AREA selections в gameplay / GameRoot / основной двор без явного выбора владельца.
+- **PixelLab hero v1** импортирован из `upload/hero/` → `assets/characters/player/pixellab_v1/` (under in-engine evaluation).  
+- Тест во дворе CraftPix: `scenes/locations/outdoor/childhood_home/craftpix_hero_test.tscn` (оригинальный preview не менялся).  
+- Walk: south + east; west = flip; north walk **ещё нет**.  
+- Asset Catalog остаётся основным интерфейсом выбора props.  
 
 ## Следующее
 
-1. Владелец просматривает contact sheets и подтверждает лицензии packs с `needs_review`.  
-2. Заполняет `docs/assets/AREA_ASSET_SELECTIONS.md` Asset ID.  
-3. Только после этого — подготовка selected assets в `assets/third_party/.../runtime/`.
+1. Владелец смотрит скрины героя (дверь / калитка / дерево / scale compare) и решает scale + догенерацию north.  
+2. Не добавлять axe/pickaxe, пока герой не утверждён.

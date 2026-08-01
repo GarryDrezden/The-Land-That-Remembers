@@ -1,15 +1,16 @@
 # NEXT STEPS
 
-Обновлено: 2026-08-01 (Asset Catalog)
+Обновлено: 2026-08-01 (PixelLab hero prototype)
 
 ## Сейчас
 
-1. Открыть [docs/assets/README.md](assets/README.md).  
-2. Просмотреть contact sheets (trees / bushes / rocks / CraftPix home / packs).  
-3. Подтвердить лицензии packs со статусом `needs_review` в [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).  
-4. Записать выбранные Asset ID в [AREA_ASSET_SELECTIONS.md](assets/AREA_ASSET_SELECTIONS.md).
+1. Просмотреть `docs/HERO_PIXEL_LAB_AUDIT.md` и скрины `docs/art_tests/craftpix_hero_*.png`.  
+2. Выбрать scale (сравнение 1.0 / 0.75 / 0.5).  
+3. Решить, догенерировать ли `walk_north` (и диагонали) до axe/pickaxe.  
 
 ## Стоп
 
-Не подключать catalog selections к GameRoot / yard_main gameplay без явного решения.
-Не удалять `upload/`.
+- Не генерировать новые направления автоматически.  
+- Не добавлять рубку / кирку.  
+- Не менять основной двор / GameRoot.  
+- Не удалять `upload/hero/`.
