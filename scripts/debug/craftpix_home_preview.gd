@@ -1,12 +1,26 @@
 extends Node2D
 ## CraftPix Main Character's Home outdoor preview (F6).
 ## Loads a cropped region exported from Exterior.tmx — CraftPix assets only.
+## Includes polish: open south gate, smarter fence collisions, cleaner entrance.
 
 const LAYOUT_PATH := "res://assets/third_party/craftpix/main_characters_home/runtime/preview/exterior_preview_layout.json"
 const VIEW_W := 384
 const VIEW_H := 240
 const WINDOW_SCALE := 3
 const MOVE_SPEED := 70.0
+
+## South fence gate (path columns continue through fence line).
+const GATE_CELLS := [
+	Vector2i(16, 16), Vector2i(17, 16),
+]
+## Clear decorative clutter in/around the gate corridor for a readable exit.
+const GATE_CLEAR := [
+	Vector2i(15, 15), Vector2i(16, 15), Vector2i(17, 15), Vector2i(18, 15),
+	Vector2i(15, 16), Vector2i(16, 16), Vector2i(17, 16), Vector2i(18, 16),
+	Vector2i(15, 17), Vector2i(16, 17), Vector2i(17, 17), Vector2i(18, 17),
+	Vector2i(14, 16), Vector2i(14, 17), Vector2i(19, 16), Vector2i(19, 17),
+	Vector2i(13, 17), # lone/sliced prop on south edge
+]
 
 var _layout: Dictionary = {}
 var _tile := 16
@@ -17,6 +31,7 @@ var _ysort: Node2D
 var _player: CharacterBody2D
 var _hint: Label
 var _shot_cam: Camera2D
+var _gate_center := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -38,8 +53,9 @@ func _ready() -> void:
 	_tile = int(_layout.get("tile_size", 16))
 	_map_w = int(_layout.get("width", 0))
 	_map_h = int(_layout.get("height", 0))
+	_apply_layout_polish()
+	_gate_center = Vector2(16.5 * _tile, 16.0 * _tile)
 
-	# Verify at least one atlas exists
 	var roots: Dictionary = _layout.get("runtime_image_roots", {})
 	var any_ok := false
 	for k in roots.keys():
@@ -60,6 +76,38 @@ func _ready() -> void:
 		await get_tree().create_timer(0.35).timeout
 		await _shot_sequence(shot)
 		get_tree().quit()
+
+
+func _apply_layout_polish() -> void:
+	## Mutate loaded layout: open south gate, clear entrance clutter, drop sliced edge props.
+	var layers: Array = _layout.get("layers", [])
+	var gate_set := {}
+	for g in GATE_CELLS:
+		gate_set["%d,%d" % [g.x, g.y]] = true
+	var clear_set := {}
+	for g in GATE_CLEAR:
+		clear_set["%d,%d" % [g.x, g.y]] = true
+
+	for layer_info in layers:
+		var lname: String = str(layer_info.get("name", ""))
+		var cells: Array = layer_info.get("cells", [])
+		var kept: Array = []
+		for cell in cells:
+			var key := "%d,%d" % [int(cell["x"]), int(cell["y"])]
+			# Open gate in fence (closed gate tiles 788/789 sit on path columns)
+			if lname == "Fence" and gate_set.has(key):
+				continue
+			# Clear props/details that choke the gate corridor
+			if lname in ["Objects1", "Objects2", "Objects3", "Objects4", "Grass_top_details"] and clear_set.has(key):
+				continue
+			# Drop incomplete south-edge clutter that reads as sliced (lone tiles on y=17 outside path)
+			if lname in ["Objects1", "Objects3"] and int(cell["y"]) == _map_h - 1:
+				var x := int(cell["x"])
+				# keep far-side bushes; remove orphan near gate already cleared; remove left orphans
+				if x == 6 or x == 7 or x == 13:
+					continue
+			kept.append(cell)
+		layer_info["cells"] = kept
 
 
 func _show_missing(msg: String) -> void:
@@ -125,23 +173,30 @@ func _build_tileset(tilesets: Array) -> TileSet:
 
 
 func _gid_to_source_atlas(gid: int, tilesets: Array) -> Array:
-	## returns [source_id, atlas_coords] or empty
 	var owner = null
 	for t in tilesets:
 		if gid >= int(t["firstgid"]):
 			owner = t
-	if owner == null:
-		return []
-	if not owner.has("source_id"):
+	if owner == null or not owner.has("source_id"):
 		return []
 	var local := gid - int(owner["firstgid"])
 	var cols := int(owner["columns"])
 	var count := int(owner["tilecount"])
 	if cols <= 0 or local < 0 or local >= count:
 		return []
-	var ax := local % cols
-	var ay := int(local / cols)
-	return [int(owner["source_id"]), Vector2i(ax, ay)]
+	return [int(owner["source_id"]), Vector2i(local % cols, int(local / cols))]
+
+
+func _tileset_name_for_gid(gid: int, tilesets: Array) -> String:
+	var owner = null
+	for t in tilesets:
+		if gid >= int(t["firstgid"]):
+			owner = t
+	if owner == null:
+		return ""
+	if gid >= int(owner["firstgid"]) + int(owner["tilecount"]):
+		return ""
+	return str(owner.get("name", ""))
 
 
 func _build_world() -> void:
@@ -169,7 +224,6 @@ func _build_world() -> void:
 	_ysort.z_index = 10
 	add_child(_ysort)
 
-	# Layer stacking: lower first. Objects/house go into y-sort friendly TileMapLayers with z
 	var z := 0
 	for layer_info in _layout.get("layers", []):
 		var lname: String = str(layer_info.get("name", "Layer"))
@@ -179,7 +233,6 @@ func _build_world() -> void:
 		layer.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		layer.z_index = z
 		z += 1
-		# Y-sort higher object layers
 		if lname in ["Objects1", "Objects2", "Objects3", "Objects4", "Fence", "House_wall", "House_roof", "windows1", "windows2", "Grass_top_details"]:
 			layer.y_sort_enabled = true
 			_ysort.add_child(layer)
@@ -191,20 +244,23 @@ func _build_world() -> void:
 			var mapped := _gid_to_source_atlas(gid, tilesets)
 			if mapped.is_empty():
 				continue
-			var sid: int = mapped[0]
-			var atlas: Vector2i = mapped[1]
-			var pos := Vector2i(int(cell["x"]), int(cell["y"]))
-			layer.set_cell(pos, sid, atlas)
-			# Flip via alternate tiles if needed — skip transpose-heavy cases for preview
-			if cell.get("fh", false) or cell.get("fv", false):
-				# Godot 4 flip via transpose/flip flags on tile data is per-tile source; keep simple
-				pass
+			layer.set_cell(Vector2i(int(cell["x"]), int(cell["y"])), int(mapped[0]), mapped[1] as Vector2i)
 
-	_add_blocking_colliders()
+	_add_blocking_colliders(tilesets)
 
 
-func _add_blocking_colliders() -> void:
-	## Approximate blockers from dense house/fence/object cells (footprint).
+func _is_gate_cell(p: Vector2i) -> bool:
+	for g in GATE_CELLS:
+		if g == p:
+			return true
+	# Also treat vertical path corridor through gate as non-blocking
+	if p.y >= 15 and p.y <= 17 and (p.x == 16 or p.x == 17):
+		return true
+	return false
+
+
+func _add_blocking_colliders(tilesets: Array) -> void:
+	## Fence (except gate) + house walls + tree footprints only — not every decor tile.
 	var blockers := StaticBody2D.new()
 	blockers.name = "Blockers"
 	blockers.collision_layer = 1
@@ -212,32 +268,54 @@ func _add_blocking_colliders() -> void:
 	add_child(blockers)
 
 	var occupied := {}
+
 	for layer_info in _layout.get("layers", []):
 		var lname: String = str(layer_info.get("name", ""))
-		if lname not in ["House_wall", "Fence", "Objects1", "Objects2", "Objects4"]:
-			continue
 		for cell in layer_info.get("cells", []):
-			var key := "%d,%d" % [int(cell["x"]), int(cell["y"])]
-			occupied[key] = Vector2i(int(cell["x"]), int(cell["y"]))
+			var p := Vector2i(int(cell["x"]), int(cell["y"]))
+			if _is_gate_cell(p):
+				continue
+			var key := "%d,%d" % [p.x, p.y]
+			if lname == "Fence" or lname == "House_wall":
+				occupied[key] = p
+				continue
+			if lname in ["Objects1", "Objects2", "Objects3", "Objects4"]:
+				var tname := _tileset_name_for_gid(int(cell["gid"]), tilesets)
+				# Tree trunks / large exterior props only (avoid mushrooms/flowers choking paths)
+				if tname == "Trees_animation":
+					occupied[key] = p
+				elif tname == "exterior" and lname in ["Objects1", "Objects2"]:
+					# Only south-most tiles of exterior object stacks become solid footprints
+					if _is_object_footprint(p, layer_info.get("cells", [])):
+						occupied[key] = p
 
 	for key in occupied.keys():
 		var p: Vector2i = occupied[key]
-		# Only bottom-ish tiles of multi-tile props become solid; for house walls all solid
 		var cs := CollisionShape2D.new()
 		var shape := RectangleShape2D.new()
-		shape.size = Vector2(_tile * 0.85, _tile * 0.45)
+		shape.size = Vector2(_tile * 0.8, _tile * 0.4)
 		cs.shape = shape
-		cs.position = Vector2(p.x * _tile + _tile * 0.5, p.y * _tile + _tile * 0.75)
+		cs.position = Vector2(p.x * _tile + _tile * 0.5, p.y * _tile + _tile * 0.78)
 		blockers.add_child(cs)
 
 
+func _is_object_footprint(p: Vector2i, cells: Array) -> bool:
+	## True if no object cell directly below — treat as ground contact row.
+	var below := false
+	for cell in cells:
+		if int(cell["x"]) == p.x and int(cell["y"]) == p.y + 1:
+			below = true
+			break
+	return not below
+
+
 func _build_player() -> void:
-	# Neutral silhouette — pack has no human character
 	_player = CharacterBody2D.new()
 	_player.name = "Player"
 	_player.collision_layer = 1
 	_player.collision_mask = 1
-	_player.position = Vector2((_map_w * 0.45) * _tile, (_map_h * 0.72) * _tile)
+	# Start inside yard, facing toward gate
+	_player.position = Vector2(16.5 * _tile, 13.5 * _tile)
 	_player.y_sort_enabled = true
 	_player.z_index = 20
 
@@ -314,48 +392,54 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
-func _shot_sequence(mode: String) -> void:
+func _shot_sequence(_mode: String) -> void:
 	_hint.visible = false
 	get_tree().debug_collisions_hint = false
-	# Disable player camera so ShotCam is authoritative
 	if _player:
 		var pcam := _player.get_node_or_null("Cam") as Camera2D
 		if pcam:
 			pcam.enabled = false
-		_player.visible = false
+
 	_shot_cam = Camera2D.new()
 	_shot_cam.enabled = true
 	_shot_cam.zoom = Vector2(WINDOW_SCALE, WINDOW_SCALE)
-	_shot_cam.position = Vector2(_map_w * _tile * 0.52, _map_h * _tile * 0.45)
 	add_child(_shot_cam)
 	_shot_cam.make_current()
 
+	# 1) Clean overview
+	if _player:
+		_player.visible = false
+	_shot_cam.position = Vector2(_map_w * _tile * 0.52, _map_h * _tile * 0.48)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.25).timeout
 	await _take("craftpix_home_preview")
 
-	_shot_cam.position = Vector2(_map_w * _tile * 0.35, _map_h * _tile * 0.65)
-	await get_tree().process_frame
-	await get_tree().create_timer(0.2).timeout
-	await _take("craftpix_home_preview_move")
-
-	_shot_cam.position = Vector2(_map_w * _tile * 0.58, _map_h * _tile * 0.32)
+	# 2) Player at gate (inside, facing exit)
 	if _player:
 		_player.visible = true
-		_player.position = _shot_cam.position + Vector2(10, 30)
+		_player.position = Vector2(16.5 * _tile, 14.2 * _tile)
+	_shot_cam.position = Vector2(16.5 * _tile, 15.2 * _tile)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.2).timeout
-	await _take("craftpix_home_preview_ysort")
+	await _take("craftpix_home_preview_gate")
 
+	# 3) Player outside fence after passing gate
 	if _player:
-		_player.visible = true
+		_player.position = Vector2(16.5 * _tile, 17.2 * _tile)
+	_shot_cam.position = Vector2(16.5 * _tile, 16.4 * _tile)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.2).timeout
+	await _take("craftpix_home_preview_outside")
+
+	# 4) Collisions debug at gate
 	get_tree().debug_collisions_hint = true
-	_shot_cam.position = Vector2(_map_w * _tile * 0.5, _map_h * _tile * 0.55)
+	if _player:
+		_player.position = Vector2(16.5 * _tile, 15.5 * _tile)
+	_shot_cam.position = Vector2(16.5 * _tile, 15.8 * _tile)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.2).timeout
-	await _take("craftpix_home_preview_collisions")
+	await _take("craftpix_home_preview_gate_collisions")
 	get_tree().debug_collisions_hint = false
-	mode = mode
 
 
 func _take(tag: String) -> void:

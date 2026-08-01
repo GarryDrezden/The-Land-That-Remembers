@@ -2,6 +2,19 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-01 (i) — polish CraftPix home preview
+
+**Сделано:**
+- южная калитка: убраны закрытые gate-tiles (gid 788/789) на колонках дорожки — явный проход;
+- коллизии: fence кроме проёма + house walls + tree/exterior footprints (не каждый decor);
+- очищен входной коридор (кусты/грибы/декор у калитки);
+- убраны срезанные/orphan props на южном крае;
+- скрины gate / outside / gate_collisions.
+
+**Не делалось:** смена art direction, GameRoot, character pack.
+
+---
+
 ## 2026-08-01 (h) — CraftPix home pack audit + outdoor preview
 
 **Сделано:**

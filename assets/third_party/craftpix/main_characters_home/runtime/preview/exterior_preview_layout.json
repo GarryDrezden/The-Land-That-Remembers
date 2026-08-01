@@ -7832,14 +7832,6 @@
           "fd": false
         },
         {
-          "x": 15,
-          "y": 15,
-          "gid": 1459,
-          "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
           "x": 19,
           "y": 15,
           "gid": 1235,
@@ -8725,22 +8717,6 @@
           "x": 15,
           "y": 16,
           "gid": 837,
-          "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 16,
-          "y": 16,
-          "gid": 788,
-          "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 17,
-          "y": 16,
-          "gid": 789,
           "fh": false,
           "fv": false,
           "fd": false
@@ -10143,94 +10119,6 @@
           "y": 14,
           "gid": 1448,
           "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 14,
-          "y": 16,
-          "gid": 1475,
-          "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 15,
-          "y": 16,
-          "gid": 1476,
-          "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 18,
-          "y": 16,
-          "gid": 1444,
-          "fh": true,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 19,
-          "y": 16,
-          "gid": 1443,
-          "fh": true,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 6,
-          "y": 17,
-          "gid": 1314,
-          "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 7,
-          "y": 17,
-          "gid": 1315,
-          "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 13,
-          "y": 17,
-          "gid": 1234,
-          "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 14,
-          "y": 17,
-          "gid": 1492,
-          "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 15,
-          "y": 17,
-          "gid": 1493,
-          "fh": false,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 18,
-          "y": 17,
-          "gid": 1461,
-          "fh": true,
-          "fv": false,
-          "fd": false
-        },
-        {
-          "x": 19,
-          "y": 17,
-          "gid": 1460,
-          "fh": true,
           "fv": false,
           "fd": false
         },
