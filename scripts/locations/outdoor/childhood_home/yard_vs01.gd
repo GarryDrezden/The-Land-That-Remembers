@@ -10,19 +10,20 @@ const PLAYER_SCENE := "res://scenes/actors/player/player_pixellab_test.tscn"
 const TILE := 16
 const MAP_W := 40
 const MAP_H := 34
+## Must match tools/build_yard_vs01_assets.py GROUND_PAD_TILES (camera bleed grass).
+const GROUND_PAD_TILES := 8
 const VIEW_W := 384
 const VIEW_H := 240
 const WINDOW_SCALE := 3
-## Runtime bake: ÷4 + ~10% nearest shrink (see main_house_v1.json display_scale).
-const HOUSE_PIXEL_DIV := 4
-## Foundation / feet of MainHouse in tile space (higher on screen = more yard below).
+## Runtime house size is baked into PNG (~288×151); node/sprite scale stays 1.
+## Foundation / feet of MainHouse in tile space.
 const HOUSE_FEET := Vector2(20.0, 14.4)
-## Front-yard spawn: follow-cam frames whole house + path + yard (gate is south).
-const PLAYER_SPAWN := Vector2(20.0, 19.2)
-## Pulled-back start zoom: whole house (245px) fits 384-wide view with air + yard.
-## Visible world ≈ viewport/zoom; at 1.4 → ~274×171 px (house 245×128 fits).
-const PLAY_CAMERA_ZOOM := 1.4
-const PLAY_CAMERA_OFFSET := Vector2(0, -40)
+## Front-yard spawn: house + hero + path; gate is further south.
+const PLAYER_SPAWN := Vector2(20.0, 18.6)
+## Integer pixel-perfect zoom — whole yard must NOT fit on one screen.
+const PLAY_CAMERA_ZOOM := 2.0
+## Nudge up so roof has a little air; player sits slightly below center.
+const PLAY_CAMERA_OFFSET := Vector2(0, -42)
 
 var _ysort: Node2D
 var _player: CharacterBody2D
@@ -124,11 +125,28 @@ func _add_blocker_rect(center: Vector2, size: Vector2) -> void:
 	_blockers.add_child(col)
 
 
+func _camera_limit_rect() -> Rect2:
+	## Padded grass plate — playable fence stays on MAP_*; void never shows.
+	var pad := float(GROUND_PAD_TILES * TILE)
+	return Rect2(-pad, -pad, float((MAP_W + GROUND_PAD_TILES * 2) * TILE), float((MAP_H + GROUND_PAD_TILES * 2) * TILE))
+
+
+func _apply_camera_limits(cam: Camera2D) -> void:
+	var r := _camera_limit_rect()
+	cam.limit_left = int(r.position.x)
+	cam.limit_top = int(r.position.y)
+	cam.limit_right = int(r.end.x)
+	cam.limit_bottom = int(r.end.y)
+
+
 func _build_ground() -> void:
 	var ground := Node2D.new()
 	ground.name = "Ground"
 	add_child(ground)
 	var spr := _add_sprite(ground, ASSET_ROOT + "ground.png", Vector2.ZERO, false)
+	## Ground bake includes GROUND_PAD_TILES of grass around the playable plate.
+	spr.position = Vector2(-GROUND_PAD_TILES * TILE, -GROUND_PAD_TILES * TILE)
+	spr.centered = false
 	spr.z_index = 0
 
 
@@ -207,7 +225,7 @@ func _build_house() -> void:
 	spr.texture = tex
 	# Bottom of texture sits on node origin (Y-sort / feet line).
 	spr.offset = Vector2(0, 1.0 - float(hh) * 0.5)
-	# Scale baked into runtime PNG (~0.90); keep node scale 1 for nearest pixels.
+	# Scale baked into runtime PNG; keep node scale 1 for nearest pixels.
 	spr.scale = Vector2.ONE
 	_house.add_child(spr)
 
@@ -243,7 +261,9 @@ func _build_house() -> void:
 	_door_hotspot.add_child(dcol)
 	_house.add_child(_door_hotspot)
 
-	print("yard_vs01 house display %dx%d (div=%d) door_local=%s" % [hw, hh, HOUSE_PIXEL_DIV, door_local])
+	print("yard_vs01 house display %dx%d door_local=%s cam zoom=%.1f offset=%s" % [
+		hw, hh, door_local, PLAY_CAMERA_ZOOM, PLAY_CAMERA_OFFSET
+	])
 
 
 func _build_secondary_props() -> void:
@@ -401,7 +421,11 @@ func _build_player() -> void:
 	if _player.has_method("set_camera_offset"):
 		_player.call("set_camera_offset", PLAY_CAMERA_OFFSET)
 	if _player.has_method("set_camera_limits"):
-		_player.call("set_camera_limits", Rect2(0, 0, MAP_W * TILE, MAP_H * TILE))
+		_player.call("set_camera_limits", _camera_limit_rect())
+	# Also stamp limits on the live Camera2D in case the helper missed limit_enabled.
+	var pcam := _player.get_node_or_null("Camera2D") as Camera2D
+	if pcam:
+		_apply_camera_limits(pcam)
 
 
 func _build_bounds() -> void:
@@ -450,7 +474,9 @@ func _shot_sequence() -> void:
 		_player.call("set_camera_enabled", false)
 	_shot_cam = Camera2D.new()
 	_shot_cam.enabled = true
-	_shot_cam.zoom = Vector2(WINDOW_SCALE, WINDOW_SCALE)
+	_shot_cam.zoom = Vector2(PLAY_CAMERA_ZOOM, PLAY_CAMERA_ZOOM)
+	_shot_cam.offset = Vector2.ZERO
+	_apply_camera_limits(_shot_cam)
 	add_child(_shot_cam)
 	_shot_cam.make_current()
 
@@ -472,12 +498,33 @@ func _shot_sequence() -> void:
 			anim.scale = Vector2.ONE
 			anim.play("idle_north")
 
-	# Start composition — same framing as play spawn (house + path + front yard)
+	# Start composition — house + hero + path (not the whole yard)
 	_player.position = Vector2(PLAYER_SPAWN.x * TILE, PLAYER_SPAWN.y * TILE)
 	_shot_cam.position = _player.position + PLAY_CAMERA_OFFSET
 	await get_tree().process_frame
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.25).timeout
 	await _take("yard_vs01_start")
+
+	# Door — hero at steps
+	if _door_hotspot:
+		_player.position = _door_hotspot.global_position + Vector2(0, 12)
+	else:
+		_player.position = Vector2(HOUSE_FEET.x * TILE, (HOUSE_FEET.y + 1.2) * TILE)
+	if _player.get_node_or_null("AnimatedSprite2D"):
+		(_player.get_node("AnimatedSprite2D") as AnimatedSprite2D).play("idle_north")
+	_shot_cam.position = _player.position + PLAY_CAMERA_OFFSET
+	await get_tree().process_frame
+	await get_tree().create_timer(0.25).timeout
+	await _take("yard_vs01_door")
+
+	# Path down — camera follows; yard continues off-screen
+	_player.position = Vector2(PLAYER_SPAWN.x * TILE, (PLAYER_SPAWN.y + 4.5) * TILE)
+	if _player.get_node_or_null("AnimatedSprite2D"):
+		(_player.get_node("AnimatedSprite2D") as AnimatedSprite2D).play("idle_south")
+	_shot_cam.position = _player.position + PLAY_CAMERA_OFFSET
+	await get_tree().process_frame
+	await get_tree().create_timer(0.25).timeout
+	await _take("yard_vs01_path_down")
 
 	# Gate / entrance (south)
 	_player.position = Vector2(20 * TILE, 31.5 * TILE)
@@ -485,18 +532,6 @@ func _shot_sequence() -> void:
 	await get_tree().process_frame
 	await get_tree().create_timer(0.2).timeout
 	await _take("yard_vs01_gate")
-
-	# Door — stand clearly in front of steps for scale + composition
-	if _door_hotspot:
-		_player.position = _door_hotspot.global_position + Vector2(0, 12)
-	else:
-		_player.position = Vector2(HOUSE_FEET.x * TILE, (HOUSE_FEET.y + 1.2) * TILE)
-	if _player.get_node_or_null("AnimatedSprite2D"):
-		(_player.get_node("AnimatedSprite2D") as AnimatedSprite2D).play("idle_north")
-	_shot_cam.position = Vector2(HOUSE_FEET.x * TILE, (HOUSE_FEET.y - 1.0) * TILE)
-	await get_tree().process_frame
-	await get_tree().create_timer(0.2).timeout
-	await _take("yard_vs01_door")
 
 	# Scale check near tree + rock
 	_player.position = Vector2(12.5 * TILE, 17.0 * TILE)
@@ -510,7 +545,7 @@ func _shot_sequence() -> void:
 	# Collisions debug at path
 	get_tree().debug_collisions_hint = true
 	_player.position = Vector2(PLAYER_SPAWN.x * TILE, PLAYER_SPAWN.y * TILE)
-	_shot_cam.position = _player.position + Vector2(0, -20)
+	_shot_cam.position = _player.position + PLAY_CAMERA_OFFSET
 	var debug_draw := Node2D.new()
 	debug_draw.z_as_relative = false
 	debug_draw.z_index = 80
@@ -532,7 +567,6 @@ func _shot_sequence() -> void:
 	await _take("yard_vs01_collisions")
 	get_tree().debug_collisions_hint = false
 	debug_draw.queue_free()
-
 
 func _take(tag: String) -> void:
 	await get_tree().process_frame

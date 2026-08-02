@@ -1,16 +1,17 @@
 # PROJECT STATUS
 
-Обновлено: 2026-08-02 (VS01 house sprite + composition fix)
+Обновлено: 2026-08-02 (house scale restore + camera 2.0)
 
 ## Кратко
 
 - **PixelLab hero v1** принят временно: idle+walk 8-dir, node scale `1.0`, display `PIXEL_DIV=2`.
-- **Outdoor VS01:** `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` — карта больше одного экрана.
-- **Дом:** `HOUSE_MAIN_HOUSE_V1`; runtime bake: eave seal + binary alpha + lift crushed blacks; display ≈ **0.88** nearest после ÷4 (245×128); старт: zoom **1.4**, offset `(0,-40)` — весь дом + дорожка + двор.
+- **Outdoor VS01:** `yard_vs01.tscn` — карта больше одного экрана; grass pad вокруг пластины.
+- **Дом:** runtime **288×151** nearest (без ×0.88); node/sprite scale `1`; conservative alpha clean.
+- **Камера:** zoom **2.0**, offset `(0,-42)`, limits по padded ground.
 - **Каталог ассетов:** корневой [`README.md`](../README.md#где-смотреть-ассеты).
 
 ## Следующее
 
-1. Owner review `docs/art_tests/yard_vs01_start.png` / `yard_vs01_door.png`.
+1. Owner review `docs/art_tests/yard_vs01_start.png` / door / path_down / eave_*.
 2. Выбор растительности по Asset ID; затем interior дома детства.
 3. Не генерировать axe/pickaxe, пока двор/вход не подтверждены.

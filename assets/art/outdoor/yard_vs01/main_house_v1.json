@@ -2,25 +2,25 @@
   "source": "upload/houses/main_house_v1.png",
   "runtime": "assets/art/outdoor/yard_vs01/main_house_v1.png",
   "source_crop": "assets/art/outdoor/yard_vs01/main_house_v1_source_crop.png",
-  "pixel_div": 4,
-  "display_scale": 0.88,
+  "target_width": 288,
   "crop_size": [
     1115,
     585
   ],
   "display_size": [
-    245,
-    128
+    288,
+    151
   ],
   "door_rect_display": {
-    "x0": 94,
-    "y0": 73,
-    "x1": 105,
-    "y1": 102
+    "x0": 111,
+    "y0": 87,
+    "x1": 123,
+    "y1": 120
   },
   "notes": [
     "main_house_v1.png is the approved base exterior for the childhood home.",
     "Original stays permanently in upload/houses/.",
-    "Runtime: key black BG, eave seal + binary alpha, nearest ÷4, then ~12% nearest shrink."
+    "Runtime: key black BG, conservative alpha clean, nearest resize to ~288px wide.",
+    "No display_scale shrink; node/sprite scale stays Vector2.ONE."
   ]
 }

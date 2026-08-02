@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated": "2026-08-01",
+  "generated": "2026-08-02",
   "tile": 16,
   "map_tiles": [
     40,
-    32
+    34
   ],
   "map_px": [
-    640,
-    512
+    896,
+    800
   ],
   "notes": [
     "VS01 yard around approved PixelLab hero scale.",
@@ -85,25 +85,26 @@
     "source": "upload/houses/main_house_v1.png",
     "runtime": "assets/art/outdoor/yard_vs01/main_house_v1.png",
     "source_crop": "assets/art/outdoor/yard_vs01/main_house_v1_source_crop.png",
-    "pixel_div": 4,
+    "target_width": 288,
     "crop_size": [
       1115,
       585
     ],
     "display_size": [
-      278,
-      146
+      288,
+      151
     ],
     "door_rect_display": {
-      "x0": 107,
-      "y0": 84,
-      "x1": 119,
-      "y1": 117
+      "x0": 111,
+      "y0": 87,
+      "x1": 123,
+      "y1": 120
     },
     "notes": [
       "main_house_v1.png is the approved base exterior for the childhood home.",
       "Original stays permanently in upload/houses/.",
-      "Runtime uses keyed crop + integer nearest downsample only (no blur)."
+      "Runtime: key black BG, conservative alpha clean, nearest resize to ~288px wide.",
+      "No display_scale shrink; node/sprite scale stays Vector2.ONE."
     ]
   },
   "ground": "ground.png"

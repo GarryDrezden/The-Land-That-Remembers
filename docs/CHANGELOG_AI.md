@@ -2,6 +2,18 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-02 (c) — restore house scale + correct VS01 camera framing
+
+**Сделано:**
+- отменён runtime shrink ×0.88; дом **288×151** nearest (node/sprite scale `1`);
+- камера zoom **2.0**, offset `(0,-42)`; limits по grass pad (±8 tiles);
+- seal без прямоугольных чёрных заглушек: только enclosed holes + soft alpha + lift near-black;
+- скрины start/door/path_down + eave_left/right.
+
+**Не делалось:** оригинал upload, герой, механика двора.
+
+---
+
 ## 2026-08-02 (b) — house eave bake polish + start zoom
 
 **Сделано:**
