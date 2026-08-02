@@ -1,17 +1,19 @@
 # PROJECT STATUS
 
-Обновлено: 2026-08-02 (house scale restore + camera 2.0)
+Обновлено: 2026-08-02 (playable VS01 childhood yard)
 
 ## Кратко
 
-- **PixelLab hero v1** принят временно: idle+walk 8-dir, node scale `1.0`, display `PIXEL_DIV=2`.
-- **Outdoor VS01:** `yard_vs01.tscn` — карта больше одного экрана; grass pad вокруг пластины.
-- **Дом:** runtime **288×151** nearest (без ×0.88); node/sprite scale `1`; conservative alpha clean.
-- **Камера:** zoom **2.0**, offset `(0,-42)`, limits по padded ground.
-- **Каталог ассетов:** корневой [`README.md`](../README.md#где-смотреть-ассеты).
+- **Основная outdoor-сцена VS01:** `scenes/locations/outdoor/childhood_home/yard_vs01.tscn`
+- **Старт главы:** Debug → «VS01 — Дом детства» (`GameFlow.apply_chapter("vs01_childhood_home")`)
+- **Дом:** `upload/houses/main_house_v1.png` → runtime `assets/art/outdoor/yard_vs01/main_house_v1.png` (**288×151**, nearest, binary alpha)
+- **Герой:** PixelLab v1 из `upload/hero/` → `assets/characters/player/pixellab_v1/` (`PIXEL_DIV=2`, 8-dir idle/walk)
+- **Двор:** кусты/деревья/камни из CraftPix upload-паков; расчистка через `yard_object.gd` + `WorldState.cleared_objects`
+- **Камера:** zoom **2.4**, offset `(0,-36)`, limits по padded grass
 
 ## Следующее
 
-1. Owner review `docs/art_tests/yard_vs01_start.png` / door / path_down / eave_*.
-2. Выбор растительности по Asset ID; затем interior дома детства.
-3. Не генерировать axe/pickaxe, пока двор/вход не подтверждены.
+1. Owner playtest: ходьба, E-расчистка, вход в дом (stub workshop), калитка-hint.
+2. Точечная правка alpha под карнизом дома (без чёрных плит), если owner подтвердит.
+3. Interior дома детства (не workshop-stub).
+4. Не трогать axe/pickaxe / farming, пока двор принят.

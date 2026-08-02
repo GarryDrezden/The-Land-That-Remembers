@@ -1,6 +1,6 @@
 # ARCHITECTURE
 
-Обновлено: 2026-08-01 (VS01 yard candidate)  
+Обновлено: 2026-08-02 (playable VS01 childhood yard)  
 **Ориентир структуры (план):** [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md)  
 **Этот файл:** что **фактически** есть в репозитории сейчас (не идеальная целевая схема).
 
@@ -8,23 +8,22 @@
 
 ---
 
-## VS01 outdoor yard candidate
+## VS01 outdoor yard (playable)
 
 | Элемент | Путь |
 |---------|------|
 | Playable scene | `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` |
-| Layout twin | `…/yard_vs01_layout_test.tscn` |
+| GameFlow ids | `childhood_home`, `yard_vs01`, `from_house` |
+| Chapter preset | `vs01_childhood_home` |
 | Builder script | `scripts/locations/outdoor/childhood_home/yard_vs01.gd` |
-| Door hotspot | `yard_vs01_door.gd` → `GameFlow.go_location("workshop")` (stub) |
+| Door / gate | `yard_vs01_door.gd` → workshop stub; `yard_vs01_gate_hint.gd` |
 | Runtime art | `assets/art/outdoor/yard_vs01/` |
-| Approved house source | `upload/houses/main_house_v1.png` (permanent; never edited) |
-| House runtime | `…/yard_vs01/main_house_v1.png` — key BG, conservative alpha clean, nearest **288×151** |
-| Start camera | zoom **2.0**, offset `(0,-42)`, limits padded ground (−128…768 × −128…672); map playable 40×34 |
-| House node | `YSortWorld/MainHouse` @ feet ~(20, 14.4) tiles |
-| Start camera | player zoom **2.2**, offset `(0, -72)` — house + path + front yard |
-| Map | 40×34 tiles (larger than one screen) |
+| House source → runtime | `upload/houses/main_house_v1.png` → `main_house_v1.png` **288×151** |
+| Hero | `player_pixellab_test` (`PIXEL_DIV=2`, 8-dir) |
+| Clearables | `yard_object.gd` + `WorldState.cleared_objects`, plot `yard_vs01` |
+| Start camera | zoom **2.4**, offset `(0,-36)`, limits padded ground |
+| Map | 40×34 tiles (+8 tile grass pad) |
 | Asset bake | `tools/build_yard_vs01_assets.py` |
-| Player | `player_pixellab_test.tscn` (scale unchanged) |
 
 CraftPix `craftpix_home_preview` / `craftpix_hero_test` остаются отдельными art-test сценами.
 

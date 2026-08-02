@@ -15,15 +15,14 @@ const GROUND_PAD_TILES := 8
 const VIEW_W := 384
 const VIEW_H := 240
 const WINDOW_SCALE := 3
-## Runtime house size is baked into PNG (~288×151); node/sprite scale stays 1.
-## Foundation / feet of MainHouse in tile space.
-const HOUSE_FEET := Vector2(20.0, 14.4)
-## Front-yard spawn: house + hero + path; gate is further south.
-const PLAYER_SPAWN := Vector2(20.0, 18.6)
-## Integer pixel-perfect zoom — whole yard must NOT fit on one screen.
-const PLAY_CAMERA_ZOOM := 2.0
-## Nudge up so roof has a little air; player sits slightly below center.
-const PLAY_CAMERA_OFFSET := Vector2(0, -42)
+## Foundation / feet of MainHouse in tile space (upper yard, Stardew-like).
+const HOUSE_FEET := Vector2(20.0, 13.8)
+## Front-yard spawn — clear space before the door; gate is further south.
+const PLAYER_SPAWN := Vector2(20.0, 16.8)
+## Slightly tighter than 2.0 so the house reads as the main focus (~60% width).
+const PLAY_CAMERA_ZOOM := 2.4
+## Nudge up: roof has a little air; player sits slightly below center.
+const PLAY_CAMERA_OFFSET := Vector2(0, -36)
 
 var _ysort: Node2D
 var _player: CharacterBody2D
@@ -40,6 +39,8 @@ func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	get_viewport().canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
 	DisplayServer.window_set_size(Vector2i(VIEW_W * WINDOW_SCALE, VIEW_H * WINDOW_SCALE))
+	WorldState.set_meta_value("location", "childhood_home")
+	WorldState.set_story("arrived_at_childhood_home", true)
 
 	if not FileAccess.file_exists(ASSET_ROOT + "ground.png") or not FileAccess.file_exists(HOUSE_TEX):
 		_show_missing("Missing yard_vs01 assets.\nRun: python tools/build_yard_vs01_assets.py")
@@ -63,9 +64,11 @@ func _ready() -> void:
 	_build_secondary_props()
 	_build_trees()
 	_build_clearables()
+	_build_ambient_decor()
 	_build_player()
 	_build_bounds()
 	_build_ui()
+	_build_gate_hint()
 
 	var shot := OS.get_environment("ART_TEST_SHOT")
 	if shot != "":
@@ -268,31 +271,32 @@ func _build_house() -> void:
 
 func _build_secondary_props() -> void:
 	# Well — east of path / house
-	var well := _add_sprite(_ysort, ASSET_ROOT + "well.png", Vector2(28 * TILE, 17 * TILE), true, Vector2(0, -10))
+	var well := _add_sprite(_ysort, ASSET_ROOT + "well.png", Vector2(27.5 * TILE, 16.5 * TILE), true, Vector2(0, -10))
 	well.name = "Well"
-	_add_blocker_rect(Vector2(28 * TILE, 17.4 * TILE), Vector2(22, 12))
+	_add_blocker_rect(Vector2(27.5 * TILE, 16.9 * TILE), Vector2(22, 12))
 	# Woodpile west of house
-	var wood := _add_sprite(_ysort, ASSET_ROOT + "woodpile.png", Vector2(11.5 * TILE, 14.2 * TILE), true, Vector2(0, -4))
+	var wood := _add_sprite(_ysort, ASSET_ROOT + "woodpile.png", Vector2(11.8 * TILE, 13.6 * TILE), true, Vector2(0, -4))
 	wood.name = "Woodpile"
-	_add_blocker_rect(Vector2(11.5 * TILE, 14.5 * TILE), Vector2(28, 10))
-	# Shed corner — west edge
-	var shed := _add_sprite(_ysort, ASSET_ROOT + "shed_corner.png", Vector2(10.2 * TILE, 21 * TILE), true, Vector2(0, -12))
+	_add_blocker_rect(Vector2(11.8 * TILE, 13.9 * TILE), Vector2(28, 10))
+	# Shed corner — west edge, mid-yard
+	var shed := _add_sprite(_ysort, ASSET_ROOT + "shed_corner.png", Vector2(10.0 * TILE, 20.5 * TILE), true, Vector2(0, -12))
 	shed.name = "ShedCorner"
-	_add_blocker_rect(Vector2(10.2 * TILE, 21.5 * TILE), Vector2(36, 16))
+	_add_blocker_rect(Vector2(10.0 * TILE, 21.0 * TILE), Vector2(36, 16))
 
 
 func _build_trees() -> void:
-	## Keep trees at yard edges — not oversized fairy props, not covering the house.
+	## Edge trees — large vs hero (~46px) but not covering the house.
 	var trees := [
-		[ASSET_ROOT + "props/tree_a.png", Vector2(10 * TILE, 9.5 * TILE)],
-		[ASSET_ROOT + "props/tree_b.png", Vector2(30 * TILE, 10.5 * TILE)],
-		[ASSET_ROOT + "props/tree_c.png", Vector2(8.5 * TILE, 24 * TILE)],
-		[ASSET_ROOT + "props/tree_a.png", Vector2(30.5 * TILE, 26 * TILE)],
+		[ASSET_ROOT + "props/tree_a.png", Vector2(10.5 * TILE, 9.0 * TILE), Vector2(0.92, 0.92)],
+		[ASSET_ROOT + "props/tree_b.png", Vector2(29.5 * TILE, 9.8 * TILE), Vector2(0.92, 0.92)],
+		[ASSET_ROOT + "props/tree_c.png", Vector2(9.0 * TILE, 25.5 * TILE), Vector2(0.88, 0.88)],
+		[ASSET_ROOT + "props/tree_a.png", Vector2(30.2 * TILE, 27.0 * TILE), Vector2(0.88, 0.88)],
 	]
 	for t in trees:
-		var spr := _add_sprite(_ysort, str(t[0]), t[1], true, Vector2(0, -28))
+		var spr := _add_sprite(_ysort, str(t[0]), t[1], true, Vector2(0, -26))
+		spr.scale = t[2]
 		spr.z_as_relative = true
-		_add_blocker_rect(t[1] + Vector2(0, 4), Vector2(18, 10))
+		_add_blocker_rect(t[1] + Vector2(0, 4), Vector2(16, 10))
 
 
 func _spawn_clearable(cfg: Dictionary) -> void:
@@ -318,11 +322,17 @@ func _spawn_clearable(cfg: Dictionary) -> void:
 	spr.texture = tex
 	if tex:
 		spr.offset = Vector2(0, -tex.get_height() * 0.35)
+	if cfg.has("scale"):
+		spr.scale = cfg.scale
 	n.add_child(spr)
 
 	var hit := Vector2(20, 16)
 	if tex:
-		hit = Vector2(maxi(14, int(tex.get_width() * 0.8)), maxi(12, int(tex.get_height() * 0.45)))
+		var sc: Vector2 = cfg.get("scale", Vector2.ONE)
+		hit = Vector2(
+			maxi(14, int(tex.get_width() * 0.8 * sc.x)),
+			maxi(12, int(tex.get_height() * 0.45 * sc.y))
+		)
 	var col := CollisionShape2D.new()
 	var shape := RectangleShape2D.new()
 	shape.size = hit
@@ -337,33 +347,24 @@ func _spawn_clearable(cfg: Dictionary) -> void:
 
 
 func _build_clearables() -> void:
-	## Path blockers (must clear for first approach) + optional side clutter.
-	# Path toward door (slightly left of map center because of ¾ house facing).
+	## Playable front yard + overgrown path toward the south gate.
+	## Spawn stays clear; door approach is open; gate path needs clearing.
 	var required := [
 		{
-			"id": "vs01_stump_path",
-			"kind": "stump",
-			"pos": Vector2(19.8 * TILE, 26.5 * TILE),
-			"spr": ASSET_ROOT + "stump.png",
-			"prompt": "убрать пень",
-			"item": "wood",
+			"id": "vs01_bush_door_side",
+			"kind": "bush",
+			"pos": Vector2(17.2 * TILE, 15.2 * TILE),
+			"spr": ASSET_ROOT + "props/bush_overgrown.png",
+			"prompt": "прорубить куст",
+			"item": "grass",
 			"solid": true,
-			"solid_size": Vector2(16, 10),
+			"solid_size": Vector2(16, 11),
+			"scale": Vector2(0.85, 0.85),
 		},
 		{
-			"id": "vs01_log_path",
-			"kind": "log",
-			"pos": Vector2(19.2 * TILE, 23.5 * TILE),
-			"spr": ASSET_ROOT + "log.png",
-			"prompt": "убрать бревно",
-			"item": "wood",
-			"solid": true,
-			"solid_size": Vector2(28, 8),
-		},
-		{
-			"id": "vs01_rock_path",
+			"id": "vs01_rock_yard",
 			"kind": "stone",
-			"pos": Vector2(19.0 * TILE, 18.8 * TILE),
+			"pos": Vector2(22.4 * TILE, 17.2 * TILE),
 			"spr": ASSET_ROOT + "props/rock_md.png",
 			"prompt": "сдвинуть камень",
 			"item": "stone",
@@ -372,48 +373,112 @@ func _build_clearables() -> void:
 			"solid_size": Vector2(16, 10),
 		},
 		{
-			"id": "vs01_bush_path",
-			"kind": "bush",
-			"pos": Vector2(18.4 * TILE, 16.0 * TILE),
-			"spr": ASSET_ROOT + "props/bush_overgrown.png",
-			"prompt": "прорубить куст",
-			"item": "grass",
+			"id": "vs01_log_path",
+			"kind": "log",
+			"pos": Vector2(19.6 * TILE, 22.8 * TILE),
+			"spr": ASSET_ROOT + "log.png",
+			"prompt": "убрать бревно",
+			"item": "wood",
 			"solid": true,
-			"solid_size": Vector2(18, 12),
+			"solid_size": Vector2(28, 8),
+		},
+		{
+			"id": "vs01_stump_path",
+			"kind": "stump",
+			"pos": Vector2(20.2 * TILE, 26.8 * TILE),
+			"spr": ASSET_ROOT + "stump.png",
+			"prompt": "убрать пень",
+			"item": "wood",
+			"solid": true,
+			"solid_size": Vector2(16, 10),
 		},
 	]
 	for cfg in required:
 		_spawn_clearable(cfg)
 
-	# Optional overgrowth (sides)
 	var optional := [
-		{"id": "vs01_weed_1", "kind": "weed", "pos": Vector2(16 * TILE, 25 * TILE), "spr": ASSET_ROOT + "weed_a.png", "prompt": "сорвать сорняк", "item": "grass", "solid": false},
-		{"id": "vs01_weed_2", "kind": "weed", "pos": Vector2(23 * TILE, 24 * TILE), "spr": ASSET_ROOT + "weed_b.png", "prompt": "сорвать сорняк", "item": "grass", "solid": false},
-		{"id": "vs01_weed_3", "kind": "weed", "pos": Vector2(15 * TILE, 16 * TILE), "spr": ASSET_ROOT + "weed_a.png", "prompt": "сорвать сорняк", "item": "grass", "solid": false},
-		{"id": "vs01_weed_4", "kind": "weed", "pos": Vector2(24 * TILE, 18 * TILE), "spr": ASSET_ROOT + "weed_b.png", "prompt": "сорвать сорняк", "item": "grass", "solid": false},
-		{"id": "vs01_rock_side", "kind": "stone", "pos": Vector2(14 * TILE, 21 * TILE), "spr": ASSET_ROOT + "props/rock_sm.png", "prompt": "сдвинуть камень", "item": "stone", "hits": 5, "solid": true, "solid_size": Vector2(12, 8)},
-		{"id": "vs01_bush_side", "kind": "bush", "pos": Vector2(25.5 * TILE, 13.2 * TILE), "spr": ASSET_ROOT + "props/bush_md.png", "prompt": "прорубить куст", "item": "grass", "solid": true, "solid_size": Vector2(18, 12)},
-		{"id": "vs01_stump_side", "kind": "stump", "pos": Vector2(12.5 * TILE, 27 * TILE), "spr": ASSET_ROOT + "stump.png", "prompt": "убрать пень", "item": "wood", "solid": true, "solid_size": Vector2(16, 10)},
+		{"id": "vs01_weed_1", "kind": "weed", "pos": Vector2(16.2 * TILE, 24.5 * TILE), "spr": ASSET_ROOT + "weed_a.png", "prompt": "сорвать сорняк", "item": "grass", "solid": false},
+		{"id": "vs01_weed_2", "kind": "weed", "pos": Vector2(23.2 * TILE, 23.8 * TILE), "spr": ASSET_ROOT + "weed_b.png", "prompt": "сорвать сорняк", "item": "grass", "solid": false},
+		{"id": "vs01_weed_3", "kind": "weed", "pos": Vector2(15.4 * TILE, 18.2 * TILE), "spr": ASSET_ROOT + "weed_a.png", "prompt": "сорвать сорняк", "item": "grass", "solid": false},
+		{"id": "vs01_weed_4", "kind": "weed", "pos": Vector2(24.0 * TILE, 19.0 * TILE), "spr": ASSET_ROOT + "weed_b.png", "prompt": "сорвать сорняк", "item": "grass", "solid": false},
+		{"id": "vs01_weed_5", "kind": "weed", "pos": Vector2(18.0 * TILE, 28.5 * TILE), "spr": ASSET_ROOT + "weed_a.png", "prompt": "сорвать сорняк", "item": "grass", "solid": false},
+		{"id": "vs01_rock_side", "kind": "stone", "pos": Vector2(14.2 * TILE, 21.5 * TILE), "spr": ASSET_ROOT + "props/rock_sm.png", "prompt": "сдвинуть камень", "item": "stone", "hits": 5, "solid": true, "solid_size": Vector2(12, 8)},
+		{"id": "vs01_bush_side", "kind": "bush", "pos": Vector2(25.8 * TILE, 14.0 * TILE), "spr": ASSET_ROOT + "props/bush_md.png", "prompt": "прорубить куст", "item": "grass", "solid": true, "solid_size": Vector2(16, 11), "scale": Vector2(0.9, 0.9)},
+		{"id": "vs01_stump_side", "kind": "stump", "pos": Vector2(12.8 * TILE, 27.5 * TILE), "spr": ASSET_ROOT + "stump.png", "prompt": "убрать пень", "item": "wood", "solid": true, "solid_size": Vector2(16, 10)},
 	]
 	for cfg in optional:
 		_spawn_clearable(cfg)
 
-	# Decorative non-clearable rocks/bushes off path
+	# Solid decorative rocks (not clearable) — yard edges
 	for p in [
-		[ASSET_ROOT + "props/rock_lg.png", Vector2(12 * TILE, 16 * TILE), Vector2(20, 12)],
-		[ASSET_ROOT + "props/bush_sm.png", Vector2(26 * TILE, 27 * TILE), Vector2(14, 10)],
-		[ASSET_ROOT + "props/rock_sm.png", Vector2(28 * TILE, 21 * TILE), Vector2(10, 8)],
+		[ASSET_ROOT + "props/rock_lg.png", Vector2(12.2 * TILE, 15.5 * TILE), Vector2(18, 11)],
+		[ASSET_ROOT + "props/bush_sm.png", Vector2(26.2 * TILE, 26.5 * TILE), Vector2(12, 9)],
+		[ASSET_ROOT + "props/rock_sm.png", Vector2(28.2 * TILE, 20.5 * TILE), Vector2(10, 8)],
 	]:
 		_add_sprite(_ysort, str(p[0]), p[1], true, Vector2(0, -6))
 		_add_blocker_rect(p[1] + Vector2(0, 2), p[2])
+
+
+func _build_ambient_decor() -> void:
+	## Light overgrowth — readable, not cluttered.
+	var weeds := [
+		Vector2(13.5 * TILE, 18.8 * TILE),
+		Vector2(22.8 * TILE, 15.5 * TILE),
+		Vector2(17.5 * TILE, 20.8 * TILE),
+		Vector2(24.8 * TILE, 22.5 * TILE),
+		Vector2(15.8 * TILE, 27.2 * TILE),
+		Vector2(21.5 * TILE, 29.0 * TILE),
+		Vector2(11.5 * TILE, 23.0 * TILE),
+		Vector2(27.0 * TILE, 24.0 * TILE),
+	]
+	var i := 0
+	for pos in weeds:
+		var path := ASSET_ROOT + ("weed_a.png" if i % 2 == 0 else "weed_b.png")
+		var spr := _add_sprite(_ysort, path, pos, true, Vector2(0, -4))
+		spr.z_as_relative = true
+		i += 1
+	# Extra small bushes off the walking lanes
+	for b in [
+		[ASSET_ROOT + "props/bush_sm.png", Vector2(13.8 * TILE, 12.8 * TILE)],
+		[ASSET_ROOT + "props/bush_sm.png", Vector2(26.5 * TILE, 18.5 * TILE)],
+	]:
+		var spr2 := _add_sprite(_ysort, str(b[0]), b[1], true, Vector2(0, -6))
+		spr2.z_as_relative = true
+
+
+func _build_gate_hint() -> void:
+	## Soft “world continues” marker at the south gate (no new systems).
+	var tip := Area2D.new()
+	tip.name = "GateHint"
+	tip.monitoring = true
+	tip.collision_layer = 0
+	tip.collision_mask = 1
+	tip.position = Vector2(20 * TILE, 31.5 * TILE)
+	var col := CollisionShape2D.new()
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(48, 20)
+	col.shape = shape
+	tip.add_child(col)
+	tip.set_script(load("res://scripts/locations/outdoor/childhood_home/yard_vs01_gate_hint.gd"))
+	_ysort.add_child(tip)
+
+
+func _resolve_player_spawn() -> Vector2:
+	var sp := str(GameFlow.spawn_point)
+	if sp == "from_house" or sp == "from_workshop":
+		return Vector2(HOUSE_FEET.x * TILE, (HOUSE_FEET.y + 1.5) * TILE)
+	if sp == "childhood_home" or sp == "yard_vs01":
+		var mapped: Vector2 = GameFlow.spawn_position()
+		if mapped != Vector2.ZERO:
+			return mapped
+	return Vector2(PLAYER_SPAWN.x * TILE, PLAYER_SPAWN.y * TILE)
 
 
 func _build_player() -> void:
 	var packed := load(PLAYER_SCENE) as PackedScene
 	_player = packed.instantiate() as CharacterBody2D
 	_player.name = "PlayerPixelLabTest"
-	# Mid-path spawn: follow-cam frames whole house + entrance path + front yard.
-	_player.position = Vector2(PLAYER_SPAWN.x * TILE, PLAYER_SPAWN.y * TILE)
+	_player.position = _resolve_player_spawn()
 	_player.scale = Vector2.ONE
 	_ysort.add_child(_player)
 	if _player.has_method("set_camera_zoom"):
@@ -422,7 +487,6 @@ func _build_player() -> void:
 		_player.call("set_camera_offset", PLAY_CAMERA_OFFSET)
 	if _player.has_method("set_camera_limits"):
 		_player.call("set_camera_limits", _camera_limit_rect())
-	# Also stamp limits on the live Camera2D in case the helper missed limit_enabled.
 	var pcam := _player.get_node_or_null("Camera2D") as Camera2D
 	if pcam:
 		_apply_camera_limits(pcam)
@@ -448,14 +512,22 @@ func _build_ui() -> void:
 	_hint.position = Vector2(8, 6)
 	_hint.add_theme_font_size_override("font_size", 11)
 	_hint.add_theme_color_override("font_color", Color(0.95, 0.95, 0.9))
-	_hint.text = "VS01 двор · WASD · E — расчистка · F12 коллизии"
+	_hint.text = "Дом детства · WASD · E — действие · F12 коллизии"
 	layer.add_child(_hint)
 	_prompt = Label.new()
-	_prompt.position = Vector2(8, VIEW_H * WINDOW_SCALE - 28)
+	_prompt.position = Vector2(8, 8)
+	_prompt.offset_top = 0
+	_prompt.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_prompt.position = Vector2(8, -28)
 	_prompt.add_theme_font_size_override("font_size", 12)
 	_prompt.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
 	_prompt.visible = false
 	layer.add_child(_prompt)
+	# Anchor prompt to bottom of current viewport
+	_prompt.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	_prompt.offset_left = 8
+	_prompt.offset_bottom = -10
+	_prompt.offset_top = -28
 	if _player and _player.has_method("set_prompt_label"):
 		_player.call("set_prompt_label", _prompt)
 
@@ -498,7 +570,7 @@ func _shot_sequence() -> void:
 			anim.scale = Vector2.ONE
 			anim.play("idle_north")
 
-	# Start composition — house + hero + path (not the whole yard)
+	# Start composition — house + hero + front yard
 	_player.position = Vector2(PLAYER_SPAWN.x * TILE, PLAYER_SPAWN.y * TILE)
 	_shot_cam.position = _player.position + PLAY_CAMERA_OFFSET
 	await get_tree().process_frame
@@ -517,8 +589,8 @@ func _shot_sequence() -> void:
 	await get_tree().create_timer(0.25).timeout
 	await _take("yard_vs01_door")
 
-	# Path down — camera follows; yard continues off-screen
-	_player.position = Vector2(PLAYER_SPAWN.x * TILE, (PLAYER_SPAWN.y + 4.5) * TILE)
+	# Path down — camera follows toward gate
+	_player.position = Vector2(PLAYER_SPAWN.x * TILE, 24.5 * TILE)
 	if _player.get_node_or_null("AnimatedSprite2D"):
 		(_player.get_node("AnimatedSprite2D") as AnimatedSprite2D).play("idle_south")
 	_shot_cam.position = _player.position + PLAY_CAMERA_OFFSET
@@ -527,17 +599,17 @@ func _shot_sequence() -> void:
 	await _take("yard_vs01_path_down")
 
 	# Gate / entrance (south)
-	_player.position = Vector2(20 * TILE, 31.5 * TILE)
-	_shot_cam.position = Vector2(20 * TILE, 28.5 * TILE)
+	_player.position = Vector2(20 * TILE, 31.0 * TILE)
+	_shot_cam.position = Vector2(20 * TILE, 28.0 * TILE)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.2).timeout
 	await _take("yard_vs01_gate")
 
-	# Scale check near tree + rock
-	_player.position = Vector2(12.5 * TILE, 17.0 * TILE)
+	# Scale cluster — hero near bush + rock
+	_player.position = Vector2(22.0 * TILE, 17.5 * TILE)
 	if _player.get_node_or_null("AnimatedSprite2D"):
 		(_player.get_node("AnimatedSprite2D") as AnimatedSprite2D).play("idle_east")
-	_shot_cam.position = Vector2(14 * TILE, 15.0 * TILE)
+	_shot_cam.position = Vector2(21.5 * TILE, 15.8 * TILE)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.2).timeout
 	await _take("yard_vs01_scale")

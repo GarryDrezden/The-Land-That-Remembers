@@ -2,7 +2,19 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
-## 2026-08-02 (c) — restore house scale + correct VS01 camera framing
+## 2026-08-02 (d) — assemble playable VS01 childhood yard
+
+**Сделано:**
+- `yard_vs01` подключён как основной outdoor VS01: `GameFlow` location `childhood_home` / глава `vs01_childhood_home`;
+- workshop exit в VS01 возвращает во двор (`from_house`);
+- композиция: дом выше, spawn перед дверью (без камня на ногах), путь к калитке с clearables;
+- плотность: ambient weeds/bushes, trees scale ~0.88–0.92, gate hint;
+- камера zoom **2.4**, offset `(0,-36)`;
+- скрины `yard_vs01_*.png` обновлены.
+
+**Не делалось:** interior дома детства, выход в долину, farming, перерисовка upload house.
+
+---
 
 **Сделано:**
 - отменён runtime shrink ×0.88; дом **288×151** nearest (node/sprite scale `1`);

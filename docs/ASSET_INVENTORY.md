@@ -1,10 +1,10 @@
 # ASSET INVENTORY
 
-Обновлено: 2026-08-01 (VS01 yard candidate)
+Обновлено: 2026-08-02 (playable VS01 yard)
 
 Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md) · **catalog:** [README — Где смотреть ассеты](../README.md#где-смотреть-ассеты)
 
-## VS01 yard (under evaluation)
+## VS01 yard (playable)
 
 | Item | Path |
 |------|------|
@@ -12,12 +12,15 @@
 | Runtime pack | `assets/art/outdoor/yard_vs01/` |
 | Bake tool | `tools/build_yard_vs01_assets.py` |
 | **Approved house original** | `upload/houses/main_house_v1.png` (**permanent inbox**, never modified) |
-| **House in scene** | `assets/art/outdoor/yard_vs01/main_house_v1.png` — keyed crop, conservative alpha, nearest **288×151** (no ×0.88) |
+| **House in scene** | `assets/art/outdoor/yard_vs01/main_house_v1.png` — keyed crop, conservative alpha, nearest **288×151** |
 | House meta / door rect | `assets/art/outdoor/yard_vs01/main_house_v1.json` (`target_width`, door ~12×33) |
 | Scene node | `YSortWorld/MainHouse` (Sprite2D + HouseCollision + DoorHotspot) |
-| Start framing | spawn front yard; camera zoom **2.0** + offset `(0,-42)`; limits on padded grass — see `docs/art_tests/yard_vs01_start.png` |
-| Props source | selected copies from `upload/trees|rocks|bushes-pixel-art/` + drawn fence/well/log/stump |
-| Terrain | baked from `texture_proof_v1` grass/dirt 16×16 |
+| Start framing | zoom **2.4**, offset `(0,-36)` — `docs/art_tests/yard_vs01_start.png` |
+| Props used | `upload/trees-pixel-art`, `upload/rocks-and-stones-top-down-pixel-art`, `upload/bushes-pixel-art` → `props/` |
+| Drawn props | fence/gate/well/log/stump/weeds/shed/woodpile |
+| Terrain | baked from `texture_proof_v1` grass/dirt 16×16 + grass pad |
+| Clearables | weed / stone / log / stump / bush via `yard_object.gd` |
+| **Not used here** | `upload/crystals-pixel-art` (not needed for this yard) |
 
 Not used as VS01 anchors: CraftPix fairy cottage, oversized mushrooms. Placeholder `house_izba_placeholder.png` kept only as reference.
 

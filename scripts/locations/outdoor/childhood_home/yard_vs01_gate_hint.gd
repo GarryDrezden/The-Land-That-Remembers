@@ -1,8 +1,5 @@
 extends Area2D
-## Door hotspot — enter childhood-home interior (stub: workshop indoor scene).
-
-@export var target_location: String = "workshop"
-@export var target_spawn: String = "workshop"
+## Soft south-gate hint — world continues beyond the yard (no teleport yet).
 
 
 func _ready() -> void:
@@ -16,13 +13,12 @@ func _ready() -> void:
 
 
 func get_prompt() -> String:
-	return "войти в дом"
+	return "калитка · дальше в долину (скоро)"
 
 
 func interact(_actor: Node) -> void:
-	WorldState.set_story("entered_house", true)
-	WorldState.set_meta_value("location", "workshop")
-	GameFlow.go_location(target_location, target_spawn)
+	## Intentionally no travel yet — VS01 stays on the childhood yard.
+	pass
 
 
 func _on_body_entered(body: Node) -> void:
