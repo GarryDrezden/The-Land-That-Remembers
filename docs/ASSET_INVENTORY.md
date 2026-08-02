@@ -1,6 +1,6 @@
 # ASSET INVENTORY
 
-Обновлено: 2026-08-02 (homestead / orchard candidates)
+Обновлено: 2026-08-02 (homestead structure blockouts)
 
 Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md) · **catalog:** [README — Где смотреть ассеты](../README.md#где-смотреть-ассеты)
 
@@ -10,18 +10,21 @@
 |------|------|
 | Scene | `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` |
 | Layout | [CHILDHOOD_HOMESTEAD_LAYOUT.md](CHILDHOOD_HOMESTEAD_LAYOUT.md) |
+| Layout reference | `docs/art_direction/childhood_homestead_layout_target.png` |
 | Runtime pack | `assets/art/outdoor/yard_vs01/` |
-| Bake tool | `tools/build_yard_vs01_assets.py` |
-| Map | **44×84** tiles; ground `ground.png` 960×1600 (+pad) |
-| **House original** | `upload/houses/main_house_v1.png` (permanent) |
-| **House runtime** | `…/main_house_v1.png` **288×141** — key BG, eave seal, nearest |
-| Orchard trees | `props/fruit_apple_*.png`, `fruit_pear.png`, `fruit_dead.png` ← `Fruit_tree*` / `Broken_tree4` |
-| Berry bushes | `props/berry_{currant,gooseberry,raspberry}.png` ← `Bush_simple*` |
-| Props used | trees / rocks / bushes upload packs + drawn fence/well/log/stump |
-| Clearables | weed / stone / log / stump / bush via `yard_object.gd` |
-| **Not used here** | `upload/crystals-pixel-art` |
+| Structure blockouts | `…/structures/{garage,utility_shed,doghouse,outhouse,pond,ruined_bathhouse,greenhouse,compost,fence_*}.png` |
+| House | `HOUSE_MAIN_HOUSE_V1` → `main_house_v1.png` |
+| Well | `YARD_WELL_DRAWN_V1` (`well.png`) — **only well** |
+| Orchard props | `props/fruit_*`, `props/berry_*` |
+| Fence | drawn posts/rails + broken/lean variants |
 
-Not used as VS01 anchors: CraftPix fairy cottage, oversized mushrooms.
+### Asset IDs used (this pass)
+
+`HOUSE_MAIN_HOUSE_V1`, `YARD_WELL_DRAWN_V1`, `GATE_DRAWN_V1`, `BLOCKOUT_GARAGE_V1`, `BLOCKOUT_UTILITY_SHED_V1`, `BLOCKOUT_DOGHOUSE_V1`, `BLOCKOUT_OUTHOUSE_V1`, `BLOCKOUT_POND_V1`, `BLOCKOUT_RUINED_BATH_V1`, `BLOCKOUT_GREENHOUSE_V1`, `BLOCKOUT_COMPOST_V1`, `COMPOSITE_SOUTH_BLOCKAGE`, orchard `Fruit_tree*` / `Bush_simple*` candidates.
+
+### Missing final art (blockout for now)
+
+Garage, UtilityShed, Doghouse, Outhouse, Pond, RuinedBathhouse, Greenhouse, Compost, damaged fence variants — need dedicated rural pixel assets later.
 
 ## PixelLab hero v1 (under evaluation)
 

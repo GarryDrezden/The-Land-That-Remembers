@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "generated": "2026-08-02",
   "tile": 16,
   "map_tiles": [
@@ -13,7 +13,7 @@
   "notes": [
     "VS01 childhood homestead — long plot 44x84 tiles.",
     "Approved exterior: upload/houses/main_house_v1.png → main_house_v1.png.",
-    "Orchard/garden/far zones reserved via ground tint + scene markers.",
+    "Homestead structures are separate blockout sprites under structures/.",
     "upload/ originals are never modified in place."
   ],
   "props": {
@@ -127,6 +127,78 @@
       "size": [
         28,
         28
+      ]
+    }
+  },
+  "structures": {
+    "garage.png": {
+      "kind": "blockout",
+      "size": [
+        72,
+        52
+      ]
+    },
+    "utility_shed.png": {
+      "kind": "blockout",
+      "size": [
+        52,
+        44
+      ]
+    },
+    "doghouse.png": {
+      "kind": "blockout",
+      "size": [
+        24,
+        22
+      ]
+    },
+    "outhouse.png": {
+      "kind": "blockout",
+      "size": [
+        22,
+        34
+      ]
+    },
+    "pond.png": {
+      "kind": "blockout",
+      "size": [
+        64,
+        40
+      ]
+    },
+    "ruined_bathhouse.png": {
+      "kind": "blockout",
+      "size": [
+        56,
+        40
+      ]
+    },
+    "greenhouse.png": {
+      "kind": "blockout",
+      "size": [
+        48,
+        36
+      ]
+    },
+    "compost.png": {
+      "kind": "blockout",
+      "size": [
+        28,
+        20
+      ]
+    },
+    "fence_rail_broken.png": {
+      "kind": "blockout",
+      "size": [
+        16,
+        8
+      ]
+    },
+    "fence_post_lean.png": {
+      "kind": "blockout",
+      "size": [
+        12,
+        20
       ]
     }
   },

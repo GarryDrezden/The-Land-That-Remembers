@@ -226,13 +226,138 @@ def draw_woodpile() -> Image.Image:
 
 
 def draw_shed_corner() -> Image.Image:
-    """Hint of old outbuilding — partial shed corner."""
+    """Legacy partial shed — kept for bake compatibility; scene uses UtilityShed."""
     im = Image.new("RGBA", (48, 40), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.polygon([(4, 18), (24, 6), (44, 18), (44, 38), (4, 38)], fill=(80, 60, 42, 255))
     d.rectangle((6, 18, 42, 38), fill=(74, 54, 38, 255), outline=(48, 34, 24, 255))
     d.rectangle((18, 24, 30, 38), fill=(52, 38, 28, 255))
     return im
+
+
+def draw_garage() -> Image.Image:
+    """Blockout — large wood garage / woodshed."""
+    im = Image.new("RGBA", (72, 52), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(2, 22), (36, 4), (70, 22), (70, 50), (2, 50)], fill=(92, 70, 48, 255))
+    d.rectangle((4, 22, 68, 50), fill=(78, 58, 40, 255), outline=(48, 34, 24, 255))
+    d.rectangle((10, 28, 34, 50), fill=(42, 32, 24, 255))  # open bay
+    d.rectangle((40, 30, 62, 48), fill=(70, 52, 36, 255), outline=(40, 28, 20, 255))
+    for y in (34, 40, 46):
+        d.line((42, y, 60, y), fill=(54, 38, 26, 255))
+    return im
+
+
+def draw_utility_shed() -> Image.Image:
+    """Blockout — single utility shed (left of utility yard)."""
+    im = Image.new("RGBA", (52, 44), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(4, 18), (26, 4), (48, 18), (48, 42), (4, 42)], fill=(86, 64, 44, 255))
+    d.rectangle((6, 18, 46, 42), fill=(74, 54, 38, 255), outline=(46, 32, 22, 255))
+    d.rectangle((20, 26, 32, 42), fill=(50, 36, 26, 255))
+    d.rectangle((10, 22, 18, 30), fill=(120, 140, 150, 255), outline=(60, 70, 80, 255))
+    return im
+
+
+def draw_doghouse() -> Image.Image:
+    im = Image.new("RGBA", (24, 22), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(2, 12), (12, 2), (22, 12), (22, 20), (2, 20)], fill=(96, 72, 48, 255))
+    d.rectangle((3, 12, 21, 20), fill=(82, 60, 40, 255), outline=(50, 36, 24, 255))
+    d.ellipse((8, 13, 16, 20), fill=(40, 30, 22, 255))
+    return im
+
+
+def draw_outhouse() -> Image.Image:
+    im = Image.new("RGBA", (22, 34), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(2, 10), (11, 2), (20, 10), (20, 32), (2, 32)], fill=(88, 68, 46, 255))
+    d.rectangle((3, 10, 19, 32), fill=(76, 56, 38, 255), outline=(48, 34, 22, 255))
+    d.rectangle((7, 16, 15, 32), fill=(52, 38, 28, 255))
+    d.ellipse((9, 20, 13, 24), fill=(30, 22, 16, 255))
+    return im
+
+
+def draw_pond() -> Image.Image:
+    im = Image.new("RGBA", (64, 40), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse((2, 6, 62, 38), fill=(48, 78, 92, 255), outline=(36, 56, 64, 255))
+    d.ellipse((10, 12, 50, 32), fill=(56, 96, 110, 255))
+    d.ellipse((18, 16, 34, 24), fill=(70, 120, 130, 180))
+    # reed hints
+    for x in (6, 12, 52, 58):
+        d.line((x, 20, x - 1, 8), fill=(50, 90, 40, 255))
+    return im
+
+
+def draw_ruined_bathhouse() -> Image.Image:
+    im = Image.new("RGBA", (56, 40), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(4, 16), (28, 4), (52, 16), (52, 38), (4, 38)], fill=(70, 58, 50, 255))
+    d.rectangle((6, 16, 50, 38), fill=(64, 52, 44, 255), outline=(40, 32, 28, 255))
+    # collapsed roof notch
+    d.polygon([(20, 16), (28, 8), (40, 16)], fill=(0, 0, 0, 0))
+    d.rectangle((18, 22, 30, 38), fill=(36, 28, 24, 255))
+    d.rectangle((34, 20, 44, 28), fill=(90, 90, 70, 120))  # broken window
+    return im
+
+
+def draw_greenhouse() -> Image.Image:
+    im = Image.new("RGBA", (48, 36), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(2, 16), (24, 2), (46, 16), (46, 34), (2, 34)], fill=(140, 170, 150, 200))
+    d.rectangle((4, 16, 44, 34), fill=(120, 160, 140, 180), outline=(70, 90, 80, 255))
+    for x in range(8, 44, 8):
+        d.line((x, 16, x, 34), fill=(80, 100, 90, 255))
+    d.line((4, 24, 44, 24), fill=(80, 100, 90, 255))
+    return im
+
+
+def draw_compost() -> Image.Image:
+    im = Image.new("RGBA", (28, 20), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle((2, 6, 26, 18), fill=(64, 48, 32, 255), outline=(40, 30, 20, 255))
+    d.ellipse((4, 4, 24, 14), fill=(72, 58, 36, 255))
+    d.ellipse((8, 6, 16, 12), fill=(50, 70, 36, 255))
+    return im
+
+
+def draw_fence_rail_broken() -> Image.Image:
+    im = Image.new("RGBA", (16, 8), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle((0, 2, 7, 4), fill=(78, 56, 38, 255))
+    d.rectangle((10, 1, 15, 3), fill=(68, 48, 32, 255))
+    return im
+
+
+def draw_fence_post_lean() -> Image.Image:
+    im = Image.new("RGBA", (12, 20), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(2, 0), (6, 0), (10, 18), (5, 18)], fill=(72, 52, 34, 255))
+    return im
+
+
+def bake_homestead_structures() -> dict:
+    struct = OUT / "structures"
+    struct.mkdir(parents=True, exist_ok=True)
+    makers = {
+        "garage.png": draw_garage,
+        "utility_shed.png": draw_utility_shed,
+        "doghouse.png": draw_doghouse,
+        "outhouse.png": draw_outhouse,
+        "pond.png": draw_pond,
+        "ruined_bathhouse.png": draw_ruined_bathhouse,
+        "greenhouse.png": draw_greenhouse,
+        "compost.png": draw_compost,
+        "fence_rail_broken.png": draw_fence_rail_broken,
+        "fence_post_lean.png": draw_fence_post_lean,
+    }
+    meta = {}
+    for name, fn in makers.items():
+        im = fn()
+        im.save(struct / name)
+        meta[name] = {"kind": "blockout", "size": list(im.size)}
+    return meta
 
 
 def draw_stump() -> Image.Image:
@@ -782,11 +907,12 @@ def process() -> None:
     # Keep old placeholder for reference, but approved house is main_house_v1.
     draw_izba().save(OUT / "house_izba_placeholder.png")
 
+    struct_meta = bake_homestead_structures()
     prop_meta = copy_props()
     house_meta = prepare_main_house()
 
     manifest = {
-        "version": 2,
+        "version": 3,
         "generated": date.today().isoformat(),
         "tile": TILE,
         "map_tiles": [MAP_W, MAP_H],
@@ -794,10 +920,11 @@ def process() -> None:
         "notes": [
             "VS01 childhood homestead — long plot 44x84 tiles.",
             "Approved exterior: upload/houses/main_house_v1.png → main_house_v1.png.",
-            "Orchard/garden/far zones reserved via ground tint + scene markers.",
+            "Homestead structures are separate blockout sprites under structures/.",
             "upload/ originals are never modified in place.",
         ],
         "props": prop_meta,
+        "structures": struct_meta,
         "house": house_meta,
         "ground": "ground.png",
     }

@@ -5,6 +5,22 @@
 
 ---
 
+## DEC-014: Approved childhood homestead structure layout
+
+**Решение:**
+- Layout-pass объектов на `yard_vs01` follows the owner-approved homestead diagram;
+- **No** upper-left shed from early sketches;
+- Exactly **one** well (near yard, left/center);
+- Named nodes: `Garage`, `UtilityShed`, `Well`, `Doghouse`, `Outhouse`, `Pond`, `RuinedBathhouse`, `GreenhouseReserved`, `CompostReserved`, `SouthBlockage`;
+- Structures are **separate Node2D** sprites (blockout OK), never baked into terrain;
+- Fence is imperfect (intact / leaning / broken / missing / overgrown);
+- `village_street` remains a **separate future scene** (north gate portal inactive only);
+- No repair / storage / fishing / bath / greenhouse / compost / harvest gameplay in this pass.
+
+**Статус:** принято · 2026-08-02
+
+---
+
 ## DEC-013: Childhood homestead is a long street-facing rural plot
 
 **Решение:**

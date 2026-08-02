@@ -87,10 +87,9 @@ func _ready() -> void:
 	_build_fence()
 	_build_house()
 	_build_street_portal()
-	_build_secondary_props()
+	_build_homestead_structures()
 	_build_edge_trees()
 	_build_orchard()
-	_build_garden_reserve_decor()
 	_build_far_blockage()
 	_build_clearables()
 	_build_ambient_decor()
@@ -214,38 +213,117 @@ func _build_zone_markers() -> void:
 
 
 func _build_fence() -> void:
-	## Side fences run the length of the plot. No false south fence closing the near yard.
-	## North rail marks street-edge; south of orchard is blocked by debris, not a full gate row.
+	## Imperfect perimeter: intact / leaning / broken / missing / overgrown.
+	## No continuous ideal fence. No false south fence closing the near yard.
 	var post := ASSET_ROOT + "fence_post.png"
 	var rail := ASSET_ROOT + "fence_rail.png"
+	var post_lean := ASSET_ROOT + "structures/fence_post_lean.png"
+	var rail_broken := ASSET_ROOT + "structures/fence_rail_broken.png"
 	var north_y := 4.2
-	var south_end := float(MAP_H - 2)
-	# Top — street edge above the roof
+	var south_end := float(MAP_H - 3)
+
+	# North street-edge — gap at center for future village gate
 	for x in range(int(FENCE_L) + 1, int(FENCE_R)):
-		_fence_segment(Vector2((x + 0.5) * TILE, north_y * TILE), post, rail, true)
-		_add_blocker_rect(Vector2((x + 0.5) * TILE, (north_y + 0.3) * TILE), Vector2(14, 6))
-	# Left / right — full length, with occasional broken gaps further south
-	for y in range(int(north_y), int(south_end) + 1):
-		var broken := y > 55 and (y % 7 == 0 or y % 11 == 0)
-		if broken:
+		if x >= 18 and x <= 21:
 			continue
-		_fence_segment(Vector2(FENCE_L * TILE, (y + 0.5) * TILE), post, rail, false)
-		_add_blocker_rect(Vector2((FENCE_L + 0.1) * TILE, (y + 0.5) * TILE), Vector2(6, 14))
-		_fence_segment(Vector2(FENCE_R * TILE, (y + 0.5) * TILE), post, rail, false)
-		_add_blocker_rect(Vector2((FENCE_R - 0.1) * TILE, (y + 0.5) * TILE), Vector2(6, 14))
-	# Sparse ruined fence fragments in far zone (visual only, already skipped gaps)
+		var npos := Vector2((x + 0.5) * TILE, north_y * TILE)
+		var nmode := _fence_mode(x, int(north_y), true)
+		_place_fence_piece(npos, nmode, true, post, rail, post_lean, rail_broken)
+
+	# Side runs
+	for y in range(int(north_y), int(south_end) + 1):
+		for side in [FENCE_L, FENCE_R]:
+			var mode := _fence_mode(int(side), y, side == FENCE_L)
+			_place_fence_piece(
+				Vector2(side * TILE, (y + 0.5) * TILE),
+				mode, false, post, rail, post_lean, rail_broken
+			)
+
+	# Sparse collapsed fragments in far south (visual)
 	for x in [10, 14, 28, 33]:
-		_fence_segment(Vector2((x + 0.5) * TILE, 70.5 * TILE), post, rail, true)
+		_place_fence_piece(
+			Vector2((x + 0.5) * TILE, 72.0 * TILE),
+			"broken", true, post, rail, post_lean, rail_broken
+		)
 
 
-func _fence_segment(pos: Vector2, post_path: String, rail_path: String, horizontal: bool) -> void:
-	var post_spr := _add_sprite(_ysort, post_path, pos, true, Vector2(0, -8))
+func _fence_mode(col: int, row: int, left_side: bool) -> String:
+	## Deterministic variety along the plot length.
+	var h := absi(col * 17 + row * 31 + (3 if left_side else 7))
+	if row > 62:
+		var far := h % 5
+		if far == 0:
+			return "missing"
+		if far == 1:
+			return "broken"
+		if far == 2:
+			return "overgrown"
+		if far == 3:
+			return "leaning"
+		return "intact"
+	if row > 48:
+		var mid := h % 6
+		if mid == 0:
+			return "missing"
+		if mid == 1 or mid == 2:
+			return "broken"
+		if mid == 3:
+			return "overgrown"
+		if mid == 4:
+			return "leaning"
+		return "intact"
+	# Near / utility / orchard — mostly intact with occasional damage
+	var near := h % 11
+	if near == 0:
+		return "leaning"
+	if near == 1:
+		return "broken"
+	if near == 2 and row > 30:
+		return "missing"
+	if near == 3 and row > 28:
+		return "overgrown"
+	return "intact"
+
+
+func _place_fence_piece(
+	pos: Vector2,
+	mode: String,
+	horizontal: bool,
+	post_path: String,
+	rail_path: String,
+	post_lean_path: String,
+	rail_broken_path: String
+) -> void:
+	if mode == "missing":
+		return
+	var use_post := post_lean_path if mode == "leaning" else post_path
+	var post_spr := _add_sprite(_ysort, use_post, pos, true, Vector2(0, -8))
 	post_spr.z_as_relative = true
+	if mode == "leaning":
+		post_spr.rotation_degrees = -12.0 if int(pos.x) % 2 == 0 else 10.0
+	if mode == "broken":
+		if horizontal:
+			var br := _add_sprite(_ysort, rail_broken_path, pos + Vector2(0, -5), true)
+			br.z_as_relative = true
+		# No solid collision on broken stubs — walkable gap feel
+		return
+	if mode == "overgrown":
+		var bush := _add_sprite(_ysort, ASSET_ROOT + "props/bush_sm.png", pos + Vector2(0, -4), true, Vector2(0, -4))
+		bush.z_as_relative = true
+		bush.scale = Vector2(0.85, 0.85)
+		_add_blocker_rect(pos + Vector2(0, 2), Vector2(10, 10) if not horizontal else Vector2(14, 8))
+		return
+	# intact / leaning with rail
 	if horizontal:
 		var rail_spr := _add_sprite(_ysort, rail_path, pos + Vector2(0, -6), true)
 		rail_spr.z_as_relative = true
-		if int(pos.x / TILE) % 5 == 0:
-			post_spr.position.y += 1
+	if mode == "leaning":
+		_add_blocker_rect(pos + Vector2(0, 2), Vector2(5, 12) if not horizontal else Vector2(12, 5))
+	else:
+		_add_blocker_rect(
+			pos + (Vector2(0.1 * TILE, 0) if not horizontal else Vector2(0, 0.2 * TILE)),
+			Vector2(6, 14) if not horizontal else Vector2(14, 6)
+		)
 
 
 func _build_house() -> void:
@@ -319,29 +397,174 @@ func _build_house() -> void:
 
 
 func _build_street_portal() -> void:
-	## North of house — future village_street transition (inactive).
+	## North gate — future village_street (inactive). Separate scene later.
+	var gate := _add_sprite(_ysort, ASSET_ROOT + "gate.png", Vector2(20 * TILE, 4.4 * TILE), true, Vector2(0, -8))
+	gate.name = "NorthGateVisual"
 	var portal_script := load("res://scripts/locations/outdoor/childhood_home/village_street_portal.gd")
 	var tip: Area2D = portal_script.new()
 	tip.name = "VillageStreetPortal"
-	tip.position = Vector2(20 * TILE, 6.5 * TILE)
+	tip.position = Vector2(20 * TILE, 5.8 * TILE)
 	var col := CollisionShape2D.new()
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(40, 16)
+	shape.size = Vector2(48, 18)
 	col.shape = shape
 	tip.add_child(col)
 	_ysort.add_child(tip)
 
 
-func _build_secondary_props() -> void:
-	var well := _add_sprite(_ysort, ASSET_ROOT + "well.png", Vector2(27.5 * TILE, 16.5 * TILE), true, Vector2(0, -10))
-	well.name = "Well"
-	_add_blocker_rect(Vector2(27.5 * TILE, 16.9 * TILE), Vector2(22, 12))
-	var wood := _add_sprite(_ysort, ASSET_ROOT + "woodpile.png", Vector2(11.8 * TILE, 13.6 * TILE), true, Vector2(0, -4))
-	wood.name = "Woodpile"
-	_add_blocker_rect(Vector2(11.8 * TILE, 13.9 * TILE), Vector2(28, 10))
-	var shed := _add_sprite(_ysort, ASSET_ROOT + "shed_corner.png", Vector2(10.0 * TILE, 24.5 * TILE), true, Vector2(0, -12))
-	shed.name = "ShedCorner"
-	_add_blocker_rect(Vector2(10.0 * TILE, 25.0 * TILE), Vector2(36, 16))
+func _place_named_structure(cfg: Dictionary) -> Node2D:
+	## Separate Node2D (not baked into ground). cfg: name, spr, pos(tiles), solid, offset, scale, status
+	var n := Node2D.new()
+	n.name = str(cfg.name)
+	n.position = Vector2(float(cfg.pos.x) * TILE, float(cfg.pos.y) * TILE)
+	n.set_meta("zone_id", str(cfg.get("zone", "")))
+	n.set_meta("layout_status", str(cfg.get("status", "blockout")))
+	n.set_meta("asset_id", str(cfg.get("asset_id", "PLACEHOLDER_BLOCKOUT")))
+	var spr := _add_sprite(n, str(cfg.spr), Vector2.ZERO, true, cfg.get("offset", Vector2(0, -12)))
+	spr.scale = cfg.get("scale", Vector2.ONE)
+	spr.z_as_relative = true
+	if bool(cfg.get("modulate_dim", false)):
+		spr.modulate = Color(0.85, 0.85, 0.9, 0.95)
+	_ysort.add_child(n)
+	if bool(cfg.get("solid", true)):
+		var sz: Vector2 = cfg.get("solid_size", Vector2(28, 16))
+		_add_blocker_rect(n.position + Vector2(0, 4), sz)
+	return n
+
+
+func _build_homestead_structures() -> void:
+	## Approved layout — NO upper-left shed. Exactly one well.
+	## Feet positions in tiles; house itself unchanged.
+	var structs := [
+		{
+			"name": "Garage",
+			"zone": "near_house_yard",
+			"status": "partial",
+			"asset_id": "BLOCKOUT_GARAGE_V1",
+			"spr": ASSET_ROOT + "structures/garage.png",
+			"pos": Vector2(33.0, 12.2),
+			"offset": Vector2(0, -18),
+			"solid_size": Vector2(56, 22),
+			"scale": Vector2(1.0, 1.0),
+		},
+		{
+			"name": "UtilityShed",
+			"zone": "utility_yard",
+			"status": "available",
+			"asset_id": "BLOCKOUT_UTILITY_SHED_V1",
+			"spr": ASSET_ROOT + "structures/utility_shed.png",
+			"pos": Vector2(9.5, 26.0),
+			"offset": Vector2(0, -16),
+			"solid_size": Vector2(40, 18),
+		},
+		{
+			"name": "Well",
+			"zone": "near_house_yard",
+			"status": "available",
+			"asset_id": "YARD_WELL_DRAWN_V1",
+			"spr": ASSET_ROOT + "well.png",
+			"pos": Vector2(14.0, 17.4),
+			"offset": Vector2(0, -10),
+			"solid_size": Vector2(22, 12),
+		},
+		{
+			"name": "Doghouse",
+			"zone": "near_house_yard",
+			"status": "available",
+			"asset_id": "BLOCKOUT_DOGHOUSE_V1",
+			"spr": ASSET_ROOT + "structures/doghouse.png",
+			"pos": Vector2(16.2, 14.0),
+			"offset": Vector2(0, -8),
+			"solid_size": Vector2(18, 10),
+		},
+		{
+			"name": "Outhouse",
+			"zone": "old_orchard",
+			"status": "partial",
+			"asset_id": "BLOCKOUT_OUTHOUSE_V1",
+			"spr": ASSET_ROOT + "structures/outhouse.png",
+			"pos": Vector2(33.0, 41.0),
+			"offset": Vector2(0, -14),
+			"solid_size": Vector2(16, 14),
+		},
+		{
+			"name": "Pond",
+			"zone": "future_garden",
+			"status": "partial",
+			"asset_id": "BLOCKOUT_POND_V1",
+			"spr": ASSET_ROOT + "structures/pond.png",
+			"pos": Vector2(11.5, 52.5),
+			"offset": Vector2(0, -6),
+			"solid_size": Vector2(52, 22),
+		},
+		{
+			"name": "RuinedBathhouse",
+			"zone": "future_garden",
+			"status": "reserved",
+			"asset_id": "BLOCKOUT_RUINED_BATH_V1",
+			"spr": ASSET_ROOT + "structures/ruined_bathhouse.png",
+			"pos": Vector2(30.5, 53.5),
+			"offset": Vector2(0, -14),
+			"solid_size": Vector2(44, 20),
+			"modulate_dim": true,
+		},
+		{
+			"name": "GreenhouseReserved",
+			"zone": "future_garden",
+			"status": "reserved",
+			"asset_id": "BLOCKOUT_GREENHOUSE_V1",
+			"spr": ASSET_ROOT + "structures/greenhouse.png",
+			"pos": Vector2(18.0, 58.5),
+			"offset": Vector2(0, -12),
+			"solid_size": Vector2(40, 18),
+			"modulate_dim": true,
+		},
+		{
+			"name": "CompostReserved",
+			"zone": "future_garden",
+			"status": "reserved",
+			"asset_id": "BLOCKOUT_COMPOST_V1",
+			"spr": ASSET_ROOT + "structures/compost.png",
+			"pos": Vector2(26.5, 60.5),
+			"offset": Vector2(0, -6),
+			"solid_size": Vector2(24, 12),
+			"modulate_dim": true,
+		},
+	]
+	for cfg in structs:
+		_place_named_structure(cfg)
+
+	# Woodpile is decor under the garage (дровник), not a second shed.
+	var wood := _add_sprite(
+		_ysort, ASSET_ROOT + "woodpile.png",
+		Vector2(30.5 * TILE, 14.0 * TILE), true, Vector2(0, -4)
+	)
+	wood.name = "GarageWoodpileDecor"
+	_add_blocker_rect(Vector2(30.5 * TILE, 14.3 * TILE), Vector2(26, 10))
+
+
+func _build_far_blockage() -> void:
+	## SouthBlockage in far_overgrown_plot — garden remains reachable past pond.
+	var root := Node2D.new()
+	root.name = "SouthBlockage"
+	root.position = Vector2(20 * TILE, 68.0 * TILE)
+	root.set_meta("zone_id", "far_overgrown_plot")
+	root.set_meta("layout_status", "locked")
+	root.set_meta("asset_id", "COMPOSITE_SOUTH_BLOCKAGE")
+	_ysort.add_child(root)
+	var y := 68.0
+	for item in [
+		[ASSET_ROOT + "props/tree_c.png", Vector2(-2.5 * TILE, 0), Vector2(0.95, 0.95), Vector2(18, 12)],
+		[ASSET_ROOT + "log.png", Vector2(0.5 * TILE, 0.6 * TILE), Vector2(1.1, 1.0), Vector2(36, 10)],
+		[ASSET_ROOT + "log.png", Vector2(3.5 * TILE, 0.2 * TILE), Vector2(1.0, 1.0), Vector2(32, 10)],
+		[ASSET_ROOT + "props/bush_overgrown.png", Vector2(-5.0 * TILE, 0.4 * TILE), Vector2(1.0, 1.0), Vector2(18, 12)],
+		[ASSET_ROOT + "props/bush_overgrown.png", Vector2(6.0 * TILE, 0.5 * TILE), Vector2(1.0, 1.0), Vector2(18, 12)],
+		[ASSET_ROOT + "stump.png", Vector2(-1.0 * TILE, 1.2 * TILE), Vector2(1.0, 1.0), Vector2(16, 10)],
+	]:
+		var spr := _add_sprite(root, str(item[0]), item[1], true, Vector2(0, -18))
+		spr.scale = item[2]
+		_add_blocker_rect(root.position + item[1] + Vector2(0, 4), item[3])
+	_add_blocker_rect(Vector2(20 * TILE, (y + 0.5) * TILE), Vector2(150, 20))
 
 
 func _build_edge_trees() -> void:
@@ -403,39 +626,6 @@ func _build_orchard() -> void:
 		spr.scale = Vector2(0.9, 0.9)
 		_ysort.add_child(n)
 		_add_blocker_rect(b.pos + Vector2(0, 2), Vector2(14, 9))
-
-
-func _build_garden_reserve_decor() -> void:
-	## Sparse scars only — no permanent blockers that fight future bed layout.
-	for p in [
-		[ASSET_ROOT + "props/rock_sm.png", Vector2(12.0 * TILE, 55.0 * TILE)],
-		[ASSET_ROOT + "props/rock_md.png", Vector2(30.5 * TILE, 58.5 * TILE)],
-		[ASSET_ROOT + "weed_a.png", Vector2(18.0 * TILE, 57.0 * TILE)],
-		[ASSET_ROOT + "weed_b.png", Vector2(24.0 * TILE, 61.0 * TILE)],
-		[ASSET_ROOT + "log.png", Vector2(15.5 * TILE, 62.5 * TILE)],
-	]:
-		var spr := _add_sprite(_ysort, str(p[0]), p[1], true, Vector2(0, -6))
-		spr.z_as_relative = true
-		spr.modulate = Color(1, 1, 1, 0.92)
-
-
-func _build_far_blockage() -> void:
-	## Closes further plot for now — player sees the land continues.
-	var y := 48.5
-	for item in [
-		[ASSET_ROOT + "props/tree_c.png", Vector2(17.5 * TILE, y * TILE), Vector2(0.95, 0.95), Vector2(18, 12)],
-		[ASSET_ROOT + "log.png", Vector2(20.5 * TILE, (y + 0.8) * TILE), Vector2(1.1, 1.0), Vector2(36, 10)],
-		[ASSET_ROOT + "log.png", Vector2(23.5 * TILE, (y + 0.3) * TILE), Vector2(1.0, 1.0), Vector2(32, 10)],
-		[ASSET_ROOT + "props/bush_overgrown.png", Vector2(15.0 * TILE, (y + 0.5) * TILE), Vector2(1.0, 1.0), Vector2(18, 12)],
-		[ASSET_ROOT + "props/bush_overgrown.png", Vector2(26.5 * TILE, (y + 0.6) * TILE), Vector2(1.0, 1.0), Vector2(18, 12)],
-		[ASSET_ROOT + "stump.png", Vector2(19.0 * TILE, (y + 1.4) * TILE), Vector2(1.0, 1.0), Vector2(16, 10)],
-	]:
-		var spr := _add_sprite(_ysort, str(item[0]), item[1], true, Vector2(0, -18))
-		spr.scale = item[2]
-		spr.name = "FarBlockage"
-		_add_blocker_rect(item[1] + Vector2(0, 4), item[3])
-	# Solid wall across path so player cannot squeeze through
-	_add_blocker_rect(Vector2(20 * TILE, (y + 0.6) * TILE), Vector2(140, 18))
 
 
 func _spawn_clearable(cfg: Dictionary) -> void:
@@ -589,11 +779,11 @@ func _build_ambient_decor() -> void:
 
 func _build_orchard_hint() -> void:
 	var tip := Area2D.new()
-	tip.name = "OrchardBlockHint"
+	tip.name = "SouthBlockHint"
 	tip.monitoring = true
 	tip.collision_layer = 0
 	tip.collision_mask = 1
-	tip.position = Vector2(20 * TILE, 47.2 * TILE)
+	tip.position = Vector2(20 * TILE, 66.5 * TILE)
 	var col := CollisionShape2D.new()
 	var shape := RectangleShape2D.new()
 	shape.size = Vector2(64, 24)
@@ -733,52 +923,65 @@ func _shot_sequence() -> void:
 		var anim := _player.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 		if anim:
 			anim.scale = Vector2.ONE
-			anim.play("idle_north")
+			anim.play("idle_south")
 
-	# 1) Start — house + front yard (composition preserved)
-	_player.position = Vector2(PLAYER_SPAWN.x * TILE, PLAYER_SPAWN.y * TILE)
-	_shot_cam.position = _player.position + PLAY_CAMERA_OFFSET
-	await get_tree().process_frame
-	await get_tree().create_timer(0.25).timeout
-	await _take("yard_vs01_start")
-
-	# 2) Transition yard → orchard
-	_player.position = Vector2(20 * TILE, 33.5 * TILE)
-	if _player.get_node_or_null("AnimatedSprite2D"):
-		(_player.get_node("AnimatedSprite2D") as AnimatedSprite2D).play("idle_south")
-	_shot_cam.position = _player.position + PLAY_CAMERA_OFFSET
-	await get_tree().process_frame
-	await get_tree().create_timer(0.25).timeout
-	await _take("yard_vs01_yard_to_orchard")
-
-	# 3) Orchard fragment
-	_player.position = Vector2(20 * TILE, 40.0 * TILE)
-	_shot_cam.position = _player.position + PLAY_CAMERA_OFFSET
-	await get_tree().process_frame
-	await get_tree().create_timer(0.25).timeout
-	await _take("yard_vs01_orchard")
-
-	# 4) Blockage closing far plot
-	_player.position = Vector2(20 * TILE, 46.5 * TILE)
-	_shot_cam.position = _player.position + Vector2(0, -20)
-	await get_tree().process_frame
-	await get_tree().create_timer(0.25).timeout
-	await _take("yard_vs01_blockage")
-
-	# 5) Zone debug overlay (pull back)
+	# Overview — full homestead plate
 	_show_zone_debug = true
 	_refresh_zone_debug()
-	_shot_cam.zoom = Vector2(0.55, 0.55)
+	_shot_cam.zoom = Vector2(0.42, 0.42)
 	_shot_cam.position = Vector2(22 * TILE, 42 * TILE)
 	if _player:
 		_player.visible = false
 	await get_tree().process_frame
 	await get_tree().create_timer(0.3).timeout
-	await _take("yard_vs01_zones_debug")
+	await _take("homestead_layout_overview")
 	_show_zone_debug = false
 	_refresh_zone_debug()
 	if _player:
 		_player.visible = true
+	_shot_cam.zoom = Vector2(PLAY_CAMERA_ZOOM, PLAY_CAMERA_ZOOM)
+
+	# Near yard
+	_player.position = Vector2(PLAYER_SPAWN.x * TILE, PLAYER_SPAWN.y * TILE)
+	_shot_cam.position = _player.position + PLAY_CAMERA_OFFSET
+	await get_tree().process_frame
+	await get_tree().create_timer(0.2).timeout
+	await _take("homestead_layout_near_yard")
+
+	# Utility cluster — garage / shed / well / doghouse
+	_player.position = Vector2(18 * TILE, 18.5 * TILE)
+	_shot_cam.position = Vector2(20 * TILE, 16.0 * TILE)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.2).timeout
+	await _take("homestead_layout_utility")
+
+	# Orchard + outhouse
+	_player.position = Vector2(22 * TILE, 40.5 * TILE)
+	_shot_cam.position = Vector2(24 * TILE, 39.0 * TILE)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.2).timeout
+	await _take("homestead_layout_orchard_outhouse")
+
+	# Pond + ruined bath
+	_player.position = Vector2(18 * TILE, 52.0 * TILE)
+	_shot_cam.position = Vector2(20 * TILE, 52.5 * TILE)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.2).timeout
+	await _take("homestead_layout_pond_bath")
+
+	# Greenhouse + compost
+	_player.position = Vector2(20 * TILE, 58.5 * TILE)
+	_shot_cam.position = Vector2(22 * TILE, 58.0 * TILE)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.2).timeout
+	await _take("homestead_layout_garden_reserved")
+
+	# Broken fence sections (south-east edge)
+	_player.position = Vector2(34 * TILE, 56.0 * TILE)
+	_shot_cam.position = Vector2(34 * TILE, 58.0 * TILE)
+	await get_tree().process_frame
+	await get_tree().create_timer(0.2).timeout
+	await _take("homestead_layout_fence_damage")
 
 
 func _take(tag: String) -> void:

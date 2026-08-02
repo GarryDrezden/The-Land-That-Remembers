@@ -2,6 +2,20 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-02 (f) — approved homestead structures layout-pass
+
+**Сделано:**
+- размещены named blockout-постройки: Garage, UtilityShed, Well×1, Doghouse, Outhouse, Pond, RuinedBathhouse, GreenhouseReserved, CompostReserved, SouthBlockage;
+- северная калитка + inactive `village_street` portal;
+- неоднородный забор (intact/leaning/broken/missing/overgrown);
+- убран ложный NW-сарай / дубль колодца; SouthBlockage перенесён в far zone (~y68);
+- reference PNG + таблица объектов в `CHILDHOOD_HOMESTEAD_LAYOUT.md`;
+- скрины `homestead_layout_*.png`.
+
+**Не делалось:** ремонт, хранение, рыбалка, баня/теплица/компост gameplay, урожай, street scene, правки дома/героя/WorldState.
+
+---
+
 ## 2026-08-02 (e) — childhood homestead geography + orchard layout
 
 **Сделано:**

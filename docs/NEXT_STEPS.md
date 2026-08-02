@@ -1,22 +1,22 @@
 # NEXT STEPS
 
-Обновлено: 2026-08-02 (homestead geography)
+Обновлено: 2026-08-02 (homestead layout-pass)
 
 ## Сейчас
 
-1. Playtest `yard_vs01`: дом → ближний двор → сад → завал.
-2. F11 — зоны; E — clearables; дверь → workshop stub.
-3. Скрины: `docs/art_tests/yard_vs01_{start,yard_to_orchard,orchard,blockage,zones_debug}.png`
+1. Owner review: `docs/art_tests/homestead_layout_*.png` + `docs/art_direction/childhood_homestead_layout_target.png`
+2. Проверить маршруты: дом → двор → сад → пруд/огород → SouthBlockage
+3. F11 зоны; один колодец; нет NW-сарая
 
-## Дальше (после приёмки географии)
+## Дальше
 
-1. Interior дома детства.
-2. `village_street` как отдельная локация (сейчас только inactive portal).
-3. Orchard restoration gameplay (обрезка / лечение / урожай) — **отдельный этап**.
-4. Future garden beds / farming — **не начинать** без подтверждения.
+1. Interior дома детства
+2. Art-pass построек (замена blockout на финальные ассеты)
+3. `village_street` как отдельная сцена — только после приёмки усадьбы
 
 ## Стоп
 
-- Не удалять `res://upload/`.
-- Не реализовывать урожай, сезоны, грядки, готовку в этом коммите-цикле.
-- Не переписывать GameRoot «заодно».
+- Не ремонт / хранение / рыбалка / баня / теплица / компост gameplay
+- Не урожай / грядки / сезоны / готовка
+- Не переписывать GameRoot / WorldState
+- Не удалять `res://upload/`

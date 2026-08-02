@@ -1,18 +1,18 @@
 # PROJECT STATUS
 
-Обновлено: 2026-08-02 (childhood homestead geography)
+Обновлено: 2026-08-02 (homestead structures layout-pass)
 
 ## Кратко
 
-- **Основная outdoor-сцена VS01:** `scenes/locations/outdoor/childhood_home/yard_vs01.tscn`
-- **Карта усадьбы:** **44×84** tiles (длинный участок на юг); layout: [CHILDHOOD_HOMESTEAD_LAYOUT.md](CHILDHOOD_HOMESTEAD_LAYOUT.md)
-- **Дом:** `upload/houses/main_house_v1.png` → runtime bake **288×141** (eave seal pass); дворовый вход; улица на север (portal inactive)
-- **Зоны:** near yard → utility → old orchard (fragment) → future garden / far plot (locked)
-- **Герой / расчистка:** без изменений API (`yard_object` + `cleared_objects`); zone schema в `meta.locations`
-- **Камера старта:** zoom **2.4**, offset `(0,-36)` — дом + ближний двор; участок уходит вниз за кадр
+- **Сцена:** `scenes/locations/outdoor/childhood_home/yard_vs01.tscn`
+- **Layout:** утверждённые постройки размещены (Garage, UtilityShed, Well×1, Doghouse, Outhouse, Pond, RuinedBathhouse, Greenhouse, Compost, SouthBlockage, NorthGate)
+- **Reference:** `docs/art_direction/childhood_homestead_layout_target.png`
+- **Карта:** 44×84; забор неоднородный; без верхнего левого сарая; один колодец
+- **Дом / герой:** без изменений масштаба и ассета
+- **`village_street`:** только inactive portal
 
 ## Следующее
 
-1. Owner playtest: двор → сад → завал; F11 зоны.
-2. Interior дома детства (не workshop-stub).
-3. Не делать урожай / грядки / сезоны без отдельного подтверждения.
+1. Owner review layout-скринов `docs/art_tests/homestead_layout_*.png`
+2. Interior дома детства
+3. Не начинать ремонт/рыбалку/теплицу/урожай без подтверждения
