@@ -1,21 +1,22 @@
 # NEXT STEPS
 
-Обновлено: 2026-08-02 (playable VS01 yard)
+Обновлено: 2026-08-02 (homestead geography)
 
 ## Сейчас
 
-1. Запустить `yard_vs01` через Debug → **VS01 — Дом детства**.
-2. Проверить: дом целиком в стартовом кадре, ходьба, коллизии, расчистка (куст/камень/бревно/пень), дверь → workshop stub, калитка hint.
-3. Owner review скринов `docs/art_tests/yard_vs01_*.png`.
+1. Playtest `yard_vs01`: дом → ближний двор → сад → завал.
+2. F11 — зоны; E — clearables; дверь → workshop stub.
+3. Скрины: `docs/art_tests/yard_vs01_{start,yard_to_orchard,orchard,blockage,zones_debug}.png`
 
-## Дальше (после приёмки двора)
+## Дальше (после приёмки географии)
 
-1. Настоящий interior дома детства (вместо workshop stub).
-2. Выход через калитку в долину (когда будет следующая outdoor-локация).
-3. Точечная чистка alpha под карнизом `main_house_v1`, если нужно.
+1. Interior дома детства.
+2. `village_street` как отдельная локация (сейчас только inactive portal).
+3. Orchard restoration gameplay (обрезка / лечение / урожай) — **отдельный этап**.
+4. Future garden beds / farming — **не начинать** без подтверждения.
 
 ## Стоп
 
-- Не удалять и не очищать `res://upload/`.
-- Не тащить farming / сезоны / NPC-ветки в этот слайс.
+- Не удалять `res://upload/`.
+- Не реализовывать урожай, сезоны, грядки, готовку в этом коммите-цикле.
 - Не переписывать GameRoot «заодно».

@@ -2,6 +2,22 @@
 
 Формат: дата → что сделано → файлы → что осталось.
 
+## 2026-08-02 (e) — childhood homestead geography + orchard layout
+
+**Сделано:**
+- карта VS01 расширена до **44×84** tiles (участок уходит на юг);
+- убран ложный нижний забор ближнего двора; боковые ограды продлены;
+- зоны: `HomesteadZones` + schema `meta.locations.childhood_home_yard.zones`;
+- первый фрагмент `old_orchard` (яблони/груша/больное + berry bushes, stable ids);
+- завал ~y48.5 закрывает garden/far; inactive `village_street` portal на севере;
+- house eave seal pass (tighter under-eave + grass bleed);
+- docs: `CHILDHOOD_HOMESTEAD_LAYOUT.md`, DECISIONS DEC-013;
+- скрины start / yard_to_orchard / orchard / blockage / zones_debug.
+
+**Не делалось:** урожай, обрезка, грядки, сезоны, street scene, NPC.
+
+---
+
 ## 2026-08-02 (d) — assemble playable VS01 childhood yard
 
 **Сделано:**

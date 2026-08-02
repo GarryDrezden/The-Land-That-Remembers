@@ -125,6 +125,48 @@ func is_debris_cleared(debris_id: String) -> bool:
 	return bool(cleared_objects.get(debris_id, false))
 
 
+func ensure_location_zones(location_id: String, defaults: Dictionary) -> void:
+	## Compatible nested schema under meta.locations — no save migration break.
+	if not meta.has("locations") or typeof(meta["locations"]) != TYPE_DICTIONARY:
+		meta["locations"] = {}
+	var locs: Dictionary = meta["locations"]
+	if not locs.has(location_id) or typeof(locs[location_id]) != TYPE_DICTIONARY:
+		locs[location_id] = {"zones": {}}
+	var loc: Dictionary = locs[location_id]
+	if not loc.has("zones") or typeof(loc["zones"]) != TYPE_DICTIONARY:
+		loc["zones"] = {}
+	var zones: Dictionary = loc["zones"]
+	for zid in defaults.keys():
+		if not zones.has(zid):
+			zones[zid] = (defaults[zid] as Dictionary).duplicate(true)
+	loc["zones"] = zones
+	locs[location_id] = loc
+	meta["locations"] = locs
+
+
+func get_location_zone(location_id: String, zone_id: String) -> Dictionary:
+	var locs: Dictionary = meta.get("locations", {})
+	if not locs.has(location_id):
+		return {}
+	var loc: Dictionary = locs[location_id]
+	var zones: Dictionary = loc.get("zones", {})
+	return zones.get(zone_id, {})
+
+
+func set_location_zone_state(location_id: String, zone_id: String, state: String) -> void:
+	ensure_location_zones(location_id, {zone_id: {"state": state, "cleared_count": 0}})
+	var locs: Dictionary = meta["locations"]
+	var zones: Dictionary = locs[location_id]["zones"]
+	var z: Dictionary = zones.get(zone_id, {"cleared_count": 0})
+	z["state"] = state
+	zones[zone_id] = z
+	locs[location_id]["zones"] = zones
+	meta["locations"] = locs
+	flag_changed.emit("zone:%s/%s" % [location_id, zone_id], state)
+	if not _suppress_save:
+		save_state()
+
+
 func mark_debris_cleared(debris_id: String, plot_id: String = "yard_main") -> void:
 	cleared_objects[debris_id] = true
 	var plots: Dictionary = meta.get("yard_plots", {})

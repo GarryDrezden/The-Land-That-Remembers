@@ -3,17 +3,17 @@
   "generated": "2026-08-02",
   "tile": 16,
   "map_tiles": [
-    40,
-    34
+    44,
+    84
   ],
   "map_px": [
-    896,
-    800
+    960,
+    1600
   ],
   "notes": [
-    "VS01 yard around approved PixelLab hero scale.",
+    "VS01 childhood homestead — long plot 44x84 tiles.",
     "Approved exterior: upload/houses/main_house_v1.png → main_house_v1.png.",
-    "Oversized fairy props intentionally omitted.",
+    "Orchard/garden/far zones reserved via ground tint + scene markers.",
     "upload/ originals are never modified in place."
   ],
   "props": {
@@ -79,6 +79,55 @@
         64,
         64
       ]
+    },
+    "fruit_apple_a.png": {
+      "source": "upload/trees-pixel-art/PNG/Assets_separately/Trees/Fruit_tree1.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "fruit_apple_b.png": {
+      "source": "upload/trees-pixel-art/PNG/Assets_separately/Trees/Fruit_tree2.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "fruit_pear.png": {
+      "source": "upload/trees-pixel-art/PNG/Assets_separately/Trees/Fruit_tree3.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "fruit_dead.png": {
+      "source": "upload/trees-pixel-art/PNG/Assets_separately/Trees/Broken_tree4.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "berry_currant.png": {
+      "source": "upload/bushes-pixel-art/PNG/Assets/Bush_simple1_1.png",
+      "size": [
+        28,
+        28
+      ]
+    },
+    "berry_gooseberry.png": {
+      "source": "upload/bushes-pixel-art/PNG/Assets/Bush_simple2_1.png",
+      "size": [
+        28,
+        28
+      ]
+    },
+    "berry_raspberry.png": {
+      "source": "upload/bushes-pixel-art/PNG/Assets/Bush_simple1_2.png",
+      "size": [
+        28,
+        28
+      ]
     }
   },
   "house": {
@@ -87,18 +136,18 @@
     "source_crop": "assets/art/outdoor/yard_vs01/main_house_v1_source_crop.png",
     "target_width": 288,
     "crop_size": [
-      1115,
-      585
+      1233,
+      604
     ],
     "display_size": [
       288,
-      151
+      141
     ],
     "door_rect_display": {
-      "x0": 111,
-      "y0": 87,
-      "x1": 123,
-      "y1": 120
+      "x0": 100,
+      "y0": 78,
+      "x1": 111,
+      "y1": 109
     },
     "notes": [
       "main_house_v1.png is the approved base exterior for the childhood home.",

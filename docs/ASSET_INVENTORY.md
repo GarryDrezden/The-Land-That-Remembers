@@ -1,28 +1,27 @@
 # ASSET INVENTORY
 
-Обновлено: 2026-08-02 (playable VS01 yard)
+Обновлено: 2026-08-02 (homestead / orchard candidates)
 
 Правила: [ART_ASSET_BRIEF.md](ART_ASSET_BRIEF.md) · third-party: [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md) · **catalog:** [README — Где смотреть ассеты](../README.md#где-смотреть-ассеты)
 
-## VS01 yard (playable)
+## VS01 yard / childhood homestead (playable)
 
 | Item | Path |
 |------|------|
 | Scene | `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` |
+| Layout | [CHILDHOOD_HOMESTEAD_LAYOUT.md](CHILDHOOD_HOMESTEAD_LAYOUT.md) |
 | Runtime pack | `assets/art/outdoor/yard_vs01/` |
 | Bake tool | `tools/build_yard_vs01_assets.py` |
-| **Approved house original** | `upload/houses/main_house_v1.png` (**permanent inbox**, never modified) |
-| **House in scene** | `assets/art/outdoor/yard_vs01/main_house_v1.png` — keyed crop, conservative alpha, nearest **288×151** |
-| House meta / door rect | `assets/art/outdoor/yard_vs01/main_house_v1.json` (`target_width`, door ~12×33) |
-| Scene node | `YSortWorld/MainHouse` (Sprite2D + HouseCollision + DoorHotspot) |
-| Start framing | zoom **2.4**, offset `(0,-36)` — `docs/art_tests/yard_vs01_start.png` |
-| Props used | `upload/trees-pixel-art`, `upload/rocks-and-stones-top-down-pixel-art`, `upload/bushes-pixel-art` → `props/` |
-| Drawn props | fence/gate/well/log/stump/weeds/shed/woodpile |
-| Terrain | baked from `texture_proof_v1` grass/dirt 16×16 + grass pad |
+| Map | **44×84** tiles; ground `ground.png` 960×1600 (+pad) |
+| **House original** | `upload/houses/main_house_v1.png` (permanent) |
+| **House runtime** | `…/main_house_v1.png` **288×141** — key BG, eave seal, nearest |
+| Orchard trees | `props/fruit_apple_*.png`, `fruit_pear.png`, `fruit_dead.png` ← `Fruit_tree*` / `Broken_tree4` |
+| Berry bushes | `props/berry_{currant,gooseberry,raspberry}.png` ← `Bush_simple*` |
+| Props used | trees / rocks / bushes upload packs + drawn fence/well/log/stump |
 | Clearables | weed / stone / log / stump / bush via `yard_object.gd` |
-| **Not used here** | `upload/crystals-pixel-art` (not needed for this yard) |
+| **Not used here** | `upload/crystals-pixel-art` |
 
-Not used as VS01 anchors: CraftPix fairy cottage, oversized mushrooms. Placeholder `house_izba_placeholder.png` kept only as reference.
+Not used as VS01 anchors: CraftPix fairy cottage, oversized mushrooms.
 
 ## PixelLab hero v1 (under evaluation)
 

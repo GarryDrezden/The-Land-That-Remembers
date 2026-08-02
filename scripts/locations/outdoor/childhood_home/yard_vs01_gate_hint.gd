@@ -13,7 +13,7 @@ func _ready() -> void:
 
 
 func get_prompt() -> String:
-	return "калитка · дальше в долину (скоро)"
+	return "завал · дальше участок пока закрыт"
 
 
 func interact(_actor: Node) -> void:

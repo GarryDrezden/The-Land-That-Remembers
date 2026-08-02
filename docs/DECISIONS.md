@@ -5,6 +5,27 @@
 
 ---
 
+## DEC-013: Childhood homestead is a long street-facing rural plot
+
+**Решение:**
+- The childhood house stands near the **street-facing (north) edge** of a long rural plot;
+- The visible VS01 entrance is the **yard-side entrance** (south facade);
+- The homestead extends **southward beyond the first screen**;
+- Full property is approximately equivalent to a traditional **25–30 sotka** rural plot;
+- Property is divided into: near yard, utility yard, orchard, garden, far overgrown zones;
+- **Orchard restoration** is a future gameplay system, not part of the current VS01 implementation;
+- Map plate target: ~**44×84** tiles (moderate width, long south);
+- Future link: `childhood_home_yard` ↔ `village_street` (portal marker only for now).
+
+**Последствия:**
+- No false south fence closing the near yard as if it were the whole estate;
+- Zone progress / unlock can later hang off `meta.locations.childhood_home_yard.zones`;
+- Farming / harvest / seasons stay out of scope until explicitly approved.
+
+**Статус:** принято · 2026-08-02
+
+---
+
 ## DEC-012: main_house_v1 approved as childhood-home exterior
 
 **Решение:**

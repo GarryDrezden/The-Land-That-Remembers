@@ -4,18 +4,18 @@
   "source_crop": "assets/art/outdoor/yard_vs01/main_house_v1_source_crop.png",
   "target_width": 288,
   "crop_size": [
-    1115,
-    585
+    1233,
+    604
   ],
   "display_size": [
     288,
-    151
+    141
   ],
   "door_rect_display": {
-    "x0": 111,
-    "y0": 87,
-    "x1": 123,
-    "y1": 120
+    "x0": 100,
+    "y0": 78,
+    "x1": 111,
+    "y1": 109
   },
   "notes": [
     "main_house_v1.png is the approved base exterior for the childhood home.",

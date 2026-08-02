@@ -1,6 +1,6 @@
 # ARCHITECTURE
 
-Обновлено: 2026-08-02 (playable VS01 childhood yard)  
+Обновлено: 2026-08-02 (childhood homestead geography)  
 **Ориентир структуры (план):** [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md)  
 **Этот файл:** что **фактически** есть в репозитории сейчас (не идеальная целевая схема).
 
@@ -8,21 +8,22 @@
 
 ---
 
-## VS01 outdoor yard (playable)
+## VS01 outdoor yard (playable homestead)
 
 | Элемент | Путь |
 |---------|------|
 | Playable scene | `scenes/locations/outdoor/childhood_home/yard_vs01.tscn` |
+| Layout doc | `docs/CHILDHOOD_HOMESTEAD_LAYOUT.md` |
 | GameFlow ids | `childhood_home`, `yard_vs01`, `from_house` |
-| Chapter preset | `vs01_childhood_home` |
-| Builder script | `scripts/locations/outdoor/childhood_home/yard_vs01.gd` |
-| Door / gate | `yard_vs01_door.gd` → workshop stub; `yard_vs01_gate_hint.gd` |
-| Runtime art | `assets/art/outdoor/yard_vs01/` |
-| House source → runtime | `upload/houses/main_house_v1.png` → `main_house_v1.png` **288×151** |
+| Location / zones id | `childhood_home_yard` → `meta.locations.*.zones` |
+| Map | **44×84** tiles (+8 grass pad) |
+| Zones | `HomesteadZones/*` Node2D markers + F11 overlay |
+| Orchard stubs | `scripts/world/fruit_tree_stub.gd` |
+| Street portal | `village_street_portal.gd` (inactive) |
+| House source → runtime | `upload/houses/main_house_v1.png` → `main_house_v1.png` **288×141** |
 | Hero | `player_pixellab_test` (`PIXEL_DIV=2`, 8-dir) |
 | Clearables | `yard_object.gd` + `WorldState.cleared_objects`, plot `yard_vs01` |
-| Start camera | zoom **2.4**, offset `(0,-36)`, limits padded ground |
-| Map | 40×34 tiles (+8 tile grass pad) |
+| Start camera | zoom **2.4**, offset `(0,-36)` |
 | Asset bake | `tools/build_yard_vs01_assets.py` |
 
 CraftPix `craftpix_home_preview` / `craftpix_hero_test` остаются отдельными art-test сценами.

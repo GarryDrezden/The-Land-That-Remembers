@@ -22,8 +22,9 @@ OUT = ROOT / "assets" / "art" / "outdoor" / "yard_vs01"
 UPLOAD = ROOT / "upload"
 
 TILE = 16
-MAP_W = 40
-MAP_H = 34
+## Long rural plot (~25–30 sotka feel): moderate width, extends south.
+MAP_W = 44
+MAP_H = 84
 ## Extra grass around the playable plate so camera offset/zoom never shows void.
 GROUND_PAD_TILES = 8
 GROUND_W = (MAP_W + GROUND_PAD_TILES * 2) * TILE
@@ -52,6 +53,14 @@ PROP_COPY = {
     "tree_a.png": UPLOAD / "trees-pixel-art/PNG/Assets_separately/Trees/Tree2.png",
     "tree_b.png": UPLOAD / "trees-pixel-art/PNG/Assets_separately/Trees/Moss_tree2.png",
     "tree_c.png": UPLOAD / "trees-pixel-art/PNG/Assets_separately/Trees/Broken_tree4.png",
+    # Orchard candidates — Fruit_tree* as apple/pear stand-ins; Broken as diseased.
+    "fruit_apple_a.png": UPLOAD / "trees-pixel-art/PNG/Assets_separately/Trees/Fruit_tree1.png",
+    "fruit_apple_b.png": UPLOAD / "trees-pixel-art/PNG/Assets_separately/Trees/Fruit_tree2.png",
+    "fruit_pear.png": UPLOAD / "trees-pixel-art/PNG/Assets_separately/Trees/Fruit_tree3.png",
+    "fruit_dead.png": UPLOAD / "trees-pixel-art/PNG/Assets_separately/Trees/Broken_tree4.png",
+    "berry_currant.png": UPLOAD / "bushes-pixel-art/PNG/Assets/Bush_simple1_1.png",
+    "berry_gooseberry.png": UPLOAD / "bushes-pixel-art/PNG/Assets/Bush_simple2_1.png",
+    "berry_raspberry.png": UPLOAD / "bushes-pixel-art/PNG/Assets/Bush_simple1_2.png",
 }
 
 
@@ -268,17 +277,24 @@ def bake_ground() -> Image.Image:
             tile = grass_tiles[(tx * 3 + ty * 5) % 2]
             ground.paste(tile, (tx * TILE, ty * TILE))
 
-    # Path mask in playable coords, then offset by pad.
+    # Path: house front → utility → orchard (stops before far blockage).
     path_cells: set[tuple[int, int]] = set()
-    for y in range(13, 33):
+    for y in range(13, 50):
         for dx in (-1, 0, 1):
-            path_cells.add((19 + dx, y))
-    for y in range(26, 33):
-        for dx in (-2, 2):
-            path_cells.add((19 + dx, y))
-    for y in range(13, 20):
+            path_cells.add((20 + dx, y))
+    for y in range(13, 22):
         for dx in (-2, -1, 0, 1, 2):
-            path_cells.add((19 + dx, y))
+            path_cells.add((20 + dx, y))
+    for y in range(22, 36):
+        for dx in (-2, 2):
+            if (20 + dx + y) % 3 == 0:
+                path_cells.add((20 + dx, y))
+    # Soft orchard wander (no ladder/arms)
+    for y in range(36, 48):
+        wobble = 1 if (y // 3) % 2 == 0 else -1
+        path_cells.add((20 + wobble, y))
+        path_cells.add((20, y))
+    # Near-yard side path to well / shed
     for y in range(16, 24):
         for x in range(14, 18):
             if (x + y) % 3 != 0:
@@ -289,14 +305,50 @@ def bake_ground() -> Image.Image:
             tile = dirt_tiles[(tx + ty) % 2]
             ground.paste(tile, ((tx + pad) * TILE, (ty + pad) * TILE))
 
-    # Darker overgrown tint on side bands (playable plate only).
+    # Zone character tints (playable plate only) — soft, not hard rectangles.
     overlay = Image.new("RGBA", (GROUND_W, GROUND_H), (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
     ox0 = pad * TILE
     oy0 = pad * TILE
-    od.rectangle((ox0, oy0, ox0 + 10 * TILE, oy0 + MAP_H * TILE), fill=(20, 40, 16, 28))
-    od.rectangle((ox0 + 30 * TILE, oy0, ox0 + MAP_W * TILE, oy0 + MAP_H * TILE), fill=(20, 40, 16, 28))
-    od.rectangle((ox0, oy0, ox0 + MAP_W * TILE, oy0 + 6 * TILE), fill=(18, 30, 14, 22))
+
+    def band(y0: int, y1: int, rgba: tuple[int, int, int, int]) -> None:
+        od.rectangle(
+            (ox0, oy0 + y0 * TILE, ox0 + MAP_W * TILE, oy0 + y1 * TILE),
+            fill=rgba,
+        )
+
+    # Street edge / north — slightly darker
+    band(0, 7, (18, 30, 14, 26))
+    # Side overgrowth near fences
+    od.rectangle((ox0, oy0, ox0 + 8 * TILE, oy0 + MAP_H * TILE), fill=(20, 40, 16, 30))
+    od.rectangle(
+        (ox0 + 36 * TILE, oy0, ox0 + MAP_W * TILE, oy0 + MAP_H * TILE),
+        fill=(20, 40, 16, 30),
+    )
+    # Utility — mild
+    band(22, 34, (28, 36, 18, 16))
+    # Orchard — cooler green
+    band(34, 50, (16, 42, 28, 22))
+    # Future garden — warmer wild grass + faint old bed scars
+    band(50, 66, (40, 48, 18, 28))
+    for bx, by, bw, bh in (
+        (12, 54, 6, 3),
+        (20, 56, 7, 3),
+        (28, 53, 5, 4),
+        (14, 60, 8, 2),
+    ):
+        od.rectangle(
+            (
+                ox0 + bx * TILE,
+                oy0 + by * TILE,
+                ox0 + (bx + bw) * TILE,
+                oy0 + (by + bh) * TILE,
+            ),
+            fill=(70, 55, 30, 40),
+        )
+    # Far overgrown — deepest
+    band(66, MAP_H, (12, 28, 14, 40))
+
     ground = Image.alpha_composite(ground, overlay)
     return ground
 
@@ -443,15 +495,15 @@ def _clean_house_alpha(im: Image.Image) -> Image.Image:
                 arr[i] = _sample_house_fill(arr, w, h, x, y)
                 filled += 1
 
-    # Tiny column leaks (1–2px) between roof above and wall below — no thick slabs.
-    max_gap = 2
+    # Tiny column leaks (1–5px) between roof above and wall below — no thick slabs.
+    max_gap = 5
     for y in range(2, h - 2):
         for x in range(w):
             i = idx(x, y)
             if arr[i][3] >= 200:
                 continue
             above_y = None
-            for dy in range(1, 12):
+            for dy in range(1, 14):
                 if y - dy < 0:
                     break
                 if is_opaque(x, y - dy, 200):
@@ -460,7 +512,7 @@ def _clean_house_alpha(im: Image.Image) -> Image.Image:
             if above_y is None:
                 continue
             below_y = None
-            for dy in range(1, 12):
+            for dy in range(1, 14):
                 if y + dy >= h:
                     break
                 if is_opaque(x, y + dy, 200):
@@ -471,6 +523,52 @@ def _clean_house_alpha(im: Image.Image) -> Image.Image:
             if (below_y - above_y - 1) <= max_gap:
                 arr[i] = _sample_house_fill(arr, w, h, x, y)
                 filled += 1
+
+    # Under-eave seal: only narrow leaks between roof (above) and wall (below),
+    # or thin flanked gaps — never mass-fill exterior silhouette.
+    eave_sealed = 0
+    for y in range(3, h - 2):
+        for x in range(1, w - 1):
+            i = idx(x, y)
+            r, g, b, a = arr[i]
+            grassish = a >= 40 and g > r + 22 and g > b + 14 and (r + g + b) > 140
+            if a >= 200 and not grassish:
+                continue
+            # Must sit under non-grass opaque roof within 6px.
+            roof_dy = None
+            for dy in range(1, 7):
+                if y - dy < 0:
+                    break
+                if not is_opaque(x, y - dy, 220):
+                    continue
+                pr, pg, pb, _pa = arr[idx(x, y - dy)]
+                if pg > pr + 28 and pg > pb + 18:
+                    continue
+                roof_dy = dy
+                break
+            if roof_dy is None:
+                continue
+            # Prefer true under-eave: wall/mass below within 8px.
+            wall_below = False
+            for dy in range(1, 9):
+                if y + dy >= h:
+                    break
+                if is_opaque(x, y + dy, 200):
+                    pr, pg, pb, _pa = arr[idx(x, y + dy)]
+                    if not (pg > pr + 28 and pg > pb + 18):
+                        wall_below = True
+                        break
+            left_ok = is_opaque(x - 1, y, 200) or is_opaque(x - 2, y, 200)
+            right_ok = is_opaque(x + 1, y, 200) or is_opaque(x + 2, y, 200)
+            flanked_both = left_ok and right_ok
+            if not wall_below and not flanked_both:
+                continue
+            # Exterior pixels only if flanked on both sides (1–2px leak).
+            if exterior[i] and not flanked_both:
+                continue
+            arr[i] = _sample_house_fill(arr, w, h, x, y)
+            eave_sealed += 1
+            filled += 1
 
     # Binary alpha: exterior soft → clear; interior soft → solid wood sample.
     soft_cleared = 0
@@ -495,7 +593,7 @@ def _clean_house_alpha(im: Image.Image) -> Image.Image:
     out.putdata(arr)
     print(
         f"House alpha clean: fringe={stripped}, holes={filled}, "
-        f"soft_clear={soft_cleared}, soft_solid={soft_solid}"
+        f"eave_seal={eave_sealed}, soft_clear={soft_cleared}, soft_solid={soft_solid}"
     )
     return out
 
@@ -643,9 +741,9 @@ def copy_props() -> dict:
             raise SystemExit(f"Missing prop source: {src}")
         im = load_rgba(src)
         # Cap oversized trees/bushes to scale bible
-        if name.startswith("tree"):
+        if name.startswith("tree") or name.startswith("fruit_"):
             im = nearest_fit(im, 64, 80)
-        elif name.startswith("bush"):
+        elif name.startswith("bush") or name.startswith("berry_"):
             im = nearest_fit(im, 32, 28)
         elif name.startswith("rock_lg"):
             im = nearest_fit(im, 28, 24)
@@ -694,9 +792,9 @@ def process() -> None:
         "map_tiles": [MAP_W, MAP_H],
         "map_px": [GROUND_W, GROUND_H],
         "notes": [
-            "VS01 yard around approved PixelLab hero scale.",
+            "VS01 childhood homestead — long plot 44x84 tiles.",
             "Approved exterior: upload/houses/main_house_v1.png → main_house_v1.png.",
-            "Oversized fairy props intentionally omitted.",
+            "Orchard/garden/far zones reserved via ground tint + scene markers.",
             "upload/ originals are never modified in place.",
         ],
         "props": prop_meta,
